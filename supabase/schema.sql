@@ -1,6 +1,3 @@
--- Enable RLS (Row Level Security)
-alter table auth.users enable row level security;
-
 -- Create profiles table
 create table profiles (
   id uuid references auth.users(id) on delete cascade primary key,
@@ -78,7 +75,7 @@ create or replace function public.handle_new_user()
 returns trigger as $$
 begin
   insert into public.profiles (id, full_name, subscription_status, credits_remaining)
-  values (new.id, new.raw_user_meta_data->>'full_name', 'free', 0);
+  values (new.id, new.raw_user_meta_data->>'full_name', 'free', 1);
   return new;
 end;
 $$ language plpgsql security definer;

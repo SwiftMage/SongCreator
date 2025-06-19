@@ -53,21 +53,21 @@ export default function Home() {
         <div className="grid md:grid-cols-3 gap-8">
           <div className="text-center p-6">
             <Heart className="h-12 w-12 text-red-500 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold mb-2">Romantic Moments</h3>
+            <h3 className="text-xl font-semibold mb-2 text-gray-900">Romantic Moments</h3>
             <p className="text-gray-600">
-              Anniversaries, proposals, Valentine's Day, or just because you love them.
+              Anniversaries, proposals, Valentine&apos;s Day, or just because you love them.
             </p>
           </div>
           <div className="text-center p-6">
             <Gift className="h-12 w-12 text-green-500 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold mb-2">Special Celebrations</h3>
+            <h3 className="text-xl font-semibold mb-2 text-gray-900">Special Celebrations</h3>
             <p className="text-gray-600">
               Birthdays, graduations, promotions, or any milestone worth celebrating.
             </p>
           </div>
           <div className="text-center p-6">
             <Users className="h-12 w-12 text-blue-500 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold mb-2">Family & Friends</h3>
+            <h3 className="text-xl font-semibold mb-2 text-gray-900">Family & Friends</h3>
             <p className="text-gray-600">
               Create memories with personalized songs for the people who matter most.
             </p>
@@ -86,28 +86,28 @@ export default function Home() {
               <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-2xl font-bold text-purple-600">1</span>
               </div>
-              <h3 className="text-lg font-semibold mb-2">Answer Questions</h3>
+              <h3 className="text-lg font-semibold mb-2 text-gray-900">Answer Questions</h3>
               <p className="text-gray-600">Tell us about the recipient and occasion</p>
             </div>
             <div className="text-center">
               <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-2xl font-bold text-purple-600">2</span>
               </div>
-              <h3 className="text-lg font-semibold mb-2">Choose Style</h3>
+              <h3 className="text-lg font-semibold mb-2 text-gray-900">Choose Style</h3>
               <p className="text-gray-600">Select genre, mood, and preferences</p>
             </div>
             <div className="text-center">
               <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-2xl font-bold text-purple-600">3</span>
               </div>
-              <h3 className="text-lg font-semibold mb-2">AI Creates</h3>
+              <h3 className="text-lg font-semibold mb-2 text-gray-900">AI Creates</h3>
               <p className="text-gray-600">Our AI generates your custom song</p>
             </div>
             <div className="text-center">
               <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-2xl font-bold text-purple-600">4</span>
               </div>
-              <h3 className="text-lg font-semibold mb-2">Download & Share</h3>
+              <h3 className="text-lg font-semibold mb-2 text-gray-900">Download & Share</h3>
               <p className="text-gray-600">Get your song and share the magic</p>
             </div>
           </div>
