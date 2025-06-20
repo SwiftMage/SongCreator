@@ -1,7 +1,29 @@
+'use client'
+
 import Link from "next/link";
-import { Music, Heart, Gift, Users } from "lucide-react";
+import { useEffect, useState } from "react";
+import { createClient } from '@/lib/supabase';
+import { Music, Heart, Gift, Users, LogOut, User } from "lucide-react";
 
 export default function Home() {
+  const [user, setUser] = useState<any>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const supabase = createClient()
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      setUser(user)
+      setIsLoading(false)
+    }
+    checkAuth()
+  }, [supabase])
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    setUser(null)
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50">
       {/* Navigation */}
@@ -12,18 +34,46 @@ export default function Home() {
             <span className="text-2xl font-bold text-gray-900">SongCreator</span>
           </div>
           <div className="flex items-center space-x-4">
-            <Link 
-              href="/auth/login"
-              className="text-gray-600 hover:text-gray-900 transition-colors"
-            >
-              Login
-            </Link>
-            <Link 
-              href="/auth/register"
-              className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
-            >
-              Get Started
-            </Link>
+            {isLoading ? (
+              <div className="h-6 w-20 bg-gray-200 rounded animate-pulse" />
+            ) : user ? (
+              <div className="flex items-center space-x-4">
+                <Link 
+                  href="/dashboard"
+                  className="text-gray-600 hover:text-gray-900 transition-colors"
+                >
+                  Dashboard
+                </Link>
+                <div className="flex items-center space-x-2 text-gray-700">
+                  <User className="h-4 w-4" />
+                  <span className="font-medium">
+                    {user.user_metadata?.full_name || user.email?.split('@')[0] || 'User'}
+                  </span>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="text-gray-600 hover:text-gray-900 transition-colors flex items-center space-x-1"
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span>Logout</span>
+                </button>
+              </div>
+            ) : (
+              <>
+                <Link 
+                  href="/auth/login"
+                  className="text-gray-600 hover:text-gray-900 transition-colors"
+                >
+                  Login
+                </Link>
+                <Link 
+                  href="/auth/register"
+                  className="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition-colors"
+                >
+                  Get Started
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </nav>
@@ -39,7 +89,7 @@ export default function Home() {
         </p>
         <Link 
           href="/create"
-          className="bg-purple-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-purple-700 transition-colors inline-block"
+          className="bg-purple-600 text-white px-10 py-5 rounded-lg text-lg font-semibold hover:bg-purple-700 transition-colors inline-block"
         >
           Create Your Song Now
         </Link>
@@ -131,7 +181,7 @@ export default function Home() {
             </ul>
             <Link 
               href="/create"
-              className="w-full bg-purple-600 text-white py-3 rounded-lg mt-6 block text-center hover:bg-purple-700 transition-colors"
+              className="w-full bg-purple-600 text-white py-4 rounded-lg mt-6 block text-center hover:bg-purple-700 transition-colors"
             >
               Create Song
             </Link>
@@ -152,7 +202,7 @@ export default function Home() {
             </ul>
             <Link 
               href="/create?bundle=3"
-              className="w-full bg-purple-600 text-white py-3 rounded-lg mt-6 block text-center hover:bg-purple-700 transition-colors"
+              className="w-full bg-purple-600 text-white py-4 rounded-lg mt-6 block text-center hover:bg-purple-700 transition-colors"
             >
               Get Bundle
             </Link>

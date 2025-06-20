@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 import { 
@@ -18,7 +18,8 @@ import {
   Calendar,
   Sparkles,
   Gift,
-  Cake
+  Cake,
+  RefreshCw
 } from 'lucide-react'
 
 interface FormData {
@@ -71,11 +72,13 @@ const instruments = [
   'Cello', 'Clarinet', 'Accordion', 'Mandolin', 'Harp', 'Organ'
 ]
 
-export default function CreateSongPage() {
+export default function EditSongPage() {
   const [currentStep, setCurrentStep] = useState(1)
   const [user, setUser] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [songId, setSongId] = useState<string | null>(null)
+  const [originalSong, setOriginalSong] = useState<any>(null)
   const [formData, setFormData] = useState<FormData>({
     subjectName: '',
     relationship: '',
@@ -94,10 +97,11 @@ export default function CreateSongPage() {
   })
 
   const router = useRouter()
+  const searchParams = useSearchParams()
   const supabase = createClient()
 
   useEffect(() => {
-    const checkAuth = async () => {
+    const checkAuthAndLoadSong = async () => {
       const { data: { user } } = await supabase.auth.getUser()
       
       if (!user) {
@@ -106,11 +110,61 @@ export default function CreateSongPage() {
       }
       
       setUser(user)
-      setIsLoading(false)
+      
+      const songIdParam = searchParams.get('songId')
+      if (songIdParam) {
+        setSongId(songIdParam)
+        await loadSongData(songIdParam, user.id)
+      } else {
+        router.push('/dashboard')
+      }
     }
 
-    checkAuth()
-  }, [router, supabase])
+    checkAuthAndLoadSong()
+  }, [router, searchParams, supabase])
+
+  const loadSongData = async (songId: string, userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('songs')
+        .select('*')
+        .eq('id', songId)
+        .eq('user_id', userId)
+        .single()
+
+      if (error || !data) {
+        console.error('Error loading song:', error)
+        router.push('/dashboard')
+        return
+      }
+
+      setOriginalSong(data)
+      
+      // Populate form with existing data
+      const questionnaireData = data.questionnaire_data
+      setFormData({
+        subjectName: questionnaireData.subjectName || '',
+        relationship: questionnaireData.relationship || '',
+        songType: questionnaireData.songType || '',
+        positiveAttributes: questionnaireData.positiveAttributes || [],
+        insideJokes: questionnaireData.insideJokes || [],
+        specialPlaces: questionnaireData.specialPlaces || [],
+        specialMoments: questionnaireData.specialMoments || [],
+        favoriteMemories: questionnaireData.favoriteMemories || [],
+        occasionDetails: questionnaireData.occasionDetails || '',
+        genres: questionnaireData.genres || [],
+        instruments: questionnaireData.instruments || [],
+        singer: questionnaireData.singer || '',
+        energy: questionnaireData.energy || '',
+        otherStyle: questionnaireData.otherStyle || ''
+      })
+
+      setIsLoading(false)
+    } catch (error) {
+      console.error('Error loading song data:', error)
+      router.push('/dashboard')
+    }
+  }
 
   const addItem = (field: keyof FormData, value: string) => {
     if (value.trim()) {
@@ -227,56 +281,59 @@ export default function CreateSongPage() {
   }
 
   const handleSubmit = async () => {
+    if (!songId || !user) return
+    
     setIsSubmitting(true)
     
     try {
-      // First check if user has credits
-      const { data: profileData } = await supabase
+      // Check if user has credits
+      const { data: profile } = await supabase
         .from('profiles')
         .select('credits_remaining')
         .eq('id', user.id)
         .single()
 
-      if (!profileData || profileData.credits_remaining < 1) {
-        alert('You need credits to create a song. Please purchase more credits.')
-        router.push('/pricing')
+      if (!profile || profile.credits_remaining < 1) {
+        alert('You need at least 1 credit to regenerate a song. Please purchase more credits.')
+        setIsSubmitting(false)
         return
       }
 
       const aiPrompt = generateAIPrompt(formData)
       
-      const { data, error } = await supabase
+      // Update song with new data and reset status
+      const { error: updateError } = await supabase
         .from('songs')
-        .insert({
-          user_id: user.id,
+        .update({
           title: `${formData.songType.charAt(0).toUpperCase() + formData.songType.slice(1)} Song for ${formData.subjectName}`,
           status: 'pending',
           questionnaire_data: {
             ...formData,
             aiPrompt: aiPrompt
-          }
+          },
+          generated_lyrics: null, // Clear old lyrics
+          audio_url: null, // Clear old audio
+          completed_at: null
         })
-        .select()
-        .single()
+        .eq('id', songId)
 
-      if (error) throw error
+      if (updateError) throw updateError
 
       // Deduct credit
       await supabase
         .from('profiles')
         .update({
-          credits_remaining: profileData.credits_remaining - 1
+          credits_remaining: profile.credits_remaining - 1
         })
         .eq('id', user.id)
 
-      console.log('Generated AI Prompt:', aiPrompt)
-      console.log('Created song with ID:', data.id)
+      console.log('Updated song with new data and AI prompt:', aiPrompt)
       
       // Redirect to generation page
-      router.push(`/create/generating?songId=${data.id}`)
+      router.push(`/create/generating?songId=${songId}`)
     } catch (error) {
-      console.error('Error creating song:', error)
-      alert('An error occurred while creating your song. Please try again.')
+      console.error('Error updating song:', error)
+      alert('Failed to update song. Please try again.')
     } finally {
       setIsSubmitting(false)
     }
@@ -302,7 +359,7 @@ export default function CreateSongPage() {
       <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center">
         <div className="text-center">
           <Music className="h-12 w-12 text-purple-600 animate-pulse mx-auto mb-4" />
-          <p className="text-gray-600">Loading song creator...</p>
+          <p className="text-gray-600">Loading song editor...</p>
         </div>
       </div>
     )
@@ -329,6 +386,21 @@ export default function CreateSongPage() {
           </div>
         </div>
       </header>
+
+      {/* Header Info */}
+      <div className="bg-white border-b">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center space-x-3">
+            <RefreshCw className="h-6 w-6 text-purple-600" />
+            <div>
+              <h1 className="text-xl font-bold text-gray-900">Edit Song</h1>
+              <p className="text-sm text-gray-600">
+                Editing: {originalSong?.title} • This will cost 1 credit to regenerate
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Progress Bar */}
       <div className="bg-white border-b">
@@ -653,10 +725,10 @@ export default function CreateSongPage() {
               <button
                 onClick={handleSubmit}
                 disabled={isSubmitting || !canProceed()}
-                className="flex items-center space-x-2 px-8 py-4 bg-gray-800 text-white rounded-lg font-semibold hover:bg-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="flex items-center space-x-2 px-8 py-4 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors"
               >
-                <Music className="h-5 w-5" />
-                <span>{isSubmitting ? 'Creating...' : 'Create Song'}</span>
+                <RefreshCw className="h-5 w-5" />
+                <span>{isSubmitting ? 'Regenerating...' : 'Regenerate Song (1 Credit)'}</span>
               </button>
             )}
           </div>

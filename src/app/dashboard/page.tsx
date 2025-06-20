@@ -12,7 +12,9 @@ import {
   LogOut,
   Clock,
   Download,
-  Play
+  Play,
+  Edit,
+  RefreshCw
 } from 'lucide-react'
 
 interface Song {
@@ -54,24 +56,47 @@ export default function DashboardPage() {
     setIsLoading(true)
     
     // Fetch user's songs
-    const { data: songsData } = await supabase
+    const { data: songsData, error: songsError } = await supabase
       .from('songs')
       .select('*')
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
     
-    if (songsData) {
+    if (songsError) {
+      console.error('Error fetching songs:', songsError)
+    } else if (songsData) {
       setSongs(songsData)
     }
     
     // Fetch user's profile
-    const { data: profileData } = await supabase
+    const { data: profileData, error: profileError } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', userId)
       .single()
     
-    if (profileData) {
+    if (profileError) {
+      console.error('Error fetching profile:', profileError)
+      // Create profile if it doesn't exist
+      if (profileError.code === 'PGRST116') {
+        const { data: newProfile, error: createError } = await supabase
+          .from('profiles')
+          .insert({
+            id: userId,
+            full_name: user?.user_metadata?.full_name || null,
+            subscription_status: 'free',
+            credits_remaining: 1
+          })
+          .select()
+          .single()
+        
+        if (createError) {
+          console.error('Error creating profile:', createError)
+        } else {
+          setProfile(newProfile)
+        }
+      }
+    } else if (profileData) {
       setProfile(profileData)
     }
     
@@ -102,7 +127,11 @@ export default function DashboardPage() {
     )
   }
 
-  const remainingCredits = profile?.credits_remaining || 0
+  const remainingCredits = profile?.credits_remaining ?? 0
+  
+  // Debug logging
+  console.log('Profile data:', profile)
+  console.log('Remaining credits:', remainingCredits)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50">
@@ -110,10 +139,10 @@ export default function DashboardPage() {
       <header className="bg-white shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
+            <Link href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
               <Music className="h-8 w-8 text-purple-600" />
               <span className="text-2xl font-bold text-gray-900">SongCreator</span>
-            </div>
+            </Link>
             
             <nav className="flex items-center space-x-4">
               <Link 
@@ -156,6 +185,33 @@ export default function DashboardPage() {
                   {remainingCredits}
                 </p>
                 <p className="text-sm text-purple-600 mt-1">remaining</p>
+                {/* Temporary button for testing - always show for now */}
+                <button
+                  onClick={async () => {
+                    try {
+                      const response = await fetch('/api/add-test-credits', {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ userId: user.id })
+                      })
+                      const data = await response.json()
+                      if (data.success) {
+                        alert(data.message)
+                        window.location.reload()
+                      } else {
+                        alert(data.error || 'Failed to add test credits')
+                      }
+                    } catch (error) {
+                      console.error('Error adding credits:', error)
+                      alert('Failed to add test credits')
+                    }
+                  }}
+                  className="mt-2 text-xs bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700"
+                >
+                  Add Test Credits
+                </button>
               </div>
             </div>
           </div>
@@ -164,7 +220,7 @@ export default function DashboardPage() {
           <div className="flex flex-col sm:flex-row gap-4">
             <Link
               href="/create"
-              className={`flex-1 flex items-center justify-center space-x-2 px-6 py-3 rounded-lg font-semibold transition-colors ${
+              className={`flex-1 flex items-center justify-center space-x-2 px-8 py-4 rounded-lg font-semibold transition-colors ${
                 remainingCredits > 0
                   ? 'bg-purple-600 text-white hover:bg-purple-700'
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed'
@@ -176,7 +232,7 @@ export default function DashboardPage() {
             
             <Link
               href="/pricing"
-              className="flex-1 flex items-center justify-center space-x-2 px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors"
+              className="flex-1 flex items-center justify-center space-x-2 px-8 py-4 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors"
             >
               <ShoppingCart className="h-5 w-5" />
               <span>Buy More Credits</span>
@@ -194,7 +250,7 @@ export default function DashboardPage() {
               <p className="text-gray-500 mb-4">You haven't created any songs yet</p>
               <Link
                 href="/create"
-                className="inline-flex items-center space-x-2 px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors"
+                className="inline-flex items-center space-x-2 px-8 py-4 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors"
               >
                 <Plus className="h-5 w-5" />
                 <span>Create Your First Song</span>
@@ -229,20 +285,30 @@ export default function DashboardPage() {
                       </div>
                     </div>
                     
-                    {song.status === 'completed' && song.audio_url && (
-                      <div className="flex items-center space-x-2 ml-4">
-                        <button className="p-2 text-purple-600 hover:bg-purple-100 rounded-lg transition-colors">
-                          <Play className="h-5 w-5" />
-                        </button>
-                        <a
-                          href={song.audio_url}
-                          download={`${song.title}.mp3`}
-                          className="p-2 text-purple-600 hover:bg-purple-100 rounded-lg transition-colors"
-                        >
-                          <Download className="h-5 w-5" />
-                        </a>
-                      </div>
-                    )}
+                    <div className="flex items-center space-x-2 ml-4">
+                      <Link
+                        href={`/create/edit?songId=${song.id}`}
+                        className="p-2 text-purple-600 hover:bg-purple-100 rounded-lg transition-colors"
+                        title="Edit and regenerate song"
+                      >
+                        <Edit className="h-5 w-5" />
+                      </Link>
+                      
+                      {song.status === 'completed' && song.audio_url && (
+                        <>
+                          <button className="p-2 text-purple-600 hover:bg-purple-100 rounded-lg transition-colors">
+                            <Play className="h-5 w-5" />
+                          </button>
+                          <a
+                            href={song.audio_url}
+                            download={`${song.title}.mp3`}
+                            className="p-2 text-purple-600 hover:bg-purple-100 rounded-lg transition-colors"
+                          >
+                            <Download className="h-5 w-5" />
+                          </a>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}

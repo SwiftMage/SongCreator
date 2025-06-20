@@ -132,10 +132,10 @@ export default function AccountPage() {
       <header className="bg-white shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
+            <Link href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
               <Music className="h-8 w-8 text-purple-600" />
               <span className="text-2xl font-bold text-gray-900">SongCreator</span>
-            </div>
+            </Link>
             
             <Link 
               href="/dashboard"
@@ -169,7 +169,7 @@ export default function AccountPage() {
               <nav className="-mb-px flex">
                 <button
                   onClick={() => setActiveTab('profile')}
-                  className={`py-4 px-6 text-sm font-medium border-b-2 transition-colors ${
+                  className={`py-4 px-8 text-sm font-medium border-b-2 transition-colors ${
                     activeTab === 'profile'
                       ? 'border-purple-600 text-purple-600'
                       : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -180,7 +180,7 @@ export default function AccountPage() {
                 </button>
                 <button
                   onClick={() => setActiveTab('password')}
-                  className={`py-4 px-6 text-sm font-medium border-b-2 transition-colors ${
+                  className={`py-4 px-8 text-sm font-medium border-b-2 transition-colors ${
                     activeTab === 'password'
                       ? 'border-purple-600 text-purple-600'
                       : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -191,7 +191,7 @@ export default function AccountPage() {
                 </button>
                 <button
                   onClick={() => setActiveTab('billing')}
-                  className={`py-4 px-6 text-sm font-medium border-b-2 transition-colors ${
+                  className={`py-4 px-8 text-sm font-medium border-b-2 transition-colors ${
                     activeTab === 'billing'
                       ? 'border-purple-600 text-purple-600'
                       : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -243,7 +243,7 @@ export default function AccountPage() {
                   <button
                     type="submit"
                     disabled={isSaving}
-                    className="flex items-center space-x-2 px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="flex items-center space-x-2 px-8 py-4 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     <Save className="h-5 w-5" />
                     <span>{isSaving ? 'Saving...' : 'Save Changes'}</span>
@@ -307,7 +307,7 @@ export default function AccountPage() {
                   <button
                     type="submit"
                     disabled={isSaving}
-                    className="flex items-center space-x-2 px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="flex items-center space-x-2 px-8 py-4 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     <Lock className="h-5 w-5" />
                     <span>{isSaving ? 'Updating...' : 'Update Password'}</span>
@@ -333,7 +333,7 @@ export default function AccountPage() {
                             <p className="text-sm text-gray-500">No payment method on file</p>
                           </div>
                         </div>
-                        <button className="text-purple-600 hover:text-purple-700 font-medium">
+                        <button className="text-purple-600 hover:text-purple-700 font-medium px-4 py-2">
                           Add Method
                         </button>
                       </div>
@@ -352,7 +352,7 @@ export default function AccountPage() {
                     </p>
                     <Link
                       href="/pricing"
-                      className="inline-flex items-center space-x-2 px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors"
+                      className="inline-flex items-center space-x-2 px-8 py-4 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors"
                     >
                       <ShoppingCart className="h-5 w-5" />
                       <span>View Pricing Plans</span>

@@ -2,12 +2,20 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
-import { Music, ArrowLeft, Check, Loader2 } from 'lucide-react'
+import { Music, ArrowLeft, Check, Loader2, Play, Volume2 } from 'lucide-react'
 
 interface GenerationStatus {
   status: 'preparing' | 'generating' | 'completed' | 'error'
   progress: number
+  message: string
+}
+
+interface MusicGenerationStatus {
+  status: 'idle' | 'generating' | 'completed' | 'error'
+  taskId?: string
+  audioUrl?: string
   message: string
 }
 
@@ -21,6 +29,15 @@ export default function GeneratingSongPage() {
   const [generatedLyrics, setGeneratedLyrics] = useState('')
   const [error, setError] = useState('')
   const [songId, setSongId] = useState<string | null>(null)
+  
+  // Music generation state
+  const [musicStatus, setMusicStatus] = useState<MusicGenerationStatus>({
+    status: 'idle',
+    message: 'Ready to generate music'
+  })
+  const [musicApiRequest, setMusicApiRequest] = useState('')
+  const [musicApiResponse, setMusicApiResponse] = useState('')
+  const [songData, setSongData] = useState<any>(null)
 
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -98,6 +115,9 @@ export default function GeneratingSongPage() {
           status: 'completed'
         })
         .eq('id', songId)
+      
+      // Store song data for music generation
+      setSongData(songData)
 
       setGenerationStatus({
         status: 'completed',
@@ -121,6 +141,140 @@ export default function GeneratingSongPage() {
           .update({ status: 'failed' })
           .eq('id', songId)
       }
+    }
+  }
+
+  const generateMusic = async () => {
+    if (!generatedLyrics || !songData) {
+      setError('No lyrics available for music generation')
+      return
+    }
+
+    setMusicStatus({
+      status: 'generating',
+      message: 'Generating music from lyrics...'
+    })
+
+    try {
+      // Generate style prompt from song data
+      const formData = songData.questionnaire_data
+      let stylePrompt = ''
+      
+      if (formData.genres?.length > 0) {
+        stylePrompt += formData.genres.join(', ')
+      }
+      
+      if (formData.singer) {
+        stylePrompt += stylePrompt ? `, ${formData.singer} vocal` : `${formData.singer} vocal`
+      }
+      
+      if (formData.energy) {
+        stylePrompt += stylePrompt ? `, ${formData.energy} energy` : `${formData.energy} energy`
+      }
+
+      if (!stylePrompt) {
+        stylePrompt = 'pop, modern'
+      }
+
+      const musicRequest = {
+        lyrics: generatedLyrics,
+        songId: songId,
+        style: stylePrompt
+      }
+
+      setMusicApiRequest(JSON.stringify(musicRequest, null, 2))
+
+      const response = await fetch('/api/generate-music', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(musicRequest)
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to generate music')
+      }
+
+      const result = await response.json()
+      setMusicApiResponse(JSON.stringify(result.apiResponse, null, 2))
+      
+      setMusicStatus({
+        status: 'generating',
+        taskId: result.taskId,
+        message: 'Music generation in progress...'
+      })
+
+      // Store task ID in database
+      await supabase
+        .from('songs')
+        .update({
+          mureka_task_id: result.taskId,
+          mureka_data: result.apiResponse
+        })
+        .eq('id', songId)
+
+      // Start polling for music status
+      pollMusicStatus(result.taskId)
+
+    } catch (error) {
+      console.error('Music generation error:', error)
+      setMusicStatus({
+        status: 'error',
+        message: error instanceof Error ? error.message : 'Failed to generate music'
+      })
+    }
+  }
+
+  const pollMusicStatus = async (taskId: string) => {
+    try {
+      const response = await fetch('/api/check-music-status', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ taskId })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to check music status')
+      }
+
+      const result = await response.json()
+      
+      if (result.status === 'completed' && result.audioUrl) {
+        setMusicStatus({
+          status: 'completed',
+          taskId: taskId,
+          audioUrl: result.audioUrl,
+          message: 'Music generated successfully!'
+        })
+
+        // Update song in database with audio URL
+        await supabase
+          .from('songs')
+          .update({
+            audio_url: result.audioUrl
+          })
+          .eq('id', songId)
+
+      } else if (result.status === 'failed') {
+        setMusicStatus({
+          status: 'error',
+          message: 'Music generation failed'
+        })
+      } else {
+        // Still processing, poll again in 5 seconds
+        setTimeout(() => pollMusicStatus(taskId), 5000)
+      }
+
+    } catch (error) {
+      console.error('Error polling music status:', error)
+      setMusicStatus({
+        status: 'error',
+        message: 'Failed to check music generation status'
+      })
     }
   }
 
@@ -152,10 +306,10 @@ export default function GeneratingSongPage() {
       <header className="bg-white shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
+            <Link href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
               <Music className="h-8 w-8 text-purple-600" />
               <span className="text-2xl font-bold text-gray-900">SongCreator</span>
-            </div>
+            </Link>
             
             <button
               onClick={() => router.push('/dashboard')}
@@ -208,7 +362,7 @@ export default function GeneratingSongPage() {
               <p className="text-red-700">{error}</p>
               <button
                 onClick={() => router.push('/dashboard')}
-                className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                className="mt-4 px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors"
               >
                 Return to Dashboard
               </button>
@@ -232,7 +386,7 @@ export default function GeneratingSongPage() {
             <div className="bg-white rounded-lg shadow-md p-6 mb-8">
               <h3 className="text-xl font-bold text-gray-900 mb-4">Your Generated Lyrics</h3>
               <div className="bg-purple-50 border border-purple-200 rounded-lg p-6">
-                <pre className="text-gray-800 whitespace-pre-wrap font-serif leading-relaxed">
+                <pre className="text-gray-900 whitespace-pre-wrap font-serif leading-relaxed">
                   {generatedLyrics}
                 </pre>
               </div>
@@ -240,8 +394,16 @@ export default function GeneratingSongPage() {
               {generationStatus.status === 'completed' && (
                 <div className="mt-6 flex space-x-4">
                   <button
+                    onClick={generateMusic}
+                    disabled={musicStatus.status === 'generating'}
+                    className="px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 disabled:bg-gray-300 disabled:text-gray-500 transition-colors"
+                  >
+                    <Volume2 className="h-5 w-5 inline mr-2" />
+                    {musicStatus.status === 'generating' ? 'Generating Music...' : 'Generate Music'}
+                  </button>
+                  <button
                     onClick={() => router.push('/dashboard')}
-                    className="px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors"
+                    className="px-6 py-3 bg-gray-800 text-white rounded-lg font-semibold hover:bg-gray-900 transition-colors"
                   >
                     View in Dashboard
                   </button>
@@ -250,10 +412,71 @@ export default function GeneratingSongPage() {
                       navigator.clipboard.writeText(generatedLyrics)
                       // Could add a toast notification here
                     }}
-                    className="px-6 py-3 bg-gray-600 text-white rounded-lg font-semibold hover:bg-gray-700 transition-colors"
+                    className="px-6 py-3 bg-gray-800 text-white rounded-lg font-semibold hover:bg-gray-900 transition-colors"
                   >
                     Copy Lyrics
                   </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Music Generation Section */}
+          {(musicStatus.status !== 'idle' || musicApiRequest) && (
+            <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Music Generation</h3>
+              
+              {/* Music Status */}
+              <div className="mb-6">
+                <div className="flex items-center space-x-4 mb-4">
+                  {musicStatus.status === 'generating' && <Loader2 className="h-6 w-6 text-purple-600 animate-spin" />}
+                  {musicStatus.status === 'completed' && <Check className="h-6 w-6 text-green-600" />}
+                  {musicStatus.status === 'error' && <div className="h-6 w-6 rounded-full bg-red-600" />}
+                  <span className="text-lg font-medium text-gray-900">{musicStatus.message}</span>
+                </div>
+              </div>
+
+              {/* Generated Audio */}
+              {musicStatus.status === 'completed' && musicStatus.audioUrl && (
+                <div className="mb-6">
+                  <h4 className="text-lg font-semibold text-gray-900 mb-3">Your Generated Song</h4>
+                  <audio controls className="w-full">
+                    <source src={musicStatus.audioUrl} type="audio/mpeg" />
+                    Your browser does not support the audio element.
+                  </audio>
+                  <div className="mt-4 flex space-x-4">
+                    <a
+                      href={musicStatus.audioUrl}
+                      download="generated-song.mp3"
+                      className="px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors"
+                    >
+                      Download Song
+                    </a>
+                  </div>
+                </div>
+              )}
+
+              {/* Debug: Music API Request */}
+              {musicApiRequest && (
+                <div className="mb-6">
+                  <h4 className="text-lg font-semibold text-gray-900 mb-3">Debug: Mureka API Request</h4>
+                  <div className="bg-gray-100 border rounded-lg p-4">
+                    <pre className="text-sm text-gray-700 whitespace-pre-wrap font-mono">
+                      {musicApiRequest}
+                    </pre>
+                  </div>
+                </div>
+              )}
+
+              {/* Debug: Music API Response */}
+              {musicApiResponse && (
+                <div className="mb-6">
+                  <h4 className="text-lg font-semibold text-gray-900 mb-3">Debug: Mureka API Response</h4>
+                  <div className="bg-gray-100 border rounded-lg p-4">
+                    <pre className="text-sm text-gray-700 whitespace-pre-wrap font-mono">
+                      {musicApiResponse}
+                    </pre>
+                  </div>
                 </div>
               )}
             </div>

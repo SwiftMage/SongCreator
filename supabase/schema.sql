@@ -16,6 +16,8 @@ create table songs (
   questionnaire_data jsonb not null,
   generated_lyrics text,
   audio_url text,
+  mureka_task_id text,
+  mureka_data jsonb,
   payment_id text,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   completed_at timestamp with time zone
