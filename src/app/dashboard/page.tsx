@@ -14,7 +14,10 @@ import {
   Download,
   Play,
   Edit,
-  RefreshCw
+  RefreshCw,
+  FileText,
+  X,
+  Trash2
 } from 'lucide-react'
 
 interface Song {
@@ -33,6 +36,8 @@ export default function DashboardPage() {
   const [songs, setSongs] = useState<Song[]>([])
   const [profile, setProfile] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [selectedSong, setSelectedSong] = useState<Song | null>(null)
+  const [showLyricsModal, setShowLyricsModal] = useState(false)
   const router = useRouter()
   const supabase = createClient()
 
@@ -114,6 +119,36 @@ export default function DashboardPage() {
       month: 'short',
       day: 'numeric'
     })
+  }
+
+  const viewLyrics = (song: Song) => {
+    setSelectedSong(song)
+    setShowLyricsModal(true)
+  }
+
+  const deleteSong = async (songId: string, songTitle: string) => {
+    const confirmDelete = window.confirm(
+      `Are you sure you want to delete "${songTitle}"? This action cannot be undone.`
+    )
+    
+    if (!confirmDelete) return
+    
+    try {
+      const { error } = await supabase
+        .from('songs')
+        .delete()
+        .eq('id', songId)
+        .eq('user_id', user.id) // Extra safety check
+      
+      if (error) throw error
+      
+      // Refresh the songs list
+      setSongs(songs.filter(song => song.id !== songId))
+      alert('Song deleted successfully')
+    } catch (error) {
+      console.error('Error deleting song:', error)
+      alert('Failed to delete song. Please try again.')
+    }
   }
 
   if (isLoading) {
@@ -286,6 +321,39 @@ export default function DashboardPage() {
                     </div>
                     
                     <div className="flex items-center space-x-2 ml-4">
+                      {song.generated_lyrics && (
+                        <button
+                          onClick={() => viewLyrics(song)}
+                          className="p-2 text-purple-600 hover:bg-purple-100 rounded-lg transition-colors"
+                          title="View lyrics"
+                        >
+                          <FileText className="h-5 w-5" />
+                        </button>
+                      )}
+                      
+                      {song.status === 'completed' && song.audio_url && (
+                        <>
+                          <button 
+                            onClick={() => {
+                              const audio = new Audio(song.audio_url)
+                              audio.play()
+                            }}
+                            className="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-colors"
+                            title="Play song"
+                          >
+                            <Play className="h-5 w-5" />
+                          </button>
+                          <a
+                            href={song.audio_url}
+                            download={`${song.title}.mp3`}
+                            className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
+                            title="Download song"
+                          >
+                            <Download className="h-5 w-5" />
+                          </a>
+                        </>
+                      )}
+                      
                       <Link
                         href={`/create/edit?songId=${song.id}`}
                         className="p-2 text-purple-600 hover:bg-purple-100 rounded-lg transition-colors"
@@ -294,20 +362,13 @@ export default function DashboardPage() {
                         <Edit className="h-5 w-5" />
                       </Link>
                       
-                      {song.status === 'completed' && song.audio_url && (
-                        <>
-                          <button className="p-2 text-purple-600 hover:bg-purple-100 rounded-lg transition-colors">
-                            <Play className="h-5 w-5" />
-                          </button>
-                          <a
-                            href={song.audio_url}
-                            download={`${song.title}.mp3`}
-                            className="p-2 text-purple-600 hover:bg-purple-100 rounded-lg transition-colors"
-                          >
-                            <Download className="h-5 w-5" />
-                          </a>
-                        </>
-                      )}
+                      <button
+                        onClick={() => deleteSong(song.id, song.title)}
+                        className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
+                        title="Delete song"
+                      >
+                        <Trash2 className="h-5 w-5" />
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -316,6 +377,114 @@ export default function DashboardPage() {
           )}
         </div>
       </main>
+
+      {/* Lyrics Modal */}
+      {showLyricsModal && selectedSong && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] flex flex-col">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-6 border-b">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">{selectedSong.title}</h2>
+                <p className="text-sm text-gray-600 mt-1">
+                  Created on {formatDate(selectedSong.created_at)}
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setShowLyricsModal(false)
+                  setSelectedSong(null)
+                }}
+                className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 overflow-y-auto flex-1">
+              {selectedSong.generated_lyrics ? (
+                <div className="space-y-4">
+                  <div className="whitespace-pre-wrap text-gray-700 leading-relaxed">
+                    {selectedSong.generated_lyrics}
+                  </div>
+                  
+                  {/* Song Details */}
+                  {selectedSong.questionnaire_data && (
+                    <div className="mt-8 pt-6 border-t border-gray-200">
+                      <h3 className="text-sm font-semibold text-gray-900 mb-3">Song Details</h3>
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <span className="text-gray-600">About:</span>
+                          <span className="ml-2 text-gray-900">
+                            {selectedSong.questionnaire_data.subjectName} ({selectedSong.questionnaire_data.relationship})
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-gray-600">Type:</span>
+                          <span className="ml-2 text-gray-900 capitalize">
+                            {selectedSong.questionnaire_data.songType?.replace('_', ' ')}
+                          </span>
+                        </div>
+                        {selectedSong.questionnaire_data.genres?.length > 0 && (
+                          <div className="col-span-2">
+                            <span className="text-gray-600">Genres:</span>
+                            <span className="ml-2 text-gray-900">
+                              {[...selectedSong.questionnaire_data.genres, ...(selectedSong.questionnaire_data.customGenres || [])].join(', ')}
+                            </span>
+                          </div>
+                        )}
+                        {selectedSong.questionnaire_data.singer && (
+                          <div>
+                            <span className="text-gray-600">Singer:</span>
+                            <span className="ml-2 text-gray-900 capitalize">
+                              {selectedSong.questionnaire_data.singer} voice
+                            </span>
+                          </div>
+                        )}
+                        {selectedSong.questionnaire_data.energy && (
+                          <div>
+                            <span className="text-gray-600">Energy:</span>
+                            <span className="ml-2 text-gray-900 capitalize">
+                              {selectedSong.questionnaire_data.energy}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <p className="text-gray-500 text-center py-8">No lyrics generated yet</p>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-6 border-t bg-gray-50 flex justify-end space-x-3">
+              <button
+                onClick={() => {
+                  setShowLyricsModal(false)
+                  setSelectedSong(null)
+                }}
+                className="px-6 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Close
+              </button>
+              {selectedSong.generated_lyrics && (
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(selectedSong.generated_lyrics!)
+                    alert('Lyrics copied to clipboard!')
+                  }}
+                  className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                >
+                  Copy Lyrics
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

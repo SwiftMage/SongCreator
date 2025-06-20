@@ -38,12 +38,35 @@ export async function POST(request: NextRequest) {
     const murekaResult = await murekaResponse.json()
     console.log('Mureka Status Response:', JSON.stringify(murekaResult, null, 2))
 
+    // Extract all audio variations from the choices array
+    const audioVariations = []
+    
+    if (murekaResult.choices && murekaResult.choices.length > 0) {
+      murekaResult.choices.forEach((choice, index) => {
+        audioVariations.push({
+          index: index,
+          url: choice.url,
+          flacUrl: choice.flac_url,
+          duration: choice.duration,
+          lyricsWithTimings: choice.lyrics_sections
+        })
+      })
+    }
+
+    // For backward compatibility, use the first variation as the main audio
+    const firstAudio = audioVariations[0] || {}
+
     return NextResponse.json({
       taskId: murekaResult.id,
       status: murekaResult.status,
-      audioUrl: murekaResult.audio_url,
-      duration: murekaResult.duration,
+      audioUrl: firstAudio.url || null,
+      flacUrl: firstAudio.flacUrl || null,
+      duration: firstAudio.duration || null,
       createdAt: murekaResult.created_at,
+      finishedAt: murekaResult.finished_at,
+      model: murekaResult.model,
+      lyricsWithTimings: firstAudio.lyricsWithTimings,
+      audioVariations: audioVariations, // All variations
       apiResponse: murekaResult
     })
 

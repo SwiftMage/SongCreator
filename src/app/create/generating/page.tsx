@@ -17,6 +17,13 @@ interface MusicGenerationStatus {
   taskId?: string
   audioUrl?: string
   message: string
+  audioVariations?: Array<{
+    index: number
+    url: string
+    flacUrl: string
+    duration: number
+    lyricsWithTimings?: any
+  }>
 }
 
 export default function GeneratingSongPage() {
@@ -71,6 +78,22 @@ export default function GeneratingSongPage() {
         throw new Error('Song not found')
       }
 
+      // Store song data for music generation
+      setSongData(songData)
+
+      // Check if lyrics already exist (user provided their own)
+      if (songData.generated_lyrics && songData.questionnaire_data.lyricsChoice === 'own') {
+        setGeneratedLyrics(songData.generated_lyrics)
+        setRequestString('User provided their own lyrics')
+        setGenerationStatus({
+          status: 'completed',
+          progress: 100,
+          message: 'Your song is ready!'
+        })
+        return
+      }
+
+      // For AI-generated lyrics
       const aiPrompt = songData.questionnaire_data.aiPrompt
       setRequestString(aiPrompt)
 
@@ -115,9 +138,6 @@ export default function GeneratingSongPage() {
           status: 'completed'
         })
         .eq('id', songId)
-      
-      // Store song data for music generation
-      setSongData(songData)
 
       setGenerationStatus({
         status: 'completed',
@@ -243,19 +263,26 @@ export default function GeneratingSongPage() {
 
       const result = await response.json()
       
-      if (result.status === 'completed' && result.audioUrl) {
+      if (result.status === 'succeeded' && result.audioUrl) {
         setMusicStatus({
           status: 'completed',
           taskId: taskId,
           audioUrl: result.audioUrl,
+          audioVariations: result.audioVariations,
           message: 'Music generated successfully!'
         })
 
-        // Update song in database with audio URL
+        // Update song in database with audio URL and all variations
         await supabase
           .from('songs')
           .update({
-            audio_url: result.audioUrl
+            audio_url: result.audioUrl,
+            mureka_data: {
+              taskId: result.taskId,
+              model: result.model,
+              audioVariations: result.audioVariations,
+              finishedAt: result.finishedAt
+            }
           })
           .eq('id', songId)
 
@@ -439,20 +466,61 @@ export default function GeneratingSongPage() {
               {/* Generated Audio */}
               {musicStatus.status === 'completed' && musicStatus.audioUrl && (
                 <div className="mb-6">
-                  <h4 className="text-lg font-semibold text-gray-900 mb-3">Your Generated Song</h4>
-                  <audio controls className="w-full">
-                    <source src={musicStatus.audioUrl} type="audio/mpeg" />
-                    Your browser does not support the audio element.
-                  </audio>
-                  <div className="mt-4 flex space-x-4">
-                    <a
-                      href={musicStatus.audioUrl}
-                      download="generated-song.mp3"
-                      className="px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors"
-                    >
-                      Download Song
-                    </a>
-                  </div>
+                  <h4 className="text-lg font-semibold text-gray-900 mb-3">
+                    Your Generated Song{musicStatus.audioVariations && musicStatus.audioVariations.length > 1 ? 's' : ''}
+                  </h4>
+                  
+                  {musicStatus.audioVariations && musicStatus.audioVariations.length > 1 ? (
+                    <div className="space-y-4">
+                      <p className="text-sm text-gray-600 mb-4">
+                        Mureka generated {musicStatus.audioVariations.length} variations of your song. Listen to each one and download your favorite!
+                      </p>
+                      {musicStatus.audioVariations.map((variation, index) => (
+                        <div key={index} className="bg-gray-50 rounded-lg p-4">
+                          <h5 className="font-medium text-gray-900 mb-2">Version {index + 1}</h5>
+                          <audio controls className="w-full mb-3">
+                            <source src={variation.url} type="audio/mpeg" />
+                            Your browser does not support the audio element.
+                          </audio>
+                          <div className="flex space-x-3">
+                            <a
+                              href={variation.url}
+                              download={`song-version-${index + 1}.mp3`}
+                              className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
+                            >
+                              Download MP3
+                            </a>
+                            <a
+                              href={variation.flacUrl}
+                              download={`song-version-${index + 1}.flac`}
+                              className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+                            >
+                              Download FLAC (High Quality)
+                            </a>
+                            <span className="text-sm text-gray-500 py-2">
+                              Duration: {Math.floor(variation.duration / 1000 / 60)}:{String(Math.floor((variation.duration / 1000) % 60)).padStart(2, '0')}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <>
+                      <audio controls className="w-full">
+                        <source src={musicStatus.audioUrl} type="audio/mpeg" />
+                        Your browser does not support the audio element.
+                      </audio>
+                      <div className="mt-4 flex space-x-4">
+                        <a
+                          href={musicStatus.audioUrl}
+                          download="generated-song.mp3"
+                          className="px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors"
+                        >
+                          Download Song
+                        </a>
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
 

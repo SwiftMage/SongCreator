@@ -21,6 +21,8 @@ export async function POST(request: NextRequest) {
     console.log('Generating music for song:', songId)
     console.log('Lyrics:', lyrics)
     console.log('Style:', style)
+    console.log('API Key exists:', !!process.env.MUREKA_API_KEY)
+    console.log('API Key length:', process.env.MUREKA_API_KEY?.length)
 
     // Prepare the request payload for Mureka API
     const payload = {
@@ -32,12 +34,19 @@ export async function POST(request: NextRequest) {
     console.log('Mureka API Request:', JSON.stringify(payload, null, 2))
 
     // Make request to Mureka API
+    const headers = {
+      'Authorization': `Bearer ${process.env.MUREKA_API_KEY}`,
+      'Content-Type': 'application/json',
+    }
+    
+    console.log('Request headers (auth masked):', {
+      'Authorization': `Bearer ${process.env.MUREKA_API_KEY?.substring(0, 5)}...`,
+      'Content-Type': 'application/json',
+    })
+    
     const murekaResponse = await fetch('https://api.mureka.ai/v1/song/generate', {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.MUREKA_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
+      headers,
       body: JSON.stringify(payload)
     })
 
