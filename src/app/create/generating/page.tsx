@@ -135,7 +135,7 @@ export default function GeneratingSongPage() {
         .from('songs')
         .update({
           generated_lyrics: result.lyrics,
-          status: 'completed'
+          status: 'processing' // Change to processing, not completed yet
         })
         .eq('id', songId)
 
@@ -276,13 +276,15 @@ export default function GeneratingSongPage() {
         await supabase
           .from('songs')
           .update({
+            status: 'completed',
             audio_url: result.audioUrl,
             mureka_data: {
               taskId: result.taskId,
               model: result.model,
               audioVariations: result.audioVariations,
               finishedAt: result.finishedAt
-            }
+            },
+            completed_at: new Date().toISOString()
           })
           .eq('id', songId)
 

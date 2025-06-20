@@ -410,7 +410,7 @@ export default function CreateSongPage() {
       let songData: any = {
         user_id: user.id,
         title: `${formData.songType.charAt(0).toUpperCase() + formData.songType.slice(1)} Song for ${formData.subjectName}`,
-        status: formData.lyricsChoice === 'own' ? 'completed' : 'pending',
+        status: 'pending', // Always start as pending until music is generated
         questionnaire_data: formData
       }
 
