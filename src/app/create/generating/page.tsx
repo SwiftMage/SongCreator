@@ -126,6 +126,11 @@ export default function GeneratingSongPage() {
   const [musicApiRequest, setMusicApiRequest] = useState('')
   const [musicApiResponse, setMusicApiResponse] = useState('')
   const [songData, setSongData] = useState<any>(null)
+  
+  // Music progress bar state
+  const [musicProgress, setMusicProgress] = useState(0)
+  const [musicProgressInterval, setMusicProgressInterval] = useState<NodeJS.Timeout | null>(null)
+  const [showCompletionZoom, setShowCompletionZoom] = useState(false)
 
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -145,6 +150,15 @@ export default function GeneratingSongPage() {
       })
     }
   }, [searchParams])
+
+  // Cleanup music progress interval on unmount
+  useEffect(() => {
+    return () => {
+      if (musicProgressInterval) {
+        clearInterval(musicProgressInterval)
+      }
+    }
+  }, [musicProgressInterval])
 
   const startGeneration = async (songId: string) => {
     try {
@@ -270,6 +284,37 @@ export default function GeneratingSongPage() {
     }
   }
 
+  const startMusicProgressBar = () => {
+    setMusicProgress(0)
+    setShowCompletionZoom(false)
+    
+    // Start progress bar that fills over 60 seconds
+    const interval = setInterval(() => {
+      setMusicProgress(prev => {
+        const increment = 100 / (60 * 10) // 60 seconds, update every 100ms
+        return Math.min(prev + increment, 95) // Stop at 95% until completion
+      })
+    }, 100)
+    
+    setMusicProgressInterval(interval)
+  }
+
+  const completeMusicProgressBar = () => {
+    if (musicProgressInterval) {
+      clearInterval(musicProgressInterval)
+      setMusicProgressInterval(null)
+    }
+    
+    // Zoom to 100% completion
+    setMusicProgress(100)
+    setShowCompletionZoom(true)
+    
+    // Remove zoom effect after animation
+    setTimeout(() => {
+      setShowCompletionZoom(false)
+    }, 1000)
+  }
+
   const generateMusic = async () => {
     console.log('=== GENERATE MUSIC CLICKED ===')
     console.log('generatedLyrics:', !!generatedLyrics)
@@ -284,6 +329,9 @@ export default function GeneratingSongPage() {
       status: 'generating',
       message: 'Generating music from lyrics...'
     })
+    
+    // Start the 1-minute progress bar
+    startMusicProgressBar()
 
     try {
       // Generate style prompt from song data
@@ -357,6 +405,14 @@ export default function GeneratingSongPage() {
 
     } catch (error) {
       console.error('Music generation error:', error)
+      
+      // Clear progress bar on error
+      if (musicProgressInterval) {
+        clearInterval(musicProgressInterval)
+        setMusicProgressInterval(null)
+      }
+      setMusicProgress(0)
+      
       setMusicStatus({
         status: 'error',
         message: error instanceof Error ? error.message : 'Failed to generate music'
@@ -384,6 +440,9 @@ export default function GeneratingSongPage() {
       console.log('Result audioUrl:', result.audioUrl)
       
       if (result.status === 'succeeded' && result.audioUrl) {
+        // Complete the progress bar with zoom animation
+        completeMusicProgressBar()
+        
         setMusicStatus({
           status: 'completed',
           taskId: taskId,
@@ -439,6 +498,13 @@ export default function GeneratingSongPage() {
         }
 
       } else if (result.status === 'failed') {
+        // Clear progress bar on failure
+        if (musicProgressInterval) {
+          clearInterval(musicProgressInterval)
+          setMusicProgressInterval(null)
+        }
+        setMusicProgress(0)
+        
         setMusicStatus({
           status: 'error',
           message: 'Music generation failed'
@@ -450,6 +516,14 @@ export default function GeneratingSongPage() {
 
     } catch (error) {
       console.error('Error polling music status:', error)
+      
+      // Clear progress bar on error
+      if (musicProgressInterval) {
+        clearInterval(musicProgressInterval)
+        setMusicProgressInterval(null)
+      }
+      setMusicProgress(0)
+      
       setMusicStatus({
         status: 'error',
         message: 'Failed to check music generation status'
@@ -584,7 +658,7 @@ export default function GeneratingSongPage() {
                     <textarea
                       value={editedLyrics}
                       onChange={(e) => setEditedLyrics(e.target.value)}
-                      className="w-full h-96 p-4 border border-gray-300 rounded-lg resize-none font-serif leading-relaxed focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      className="w-full h-96 p-4 border border-gray-300 rounded-lg resize-none font-serif leading-relaxed text-gray-900 bg-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                       placeholder="Edit your lyrics here..."
                     />
                   </div>
@@ -659,6 +733,31 @@ export default function GeneratingSongPage() {
                   {musicStatus.status === 'error' && <div className="h-6 w-6 rounded-full bg-red-600" />}
                   <span className="text-lg font-medium text-gray-900">{musicStatus.message}</span>
                 </div>
+                
+                {/* Music Generation Progress Bar */}
+                {musicStatus.status === 'generating' && (
+                  <div className="mb-4">
+                    <div className="flex justify-between text-sm text-gray-600 mb-2">
+                      <span>Generating your music...</span>
+                      <span>{Math.round(musicProgress)}%</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
+                      <div 
+                        className={`h-4 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-200 ease-out ${
+                          showCompletionZoom ? 'animate-pulse scale-105' : ''
+                        }`}
+                        style={{ 
+                          width: `${musicProgress}%`,
+                          transform: showCompletionZoom ? 'scale(1.05)' : 'scale(1)',
+                          transition: showCompletionZoom ? 'all 0.5s ease-out' : 'width 0.2s ease-out'
+                        }}
+                      />
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      This usually takes about 1 minute
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Generated Audio */}

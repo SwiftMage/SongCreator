@@ -1209,7 +1209,10 @@ function SongStyleSection({
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Singer</h3>
             <div className="flex gap-4">
               <button
-                onClick={() => setFormData(prev => ({ ...prev, singer: 'male' }))}
+                onClick={() => setFormData(prev => ({ 
+                  ...prev, 
+                  singer: prev.singer === 'male' ? '' : 'male' 
+                }))}
                 className={`px-6 py-3 rounded-lg font-medium transition-colors ${
                   formData.singer === 'male'
                     ? 'bg-purple-600 text-white'
@@ -1219,7 +1222,10 @@ function SongStyleSection({
                 Male Voice
               </button>
               <button
-                onClick={() => setFormData(prev => ({ ...prev, singer: 'female' }))}
+                onClick={() => setFormData(prev => ({ 
+                  ...prev, 
+                  singer: prev.singer === 'female' ? '' : 'female' 
+                }))}
                 className={`px-6 py-3 rounded-lg font-medium transition-colors ${
                   formData.singer === 'female'
                     ? 'bg-purple-600 text-white'
@@ -1238,7 +1244,10 @@ function SongStyleSection({
               {['low', 'medium', 'high'].map((energy) => (
                 <button
                   key={energy}
-                  onClick={() => setFormData(prev => ({ ...prev, energy: energy as any }))}
+                  onClick={() => setFormData(prev => ({ 
+                    ...prev, 
+                    energy: prev.energy === energy ? '' : energy as any 
+                  }))}
                   className={`px-6 py-3 rounded-lg font-medium transition-colors capitalize ${
                     formData.energy === energy
                       ? 'bg-purple-600 text-white'

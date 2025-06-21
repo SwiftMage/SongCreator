@@ -205,6 +205,36 @@ export default function EditSongPage() {
     }
   }
 
+  const getOccasionTitle = (songType: string) => {
+    switch (songType) {
+      case 'birthday':
+      case 'anniversary':
+      case 'mothers_day':
+      case 'fathers_day':
+      case 'celebration':
+        return "Special Occasion Details"
+      default:
+        return "Additional Details"
+    }
+  }
+
+  const getOccasionPrompt = (songType: string) => {
+    switch (songType) {
+      case 'birthday':
+        return "How old are they turning? (optional)"
+      case 'anniversary':
+        return "How many years have you been together? (optional)"
+      case 'mothers_day':
+        return "Any special details about this Mother's Day? (optional)"
+      case 'fathers_day':
+        return "Any special details about this Father's Day? (optional)"
+      case 'celebration':
+        return "Any additional details about this celebration? (optional)"
+      default:
+        return "Anything else you'd like to include in the song? (optional)"
+    }
+  }
+
   const addItem = (field: keyof FormData, value: string) => {
     if (value.trim()) {
       setFormData(prev => ({
@@ -560,7 +590,217 @@ export default function EditSongPage() {
             </div>
           )}
 
-          {/* For brevity, I'll add the rest of the steps in the next edit... */}
+          {/* Step 4: Detailed Info (for AI lyrics only) */}
+          {currentStep === 4 && formData.lyricsChoice === 'ai' && (
+            <div className="space-y-6 animate-fade-in">
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <h2 className="text-2xl font-bold text-gray-900 mb-6">
+                  Tell us more about {formData.subjectName}
+                </h2>
+                
+                {/* Positive Attributes */}
+                <DetailSection
+                  title="Positive Attributes"
+                  subtitle="What do you love about them?"
+                  icon={Heart}
+                  items={formData.positiveAttributes}
+                  onAdd={(value) => addItem('positiveAttributes', value)}
+                  onRemove={(index) => removeItem('positiveAttributes', index)}
+                  placeholder="e.g., kind, funny, supportive"
+                />
+
+                {/* Inside Jokes */}
+                <DetailSection
+                  title="Inside Jokes & References"
+                  subtitle="Any jokes or references only you two would understand?"
+                  icon={Smile}
+                  items={formData.insideJokes}
+                  onAdd={(value) => addItem('insideJokes', value)}
+                  onRemove={(index) => removeItem('insideJokes', index)}
+                  placeholder="e.g., that time at the coffee shop"
+                />
+
+                {/* Special Places */}
+                <DetailSection
+                  title="Special Places"
+                  subtitle="Places that are meaningful to both of you"
+                  icon={MapPin}
+                  items={formData.specialPlaces}
+                  onAdd={(value) => addItem('specialPlaces', value)}
+                  onRemove={(index) => removeItem('specialPlaces', index)}
+                  placeholder="e.g., the park where we met"
+                />
+
+                {/* Special Moments */}
+                <DetailSection
+                  title="Special Moments"
+                  subtitle="Memorable experiences you've shared"
+                  icon={Calendar}
+                  items={formData.specialMoments}
+                  onAdd={(value) => addItem('specialMoments', value)}
+                  onRemove={(index) => removeItem('specialMoments', index)}
+                  placeholder="e.g., our first vacation together"
+                />
+
+                {/* Unique Characteristics */}
+                <DetailSection
+                  title="Unique Characteristics"
+                  subtitle="What makes them one-of-a-kind?"
+                  icon={Sparkles}
+                  items={formData.uniqueCharacteristics}
+                  onAdd={(value) => addItem('uniqueCharacteristics', value)}
+                  onRemove={(index) => removeItem('uniqueCharacteristics', index)}
+                  placeholder="e.g., amazing cook, terrible at directions, always optimistic"
+                />
+
+                {/* Other People to Include */}
+                <DetailSection
+                  title="Other People to Include"
+                  subtitle="Family members, children, or friends you want to mention"
+                  icon={Users}
+                  items={formData.otherPeople}
+                  onAdd={(value) => addItem('otherPeople', value)}
+                  onRemove={(index) => removeItem('otherPeople', index)}
+                  placeholder="e.g., our kids Sarah and Mike, mom, best friend Jake"
+                />
+
+                {/* Anniversary-Specific Fields */}
+                {formData.songType === 'anniversary' && (
+                  <div className="border-t border-gray-200 pt-6">
+                    <div className="flex items-center space-x-2 mb-4">
+                      <Calendar className="h-5 w-5 text-purple-600" />
+                      <h3 className="text-lg font-semibold text-gray-900">Anniversary Details</h3>
+                    </div>
+
+                    {/* Anniversary Years */}
+                    <div className="mb-4">
+                      <label htmlFor="anniversaryYears" className="block text-sm font-medium text-gray-700 mb-2">
+                        How many years are you celebrating? (optional)
+                      </label>
+                      <input
+                        id="anniversaryYears"
+                        type="text"
+                        value={formData.anniversaryYears}
+                        onChange={(e) => setFormData(prev => ({ ...prev, anniversaryYears: e.target.value }))}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900"
+                        placeholder="e.g., 10, Twenty-five, Our first"
+                      />
+                    </div>
+
+                    {/* Anniversary Type */}
+                    <div className="mb-4">
+                      <label htmlFor="anniversaryType" className="block text-sm font-medium text-gray-700 mb-2">
+                        What type of anniversary is this? (optional)
+                      </label>
+                      <select
+                        id="anniversaryType"
+                        value={formData.anniversaryType}
+                        onChange={(e) => setFormData(prev => ({ ...prev, anniversaryType: e.target.value }))}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900"
+                      >
+                        <option value="">Select anniversary type (optional)</option>
+                        <option value="wedding">Wedding Anniversary</option>
+                        <option value="dating">Dating Anniversary</option>
+                        <option value="engagement">Engagement Anniversary</option>
+                        <option value="first_met">First Met Anniversary</option>
+                        <option value="other">Other</option>
+                      </select>
+                    </div>
+
+                    {/* Where they met */}
+                    <div className="mb-4">
+                      <label htmlFor="whereMet" className="block text-sm font-medium text-gray-700 mb-2">
+                        Where did you first meet? (optional)
+                      </label>
+                      <textarea
+                        id="whereMet"
+                        value={formData.whereMet}
+                        onChange={(e) => setFormData(prev => ({ ...prev, whereMet: e.target.value }))}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900"
+                        placeholder="e.g., We met at a coffee shop downtown during college..."
+                        rows={2}
+                      />
+                    </div>
+
+                    {/* Wedding-Specific Fields */}
+                    {formData.anniversaryType === 'wedding' && (
+                      <div className="space-y-4 bg-purple-50 p-4 rounded-lg animate-fade-in">
+                        <h4 className="font-medium text-purple-900 mb-3">Wedding Anniversary Details</h4>
+                        
+                        {/* Proposal details */}
+                        <div>
+                          <label htmlFor="proposalDetails" className="block text-sm font-medium text-gray-700 mb-2">
+                            Where and how did the proposal happen? (optional)
+                          </label>
+                          <textarea
+                            id="proposalDetails"
+                            value={formData.proposalDetails}
+                            onChange={(e) => setFormData(prev => ({ ...prev, proposalDetails: e.target.value }))}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900"
+                            placeholder="e.g., He proposed on the beach at sunset with a ring hidden in a picnic basket..."
+                            rows={2}
+                          />
+                        </div>
+
+                        {/* Wedding details */}
+                        <div>
+                          <label htmlFor="weddingDetails" className="block text-sm font-medium text-gray-700 mb-2">
+                            Where was the wedding held and any special wedding day details? (optional)
+                          </label>
+                          <textarea
+                            id="weddingDetails"
+                            value={formData.weddingDetails}
+                            onChange={(e) => setFormData(prev => ({ ...prev, weddingDetails: e.target.value }))}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900"
+                            placeholder="e.g., We got married in a beautiful garden ceremony, it rained but we danced anyway..."
+                            rows={3}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* General Occasion Details */}
+                {formData.songType !== 'anniversary' && (
+                  <div className="border-t border-gray-200 pt-6">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <Calendar className="h-5 w-5 text-purple-600" />
+                      <h3 className="text-lg font-semibold text-gray-900">{getOccasionTitle(formData.songType)}</h3>
+                    </div>
+                    <p className="text-gray-600 mb-4">{getOccasionPrompt(formData.songType)}</p>
+                    
+                    <textarea
+                      value={formData.occasionDetails}
+                      onChange={(e) => setFormData(prev => ({ ...prev, occasionDetails: e.target.value }))}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900"
+                      placeholder={
+                        formData.songType === 'birthday' ? "e.g., Turning 25, loves surprises" :
+                        formData.songType === 'mothers_day' ? "e.g., First Mother's Day as a grandmother" :
+                        formData.songType === 'fathers_day' ? "e.g., Recently became a new dad" :
+                        formData.songType === 'celebration' ? "e.g., Graduation, promotion, achievement" :
+                        "e.g., Her favorite color is blue, she always hums when she's happy..."
+                      }
+                      rows={2}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Song Style Step (for both own lyrics and AI lyrics) */}
+          {((currentStep === 4 && formData.lyricsChoice === 'own') || currentStep === 5) && (
+            <SongStyleSection 
+              formData={formData}
+              setFormData={setFormData}
+              genres={genres}
+              instruments={instruments}
+              toggleStyleItem={toggleStyleItem}
+              addCustomItem={addCustomItem}
+              removeCustomItem={removeCustomItem}
+            />
+          )}
 
           {/* Navigation */}
           <div className="flex justify-between mt-8">
@@ -578,7 +818,7 @@ export default function EditSongPage() {
                 onClick={() => {
                   // Skip steps based on lyrics choice
                   if (currentStep === 3 && formData.lyricsChoice === 'own') {
-                    setCurrentStep(getTotalSteps()) // Go directly to style for own lyrics
+                    setCurrentStep(4) // Go directly to style for own lyrics
                   } else if (currentStep === 3 && formData.lyricsChoice === 'ai') {
                     setCurrentStep(4) // Go to detailed info for AI lyrics
                   } else {
@@ -604,6 +844,311 @@ export default function EditSongPage() {
           </div>
         </div>
       </main>
+    </div>
+  )
+}
+
+interface DetailSectionProps {
+  title: string
+  subtitle: string
+  icon: any
+  items: string[]
+  onAdd: (value: string) => void
+  onRemove: (index: number) => void
+  placeholder: string
+}
+
+function DetailSection({ title, subtitle, icon: IconComponent, items, onAdd, onRemove, placeholder }: DetailSectionProps) {
+  const [inputValue, setInputValue] = useState('')
+
+  const handleAdd = () => {
+    if (inputValue.trim()) {
+      onAdd(inputValue)
+      setInputValue('')
+    }
+  }
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      handleAdd()
+    }
+  }
+
+  return (
+    <div className="border-t border-gray-200 pt-6 first:border-t-0 first:pt-0">
+      <div className="flex items-center space-x-2 mb-2">
+        <IconComponent className="h-5 w-5 text-purple-600" />
+        <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+      </div>
+      <p className="text-gray-600 mb-4">{subtitle}</p>
+      
+      {/* Add new item */}
+      <div className="flex space-x-2 mb-4">
+        <input
+          type="text"
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          onKeyPress={handleKeyPress}
+          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900"
+          placeholder={placeholder}
+        />
+        <button
+          onClick={handleAdd}
+          className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+        >
+          <Plus className="h-5 w-5" />
+        </button>
+      </div>
+
+      {/* Items list */}
+      {items.length > 0 && (
+        <div className="space-y-2">
+          {items.map((item, index) => (
+            <div
+              key={index}
+              className="flex items-center justify-between p-3 bg-purple-50 border border-purple-200 rounded-lg group hover:shadow-sm transition-shadow"
+            >
+              <span className="text-gray-900 flex-1">{item}</span>
+              <button
+                onClick={() => onRemove(index)}
+                className="ml-2 p-1 text-gray-400 hover:text-red-600 transition-colors opacity-0 group-hover:opacity-100"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+interface CustomStyleSectionProps {
+  title: string
+  items: string[]
+  onAdd: (value: string) => void
+  onRemove: (index: number) => void
+  placeholder: string
+}
+
+interface SongStyleSectionProps {
+  formData: FormData
+  setFormData: React.Dispatch<React.SetStateAction<FormData>>
+  genres: string[]
+  instruments: string[]
+  toggleStyleItem: (field: 'genres' | 'instruments', item: string) => void
+  addCustomItem: (field: 'customGenres' | 'customInstruments', value: string) => void
+  removeCustomItem: (field: 'customGenres' | 'customInstruments', index: number) => void
+}
+
+function CustomStyleSection({ title, items, onAdd, onRemove, placeholder }: CustomStyleSectionProps) {
+  const [inputValue, setInputValue] = useState('')
+
+  const handleAdd = () => {
+    if (inputValue.trim()) {
+      onAdd(inputValue)
+      setInputValue('')
+    }
+  }
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      handleAdd()
+    }
+  }
+
+  return (
+    <div className="mt-4">
+      <h4 className="text-sm font-medium text-gray-700 mb-2">{title}</h4>
+      
+      {/* Add new item */}
+      <div className="flex space-x-2 mb-3">
+        <input
+          type="text"
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          onKeyPress={handleKeyPress}
+          className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900"
+          placeholder={placeholder}
+        />
+        <button
+          onClick={handleAdd}
+          className="px-3 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors text-sm"
+        >
+          <Plus className="h-4 w-4" />
+        </button>
+      </div>
+
+      {/* Items list */}
+      {items.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {items.map((item, index) => (
+            <div
+              key={index}
+              className="flex items-center space-x-1 px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm group"
+            >
+              <span>{item}</span>
+              <button
+                onClick={() => onRemove(index)}
+                className="ml-1 text-purple-600 hover:text-red-600 transition-colors"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function SongStyleSection({ 
+  formData, 
+  setFormData, 
+  genres, 
+  instruments, 
+  toggleStyleItem, 
+  addCustomItem, 
+  removeCustomItem 
+}: SongStyleSectionProps) {
+  return (
+    <div className="bg-white rounded-lg shadow-md p-6 animate-fade-in">
+      <h2 className="text-2xl font-bold text-gray-900 mb-6">
+        Choose your song style
+      </h2>
+      
+      <div className="space-y-6">
+        {/* Genre Selection Group */}
+        <div className="border border-gray-200 rounded-lg p-5 bg-gray-50">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Genre</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            {genres.map((genre) => (
+              <button
+                key={genre}
+                onClick={() => toggleStyleItem('genres', genre)}
+                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  formData.genres.includes(genre)
+                    ? 'bg-purple-600 text-white'
+                    : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                }`}
+              >
+                {genre}
+              </button>
+            ))}
+          </div>
+          
+          {/* Custom Genres */}
+          <CustomStyleSection
+            title="Other Genres"
+            items={formData.customGenres}
+            onAdd={(value) => addCustomItem('customGenres', value)}
+            onRemove={(index) => removeCustomItem('customGenres', index)}
+            placeholder="Add custom genre..."
+          />
+        </div>
+
+        {/* Instruments Selection Group */}
+        <div className="border border-gray-200 rounded-lg p-5 bg-gray-50">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Instruments</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            {instruments.map((instrument) => (
+              <button
+                key={instrument}
+                onClick={() => toggleStyleItem('instruments', instrument)}
+                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  formData.instruments.includes(instrument)
+                    ? 'bg-purple-600 text-white'
+                    : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                }`}
+              >
+                {instrument}
+              </button>
+            ))}
+          </div>
+          
+          {/* Custom Instruments */}
+          <CustomStyleSection
+            title="Other Instruments"
+            items={formData.customInstruments}
+            onAdd={(value) => addCustomItem('customInstruments', value)}
+            onRemove={(index) => removeCustomItem('customInstruments', index)}
+            placeholder="Add custom instrument..."
+          />
+        </div>
+
+        {/* Voice & Energy Group */}
+        <div className="border border-gray-200 rounded-lg p-5 bg-gray-50">
+          {/* Singer Selection */}
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Singer</h3>
+            <div className="flex gap-4">
+              <button
+                onClick={() => setFormData(prev => ({ 
+                  ...prev, 
+                  singer: prev.singer === 'male' ? '' : 'male' 
+                }))}
+                className={`px-6 py-3 rounded-lg font-medium transition-colors ${
+                  formData.singer === 'male'
+                    ? 'bg-purple-600 text-white'
+                    : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                }`}
+              >
+                Male Voice
+              </button>
+              <button
+                onClick={() => setFormData(prev => ({ 
+                  ...prev, 
+                  singer: prev.singer === 'female' ? '' : 'female' 
+                }))}
+                className={`px-6 py-3 rounded-lg font-medium transition-colors ${
+                  formData.singer === 'female'
+                    ? 'bg-purple-600 text-white'
+                    : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                }`}
+              >
+                Female Voice
+              </button>
+            </div>
+          </div>
+
+          {/* Energy Selection */}
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Energy Level</h3>
+            <div className="flex gap-4">
+              {['low', 'medium', 'high'].map((energy) => (
+                <button
+                  key={energy}
+                  onClick={() => setFormData(prev => ({ 
+                    ...prev, 
+                    energy: prev.energy === energy ? '' : energy as any 
+                  }))}
+                  className={`px-6 py-3 rounded-lg font-medium transition-colors capitalize ${
+                    formData.energy === energy
+                      ? 'bg-purple-600 text-white'
+                      : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                  }`}
+                >
+                  {energy}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Other Style Notes */}
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Other Style Notes</h3>
+            <textarea
+              value={formData.otherStyle}
+              onChange={(e) => setFormData(prev => ({ ...prev, otherStyle: e.target.value }))}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 bg-white"
+              placeholder="Any specific style preferences, mood, or additional details..."
+              rows={3}
+            />
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
