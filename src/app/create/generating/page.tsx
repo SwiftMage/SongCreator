@@ -5,6 +5,78 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 import { Music, ArrowLeft, Check, Loader2, Play, Volume2 } from 'lucide-react'
+import { createAudioElementWithFallback, getBestAudioUrl } from '@/lib/audio-player'
+
+// Helper component for audio with fallback
+function AudioWithFallback({ 
+  primaryUrl, 
+  backupUrl, 
+  className 
+}: { 
+  primaryUrl: string; 
+  backupUrl?: string; 
+  className?: string 
+}) {
+  return (
+    <audio controls className={className}>
+      <source src={primaryUrl} type="audio/mpeg" />
+      {backupUrl && <source src={backupUrl} type="audio/mpeg" />}
+      Your browser does not support the audio element.
+    </audio>
+  )
+}
+
+// Helper component for download button with fallback
+function DownloadButtonWithFallback({
+  primaryUrl,
+  backupUrl,
+  filename,
+  className,
+  label
+}: {
+  primaryUrl: string;
+  backupUrl?: string;
+  filename: string;
+  className: string;
+  label: string;
+}) {
+  const handleDownload = async () => {
+    console.log('=== DOWNLOAD BUTTON CLICKED ===')
+    console.log('filename received:', filename)
+    console.log('primaryUrl:', primaryUrl)
+    console.log('backupUrl:', backupUrl)
+    
+    try {
+      const bestUrl = await getBestAudioUrl(primaryUrl, backupUrl)
+      if (bestUrl) {
+        console.log('Downloading from URL:', bestUrl)
+        console.log('Desired filename:', filename)
+        
+        // Use our API to proxy the download with custom filename
+        const downloadUrl = `/api/download-song?url=${encodeURIComponent(bestUrl)}&filename=${encodeURIComponent(filename)}`
+        console.log('Using download API:', downloadUrl)
+        
+        const link = document.createElement('a')
+        link.href = downloadUrl
+        link.download = filename
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+      } else {
+        alert('Download not available. The file may be temporarily unavailable.')
+      }
+    } catch (error) {
+      console.error('Error downloading audio:', error)
+      alert('Unable to download audio. The file may be temporarily unavailable.')
+    }
+  }
+
+  return (
+    <button onClick={handleDownload} className={className}>
+      {label}
+    </button>
+  )
+}
 
 interface GenerationStatus {
   status: 'preparing' | 'generating' | 'completed' | 'error'
@@ -16,6 +88,7 @@ interface MusicGenerationStatus {
   status: 'idle' | 'generating' | 'completed' | 'error'
   taskId?: string
   audioUrl?: string
+  backupAudioUrl?: string
   message: string
   audioVariations?: Array<{
     index: number
@@ -23,6 +96,11 @@ interface MusicGenerationStatus {
     flacUrl: string
     duration: number
     lyricsWithTimings?: any
+  }>
+  backupVariations?: Array<{
+    index: number
+    backupUrl: string
+    originalUrl: string
   }>
 }
 
@@ -34,6 +112,9 @@ export default function GeneratingSongPage() {
   })
   const [requestString, setRequestString] = useState('')
   const [generatedLyrics, setGeneratedLyrics] = useState('')
+  const [editedLyrics, setEditedLyrics] = useState('')
+  const [isEditingLyrics, setIsEditingLyrics] = useState(false)
+  const [isSavingLyrics, setIsSavingLyrics] = useState(false)
   const [error, setError] = useState('')
   const [songId, setSongId] = useState<string | null>(null)
   
@@ -129,8 +210,9 @@ export default function GeneratingSongPage() {
 
       const result = await response.json()
       setGeneratedLyrics(result.lyrics)
+      setEditedLyrics(result.lyrics)
 
-      // Update song in database
+      // Update song in database with lyrics
       await supabase
         .from('songs')
         .update({
@@ -164,7 +246,35 @@ export default function GeneratingSongPage() {
     }
   }
 
+  const saveLyricsEdits = async () => {
+    if (!songId || !editedLyrics.trim()) {
+      alert('Please enter lyrics to save')
+      return
+    }
+
+    setIsSavingLyrics(true)
+    try {
+      await supabase
+        .from('songs')
+        .update({ generated_lyrics: editedLyrics.trim() })
+        .eq('id', songId)
+
+      setGeneratedLyrics(editedLyrics.trim())
+      setIsEditingLyrics(false)
+      alert('Lyrics saved successfully!')
+    } catch (error) {
+      console.error('Error saving lyrics:', error)
+      alert('Failed to save lyrics. Please try again.')
+    } finally {
+      setIsSavingLyrics(false)
+    }
+  }
+
   const generateMusic = async () => {
+    console.log('=== GENERATE MUSIC CLICKED ===')
+    console.log('generatedLyrics:', !!generatedLyrics)
+    console.log('songData:', !!songData)
+    
     if (!generatedLyrics || !songData) {
       setError('No lyrics available for music generation')
       return
@@ -196,6 +306,9 @@ export default function GeneratingSongPage() {
         stylePrompt = 'pop, modern'
       }
 
+      // Add quality-focused terms to improve audio fidelity
+      stylePrompt += ', high quality, studio production, clear vocals, professional mixing'
+
       const musicRequest = {
         lyrics: generatedLyrics,
         songId: songId,
@@ -218,6 +331,9 @@ export default function GeneratingSongPage() {
       }
 
       const result = await response.json()
+      console.log('=== MUSIC GENERATION API RESPONSE ===')
+      console.log('result:', result)
+      console.log('result.taskId:', result.taskId)
       setMusicApiResponse(JSON.stringify(result.apiResponse, null, 2))
       
       setMusicStatus({
@@ -236,6 +352,7 @@ export default function GeneratingSongPage() {
         .eq('id', songId)
 
       // Start polling for music status
+      console.log('Starting music status polling for task:', result.taskId)
       pollMusicStatus(result.taskId)
 
     } catch (error) {
@@ -262,31 +379,64 @@ export default function GeneratingSongPage() {
       }
 
       const result = await response.json()
+      console.log('Music status poll result:', result)
+      console.log('Result status:', result.status)
+      console.log('Result audioUrl:', result.audioUrl)
       
       if (result.status === 'succeeded' && result.audioUrl) {
         setMusicStatus({
           status: 'completed',
           taskId: taskId,
           audioUrl: result.audioUrl,
+          backupAudioUrl: result.backupAudioUrl,
           audioVariations: result.audioVariations,
+          backupVariations: result.backupVariations,
           message: 'Music generated successfully!'
         })
 
-        // Update song in database with audio URL and all variations
-        await supabase
-          .from('songs')
-          .update({
-            status: 'completed',
-            audio_url: result.audioUrl,
-            mureka_data: {
-              taskId: result.taskId,
-              model: result.model,
-              audioVariations: result.audioVariations,
-              finishedAt: result.finishedAt
-            },
-            completed_at: new Date().toISOString()
-          })
-          .eq('id', songId)
+        // Update song in database with audio URL, backup URL, and all variations
+        const updateData: any = {
+          status: 'completed',
+          audio_url: result.audioUrl,
+          mureka_data: {
+            taskId: result.taskId,
+            model: result.model,
+            audioVariations: result.audioVariations,
+            backupVariations: result.backupVariations,
+            finishedAt: result.finishedAt
+          },
+          completed_at: new Date().toISOString()
+        }
+        
+        // Add backup URL if available
+        if (result.backupAudioUrl) {
+          updateData.backup_audio_url = result.backupAudioUrl
+        }
+
+        console.log('Updating song in database...')
+        console.log('Song ID:', songId)
+        console.log('Update data:', updateData)
+        
+        try {
+          const { data: updatedSong, error: updateError } = await supabase
+            .from('songs')
+            .update(updateData)
+            .eq('id', songId)
+            .select()
+          
+          console.log('Update response - data:', updatedSong)
+          console.log('Update response - error:', updateError)
+          
+          if (updateError) {
+            console.error('Error updating song with audio:', updateError)
+            console.error('Update error details:', JSON.stringify(updateError, null, 2))
+          } else {
+            console.log('Successfully updated song with audio URL')
+            console.log('Updated song data:', updatedSong)
+          }
+        } catch (e) {
+          console.error('Exception during database update:', e)
+        }
 
       } else if (result.status === 'failed') {
         setMusicStatus({
@@ -413,14 +563,60 @@ export default function GeneratingSongPage() {
           {/* Generated Lyrics */}
           {generatedLyrics && (
             <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Your Generated Lyrics</h3>
-              <div className="bg-purple-50 border border-purple-200 rounded-lg p-6">
-                <pre className="text-gray-900 whitespace-pre-wrap font-serif leading-relaxed">
-                  {generatedLyrics}
-                </pre>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-bold text-gray-900">Your Generated Lyrics</h3>
+                {!isEditingLyrics && (
+                  <button
+                    onClick={() => {
+                      setIsEditingLyrics(true)
+                      setEditedLyrics(generatedLyrics)
+                    }}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                  >
+                    Edit Lyrics
+                  </button>
+                )}
               </div>
               
-              {generationStatus.status === 'completed' && (
+              {isEditingLyrics ? (
+                <div className="space-y-4">
+                  <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                    <textarea
+                      value={editedLyrics}
+                      onChange={(e) => setEditedLyrics(e.target.value)}
+                      className="w-full h-96 p-4 border border-gray-300 rounded-lg resize-none font-serif leading-relaxed focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      placeholder="Edit your lyrics here..."
+                    />
+                  </div>
+                  <div className="flex space-x-3">
+                    <button
+                      onClick={saveLyricsEdits}
+                      disabled={isSavingLyrics}
+                      className="px-6 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 disabled:bg-gray-300 disabled:text-gray-500 transition-colors"
+                    >
+                      {isSavingLyrics ? 'Saving...' : 'Save Changes'}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsEditingLyrics(false)
+                        setEditedLyrics(generatedLyrics)
+                      }}
+                      disabled={isSavingLyrics}
+                      className="px-6 py-2 bg-gray-600 text-white rounded-lg font-medium hover:bg-gray-700 disabled:bg-gray-300 disabled:text-gray-500 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-purple-50 border border-purple-200 rounded-lg p-6">
+                  <pre className="text-gray-900 whitespace-pre-wrap font-serif leading-relaxed">
+                    {generatedLyrics}
+                  </pre>
+                </div>
+              )}
+              
+              {generationStatus.status === 'completed' && !isEditingLyrics && (
                 <div className="mt-6 flex space-x-4">
                   <button
                     onClick={generateMusic}
@@ -477,49 +673,56 @@ export default function GeneratingSongPage() {
                       <p className="text-sm text-gray-600 mb-4">
                         Mureka generated {musicStatus.audioVariations.length} variations of your song. Listen to each one and download your favorite!
                       </p>
-                      {musicStatus.audioVariations.map((variation, index) => (
-                        <div key={index} className="bg-gray-50 rounded-lg p-4">
-                          <h5 className="font-medium text-gray-900 mb-2">Version {index + 1}</h5>
-                          <audio controls className="w-full mb-3">
-                            <source src={variation.url} type="audio/mpeg" />
-                            Your browser does not support the audio element.
-                          </audio>
-                          <div className="flex space-x-3">
-                            <a
-                              href={variation.url}
-                              download={`song-version-${index + 1}.mp3`}
-                              className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
-                            >
-                              Download MP3
-                            </a>
-                            <a
-                              href={variation.flacUrl}
-                              download={`song-version-${index + 1}.flac`}
-                              className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
-                            >
-                              Download FLAC (High Quality)
-                            </a>
-                            <span className="text-sm text-gray-500 py-2">
-                              Duration: {Math.floor(variation.duration / 1000 / 60)}:{String(Math.floor((variation.duration / 1000) % 60)).padStart(2, '0')}
-                            </span>
+                      {musicStatus.audioVariations.map((variation, index) => {
+                        // Find corresponding backup variation
+                        const backupVariation = musicStatus.backupVariations?.find(bv => bv.index === index)
+                        
+                        return (
+                          <div key={index} className="bg-gray-50 rounded-lg p-4">
+                            <h5 className="font-medium text-gray-900 mb-2">Version {index + 1}</h5>
+                            <AudioWithFallback
+                              primaryUrl={variation.url}
+                              backupUrl={backupVariation?.backupUrl}
+                              className="w-full mb-3"
+                            />
+                            <div className="flex space-x-3">
+                              <DownloadButtonWithFallback
+                                primaryUrl={variation.url}
+                                backupUrl={backupVariation?.backupUrl}
+                                filename={`${(songData?.title || 'song').replace(/[^a-zA-Z0-9\s-]/g, '').replace(/\s+/g, '-')}-version-${index + 1}.mp3`}
+                                className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
+                                label="Download MP3"
+                              />
+                              <DownloadButtonWithFallback
+                                primaryUrl={variation.flacUrl}
+                                backupUrl={backupVariation?.backupUrl}
+                                filename={`${(songData?.title || 'song').replace(/[^a-zA-Z0-9\s-]/g, '').replace(/\s+/g, '-')}-version-${index + 1}.flac`}
+                                className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+                                label="Download FLAC (High Quality)"
+                              />
+                              <span className="text-sm text-gray-500 py-2">
+                                Duration: {Math.floor(variation.duration / 1000 / 60)}:{String(Math.floor((variation.duration / 1000) % 60)).padStart(2, '0')}
+                              </span>
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        )
+                      })}
                     </div>
                   ) : (
                     <>
-                      <audio controls className="w-full">
-                        <source src={musicStatus.audioUrl} type="audio/mpeg" />
-                        Your browser does not support the audio element.
-                      </audio>
+                      <AudioWithFallback
+                        primaryUrl={musicStatus.audioUrl!}
+                        backupUrl={musicStatus.backupAudioUrl}
+                        className="w-full"
+                      />
                       <div className="mt-4 flex space-x-4">
-                        <a
-                          href={musicStatus.audioUrl}
-                          download="generated-song.mp3"
+                        <DownloadButtonWithFallback
+                          primaryUrl={musicStatus.audioUrl!}
+                          backupUrl={musicStatus.backupAudioUrl}
+                          filename={`${(songData?.title || 'generated-song').replace(/[^a-zA-Z0-9\s-]/g, '').replace(/\s+/g, '-')}.mp3`}
                           className="px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors"
-                        >
-                          Download Song
-                        </a>
+                          label="Download Song"
+                        />
                       </div>
                     </>
                   )}

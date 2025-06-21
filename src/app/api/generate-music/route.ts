@@ -24,11 +24,11 @@ export async function POST(request: NextRequest) {
     console.log('API Key exists:', !!process.env.MUREKA_API_KEY)
     console.log('API Key length:', process.env.MUREKA_API_KEY?.length)
 
-    // Prepare the request payload for Mureka API
+    // Prepare the request payload for Mureka API with supported parameters only
     const payload = {
       lyrics: lyrics,
-      model: "auto",
-      prompt: style || "pop, upbeat, modern"
+      model: "mureka-6", // Use the latest mureka-6 model for best quality
+      prompt: style || "pop, upbeat, modern, high quality, studio production"
     }
 
     console.log('Mureka API Request:', JSON.stringify(payload, null, 2))

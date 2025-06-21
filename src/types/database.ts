@@ -29,10 +29,12 @@ export type Database = {
           id: string
           user_id: string
           title: string
+          song_title: string | null
           status: string
           questionnaire_data: any
           generated_lyrics: string | null
           audio_url: string | null
+          backup_audio_url: string | null
           payment_id: string | null
           created_at: string
           completed_at: string | null
@@ -41,10 +43,12 @@ export type Database = {
           id?: string
           user_id: string
           title: string
+          song_title?: string | null
           status?: string
           questionnaire_data: any
           generated_lyrics?: string | null
           audio_url?: string | null
+          backup_audio_url?: string | null
           payment_id?: string | null
           created_at?: string
           completed_at?: string | null
@@ -53,10 +57,12 @@ export type Database = {
           id?: string
           user_id?: string
           title?: string
+          song_title?: string | null
           status?: string
           questionnaire_data?: any
           generated_lyrics?: string | null
           audio_url?: string | null
+          backup_audio_url?: string | null
           payment_id?: string | null
           created_at?: string
           completed_at?: string | null

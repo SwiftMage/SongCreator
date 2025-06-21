@@ -19,14 +19,17 @@ import {
   X,
   Trash2
 } from 'lucide-react'
+import { playAudioWithFallback, getBestAudioUrl } from '@/lib/audio-player'
 
 interface Song {
   id: string
   title: string
+  song_title?: string
   status: 'pending' | 'processing' | 'completed' | 'failed'
   questionnaire_data: any
   generated_lyrics?: string
   audio_url?: string
+  backup_audio_url?: string
   created_at: string
   completed_at?: string
 }
@@ -70,6 +73,13 @@ export default function DashboardPage() {
     if (songsError) {
       console.error('Error fetching songs:', songsError)
     } else if (songsData) {
+      console.log('Fetched songs:', songsData)
+      console.log('Songs with completed status but no audio_url:')
+      songsData.forEach(song => {
+        if (song.status === 'completed' && !song.audio_url) {
+          console.log(`- Song ID: ${song.id}, Title: ${song.title}, Status: ${song.status}, Audio URL: ${song.audio_url}`)
+        }
+      })
       setSongs(songsData)
     }
     
@@ -117,7 +127,9 @@ export default function DashboardPage() {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
-      day: 'numeric'
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
     })
   }
 
@@ -134,17 +146,31 @@ export default function DashboardPage() {
     if (!confirmDelete) return
     
     try {
-      const { error } = await supabase
-        .from('songs')
-        .delete()
-        .eq('id', songId)
-        .eq('user_id', user.id) // Extra safety check
+      console.log('=== DELETING SONG ===')
+      console.log('Song ID:', songId)
+      console.log('User ID:', user.id)
       
-      if (error) throw error
+      // Use API route to delete with admin privileges
+      const response = await fetch('/api/delete-song', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          songId, 
+          userId: user.id 
+        })
+      })
+      
+      const result = await response.json()
+      console.log('Delete result:', result)
+      
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || 'Failed to delete song')
+      }
       
       // Refresh the songs list
       setSongs(songs.filter(song => song.id !== songId))
-      alert('Song deleted successfully')
     } catch (error) {
       console.error('Error deleting song:', error)
       alert('Failed to delete song. Please try again.')
@@ -331,27 +357,90 @@ export default function DashboardPage() {
                         </button>
                       )}
                       
-                      {song.status === 'completed' && song.audio_url && (
+                      {song.status === 'completed' && (song.audio_url || song.backup_audio_url) && (
                         <>
                           <button 
-                            onClick={() => {
-                              const audio = new Audio(song.audio_url)
-                              audio.play()
+                            onClick={async () => {
+                              try {
+                                await playAudioWithFallback(song.audio_url, song.backup_audio_url)
+                              } catch (error) {
+                                console.error('Error playing audio:', error)
+                                alert('Unable to play audio. The file may be temporarily unavailable.')
+                              }
                             }}
                             className="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-colors"
                             title="Play song"
                           >
                             <Play className="h-5 w-5" />
                           </button>
-                          <a
-                            href={song.audio_url}
-                            download={`${song.title}.mp3`}
+                          <button
+                            onClick={async () => {
+                              console.log('=== DASHBOARD DOWNLOAD BUTTON CLICKED ===')
+                              try {
+                                console.log('=== DOWNLOAD DEBUG ===')
+                                console.log('Raw song object:', song)
+                                console.log('song.title:', song.title)
+                                console.log('song.song_title:', song.song_title)
+                                console.log('typeof song.title:', typeof song.title)
+                                
+                                const bestUrl = await getBestAudioUrl(song.audio_url, song.backup_audio_url)
+                                if (bestUrl) {
+                                  // Use the original title and clean it for filename
+                                  const cleanTitle = song.title.replace(/[^a-zA-Z0-9\s-]/g, '').replace(/\s+/g, '-')
+                                  const filename = `${cleanTitle}.mp3`
+                                  console.log('Clean title:', cleanTitle)
+                                  console.log('Final filename:', filename)
+                                  
+                                  // Use our API to proxy the download with custom filename
+                                  const downloadUrl = `/api/download-song?url=${encodeURIComponent(bestUrl)}&filename=${encodeURIComponent(filename)}`
+                                  console.log('Using download API:', downloadUrl)
+                                  
+                                  const link = document.createElement('a')
+                                  link.href = downloadUrl
+                                  link.download = filename
+                                  document.body.appendChild(link)
+                                  link.click()
+                                  document.body.removeChild(link)
+                                } else {
+                                  alert('Download not available. The file may be temporarily unavailable.')
+                                }
+                              } catch (error) {
+                                console.error('Error downloading audio:', error)
+                                alert('Unable to download audio. The file may be temporarily unavailable.')
+                              }
+                            }}
                             className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
                             title="Download song"
                           >
                             <Download className="h-5 w-5" />
-                          </a>
+                          </button>
                         </>
+                      )}
+                      
+                      {song.status === 'completed' && !song.audio_url && (
+                        <button
+                          onClick={async () => {
+                            try {
+                              const { error } = await supabase
+                                .from('songs')
+                                .update({ status: 'processing' })
+                                .eq('id', song.id)
+                              
+                              if (error) throw error
+                              
+                              // Refresh the songs list
+                              await fetchUserData(user.id)
+                              alert('Song status reset to processing. You can now generate music for this song.')
+                            } catch (error) {
+                              console.error('Error resetting song status:', error)
+                              alert('Failed to reset song status')
+                            }
+                          }}
+                          className="p-2 text-orange-600 hover:bg-orange-100 rounded-lg transition-colors"
+                          title="Generate music for this song"
+                        >
+                          <RefreshCw className="h-5 w-5" />
+                        </button>
                       )}
                       
                       <Link

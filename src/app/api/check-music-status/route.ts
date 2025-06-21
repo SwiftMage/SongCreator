@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createServerAdminClient } from '@/lib/supabase/server'
+import { backupSongAudioVariations, ensureAudioBackupBucket, isAudioBackupEnabled } from '@/lib/audio-backup'
 
 export async function POST(request: NextRequest) {
   try {
@@ -55,6 +57,35 @@ export async function POST(request: NextRequest) {
 
     // For backward compatibility, use the first variation as the main audio
     const firstAudio = audioVariations[0] || {}
+    
+    // Initialize backup-related variables
+    let primaryBackupUrl: string | null = null
+    let backupVariations: Array<{
+      index: number
+      backupUrl: string
+      originalUrl: string
+    }> = []
+    
+    // If music generation is successful and backup is enabled, backup the audio files
+    if (murekaResult.status === 'succeeded' && audioVariations.length > 0 && isAudioBackupEnabled()) {
+      try {
+        console.log(`Music generation completed for task ${taskId}, starting audio backup...`)
+        
+        // Ensure the storage bucket exists
+        await ensureAudioBackupBucket()
+        
+        // Backup all audio variations
+        const backupResult = await backupSongAudioVariations(audioVariations, taskId)
+        primaryBackupUrl = backupResult.primaryBackupUrl
+        backupVariations = backupResult.backupVariations
+        
+        console.log(`Audio backup completed for task ${taskId}. Primary backup URL: ${primaryBackupUrl}`)
+        
+      } catch (backupError) {
+        console.error('Error during audio backup (continuing with original response):', backupError)
+        // Don't fail the entire request if backup fails - just log the error
+      }
+    }
 
     return NextResponse.json({
       taskId: murekaResult.id,
@@ -67,6 +98,8 @@ export async function POST(request: NextRequest) {
       model: murekaResult.model,
       lyricsWithTimings: firstAudio.lyricsWithTimings,
       audioVariations: audioVariations, // All variations
+      backupAudioUrl: primaryBackupUrl,
+      backupVariations: backupVariations,
       apiResponse: murekaResult
     })
 

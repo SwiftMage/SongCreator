@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
       messages: [
         {
           role: "system",
-          content: "You are a talented songwriter and lyricist. Create heartfelt, meaningful song lyrics based on the user's request. Structure the lyrics with verses, choruses, and a bridge as appropriate. Make the lyrics personal and emotionally resonant while incorporating the specific details provided. Return only the lyrics without any additional commentary."
+          content: "You are a talented songwriter and lyricist. Create heartfelt, meaningful song lyrics based on the user's request. Structure the lyrics with verses, choruses, and a bridge as appropriate. Make the lyrics personal and emotionally resonant while incorporating the specific details provided. Always follow the requested format with TITLE: and LYRICS: sections as specified in the user's prompt."
         },
         {
           role: "user",
@@ -42,16 +42,19 @@ export async function POST(request: NextRequest) {
       temperature: 0.8,
     })
 
-    const lyrics = completion.choices[0]?.message?.content
+    const response = completion.choices[0]?.message?.content
 
-    if (!lyrics) {
-      throw new Error('No lyrics generated from OpenAI')
+    if (!response) {
+      throw new Error('No response generated from OpenAI')
     }
 
-    console.log('Generated lyrics:', lyrics)
+    console.log('Generated response:', response)
+
+    // Return the lyrics as-is since we're no longer parsing titles
+    const lyrics = response.trim()
 
     return NextResponse.json({
-      lyrics: lyrics.trim(),
+      lyrics: lyrics,
       songId
     })
 

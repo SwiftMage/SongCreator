@@ -1,4 +1,5 @@
 import { createServerClient } from '@supabase/ssr'
+import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 import { Database } from '@/types/database'
 
@@ -25,6 +26,20 @@ export const createServerComponentClient = async () => {
           }
         },
       },
+    }
+  )
+}
+
+// Create admin client for backend operations (service role key)
+export const createServerAdminClient = () => {
+  return createClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
     }
   )
 }

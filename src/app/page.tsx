@@ -213,12 +213,28 @@ export default function Home() {
       {/* Footer */}
       <footer className="bg-gray-900 text-white py-12">
         <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0">
             <div className="flex items-center space-x-2">
               <Music className="h-6 w-6" />
               <span className="text-lg font-semibold">SongCreator</span>
             </div>
-            <div className="text-gray-400">
+            
+            <div className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-6">
+              <Link 
+                href="/support" 
+                className="text-gray-300 hover:text-white transition-colors"
+              >
+                Support
+              </Link>
+              <a 
+                href="mailto:appspire@icloud.com"
+                className="text-gray-300 hover:text-white transition-colors"
+              >
+                appspire@icloud.com
+              </a>
+            </div>
+            
+            <div className="text-gray-400 text-center md:text-right">
               © 2024 SongCreator. All rights reserved.
             </div>
           </div>
