@@ -648,7 +648,7 @@ export default function CreateSongPage() {
                   <p className={`text-sm ${
                     formData.lyricsChoice === 'ai' ? 'text-purple-700' : 'text-gray-600'
                   }`}>
-                    I'll help you create personalized lyrics by asking about your relationship, memories, and what makes them special. Our AI will craft heartfelt lyrics just for you.
+                    I&apos;ll help you create personalized lyrics by asking about your relationship, memories, and what makes them special. Our AI will craft heartfelt lyrics just for you.
                   </p>
                 </button>
 
@@ -673,7 +673,7 @@ export default function CreateSongPage() {
                   <p className={`text-sm ${
                     formData.lyricsChoice === 'own' ? 'text-purple-700' : 'text-gray-600'
                   }`}>
-                    I've already written lyrics and want to turn them into a professional song. Just provide your lyrics and we'll create the music for you.
+                    I&apos;ve already written lyrics and want to turn them into a professional song. Just provide your lyrics and we&apos;ll create the music for you.
                   </p>
                 </button>
               </div>
@@ -693,7 +693,7 @@ export default function CreateSongPage() {
                     rows={10}
                   />
                   <p className="text-sm text-gray-600 mt-2">
-                    Tip: Include verse/chorus structure if you have one. We'll work with whatever format you provide!
+                    Tip: Include verse/chorus structure if you have one. We&apos;ll work with whatever format you provide!
                   </p>
                 </div>
               )}

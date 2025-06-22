@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerAdminClient } from '@/lib/supabase/server'
 import { backupSongAudioVariations, ensureAudioBackupBucket, isAudioBackupEnabled } from '@/lib/audio-backup'
 
 export async function POST(request: NextRequest) {

@@ -308,7 +308,7 @@ export default function DashboardPage() {
           {songs.length === 0 ? (
             <div className="text-center py-12">
               <Music className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500 mb-4">You haven't created any songs yet</p>
+              <p className="text-gray-500 mb-4">You haven&apos;t created any songs yet</p>
               <Link
                 href="/create"
                 className="inline-flex items-center space-x-2 px-8 py-4 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors"

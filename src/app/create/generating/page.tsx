@@ -4,8 +4,8 @@ import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
-import { Music, ArrowLeft, Check, Loader2, Play, Volume2 } from 'lucide-react'
-import { createAudioElementWithFallback, getBestAudioUrl } from '@/lib/audio-player'
+import { Music, ArrowLeft, Check, Loader2, Volume2 } from 'lucide-react'
+import { getBestAudioUrl } from '@/lib/audio-player'
 
 // Helper component for audio with fallback
 function AudioWithFallback({ 

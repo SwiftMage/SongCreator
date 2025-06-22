@@ -40,7 +40,7 @@ export default function SupportPage() {
           <div className="text-center mb-12">
             <h1 className="text-4xl font-bold text-gray-900 mb-4">Support Center</h1>
             <p className="text-xl text-gray-600">
-              We're here to help you create amazing personalized songs
+              We&apos;re here to help you create amazing personalized songs
             </p>
           </div>
 
@@ -106,7 +106,7 @@ export default function SupportPage() {
                   How do I create a song?
                 </h3>
                 <p className="text-gray-600">
-                  Creating a song is easy! First, make sure you have credits in your account. Then click "Create New Song" from your dashboard and follow the 4-step process: enter basic information about who the song is for, choose the song type, provide personal details or your own lyrics, and select your preferred musical style.
+                  Creating a song is easy! First, make sure you have credits in your account. Then click &quot;Create New Song&quot; from your dashboard and follow the 4-step process: enter basic information about who the song is for, choose the song type, provide personal details or your own lyrics, and select your preferred musical style.
                 </p>
               </div>
 
@@ -121,7 +121,7 @@ export default function SupportPage() {
 
               <div className="border-b border-gray-200 pb-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  Can I edit a song after it's created?
+                  Can I edit a song after it&apos;s created?
                 </h3>
                 <p className="text-gray-600">
                   Yes! You can edit any song from your dashboard by clicking the edit button. This allows you to modify the details and regenerate the song. Note that editing and regenerating a song will cost 1 additional credit.
@@ -142,7 +142,7 @@ export default function SupportPage() {
                   Can I provide my own lyrics?
                 </h3>
                 <p className="text-gray-600">
-                  Absolutely! During the song creation process, you can choose "I have my own lyrics" and provide your own text. We'll then create professional music to accompany your lyrics.
+                  Absolutely! During the song creation process, you can choose &quot;I have my own lyrics&quot; and provide your own text. We&apos;ll then create professional music to accompany your lyrics.
                 </p>
               </div>
 
@@ -151,7 +151,7 @@ export default function SupportPage() {
                   How long does it take to generate a song?
                 </h3>
                 <p className="text-gray-600">
-                  Song generation typically takes a few minutes. Lyric generation happens first (usually under a minute), followed by music generation which can take 2-5 minutes depending on server load. You'll see real-time progress updates during the process.
+                  Song generation typically takes a few minutes. Lyric generation happens first (usually under a minute), followed by music generation which can take 2-5 minutes depending on server load. You&apos;ll see real-time progress updates during the process.
                 </p>
               </div>
             </div>

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { ensureAudioBackupBucket, isAudioBackupEnabled } from '@/lib/audio-backup'
 
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
     if (!isAudioBackupEnabled()) {
       return NextResponse.json({

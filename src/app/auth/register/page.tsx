@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { Music, Mail, Lock, Eye, EyeOff, User } from 'lucide-react'
 

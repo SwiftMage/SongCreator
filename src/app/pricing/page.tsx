@@ -146,7 +146,7 @@ export default function PricingPage() {
               </h3>
               <p className="text-gray-600">
                 Most songs are generated within 2-5 minutes after you complete the questionnaire. 
-                You'll receive an email notification when your song is ready.
+                You&apos;ll receive an email notification when your song is ready.
               </p>
             </div>
             
@@ -165,7 +165,7 @@ export default function PricingPage() {
                 Can I request changes to my song?
               </h3>
               <p className="text-gray-600">
-                Each song credit includes one generation. If you'd like to try different 
+                Each song credit includes one generation. If you&apos;d like to try different 
                 variations, you can create a new song with modified inputs.
               </p>
             </div>
@@ -175,7 +175,7 @@ export default function PricingPage() {
                 Do song credits expire?
               </h3>
               <p className="text-gray-600">
-                No! Your song credits never expire. Use them whenever you're ready to 
+                No! Your song credits never expire. Use them whenever you&apos;re ready to 
                 create something special.
               </p>
             </div>
