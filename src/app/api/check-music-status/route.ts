@@ -40,10 +40,10 @@ export async function POST(request: NextRequest) {
     console.log('Mureka Status Response:', JSON.stringify(murekaResult, null, 2))
 
     // Extract all audio variations from the choices array
-    const audioVariations = []
+    const audioVariations: any[] = []
     
     if (murekaResult.choices && murekaResult.choices.length > 0) {
-      murekaResult.choices.forEach((choice, index) => {
+      murekaResult.choices.forEach((choice: any, index: number) => {
         audioVariations.push({
           index: index,
           url: choice.url,

@@ -95,7 +95,7 @@ export async function getBestAudioUrl(
   
   // If both fail, return primary URL as last resort (let the audio element handle the error)
   console.warn('Both primary and backup URLs failed accessibility check, returning primary as fallback')
-  return primaryUrl || backupUrl
+  return primaryUrl || backupUrl || null
 }
 
 /**

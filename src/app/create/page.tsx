@@ -177,7 +177,7 @@ export default function CreateSongPage() {
       }
     }
 
-    const handlePopState = (e: PopStateEvent) => {
+    const handlePopState = () => {
       const hasProgress = currentStep > 1 || 
         formData.subjectName || 
         formData.relationship || 
@@ -411,7 +411,7 @@ export default function CreateSongPage() {
         return
       }
 
-      let songData: any = {
+      const songData: any = {
         user_id: user.id,
         title: `${formData.songType.charAt(0).toUpperCase() + formData.songType.slice(1)} Song for ${formData.subjectName}`,
         status: 'pending', // Always start as pending until music is generated

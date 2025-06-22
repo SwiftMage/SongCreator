@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
@@ -89,7 +89,7 @@ const instruments = [
   'Cello', 'Clarinet', 'Accordion', 'Mandolin', 'Harp', 'Organ'
 ]
 
-export default function EditSongPage() {
+function EditSongPage() {
   const [currentStep, setCurrentStep] = useState(1)
   const [user, setUser] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -1150,5 +1150,13 @@ function SongStyleSection({
         </div>
       </div>
     </div>
+  )
+}
+
+export default function EditSongPageWrapper() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <EditSongPage />
+    </Suspense>
   )
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
@@ -104,7 +104,7 @@ interface MusicGenerationStatus {
   }>
 }
 
-export default function GeneratingSongPage() {
+function GeneratingSongPage() {
   const [generationStatus, setGenerationStatus] = useState<GenerationStatus>({
     status: 'preparing',
     progress: 0,
@@ -866,5 +866,13 @@ export default function GeneratingSongPage() {
         </div>
       </main>
     </div>
+  )
+}
+
+export default function GeneratingSongPageWrapper() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <GeneratingSongPage />
+    </Suspense>
   )
 }
