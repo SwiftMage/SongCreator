@@ -1,3 +1,11 @@
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
+
 export type Database = {
   public: {
     Tables: {
@@ -31,7 +39,7 @@ export type Database = {
           title: string
           song_title: string | null
           status: string
-          questionnaire_data: any
+          questionnaire_data: Json
           generated_lyrics: string | null
           audio_url: string | null
           backup_audio_url: string | null
@@ -45,7 +53,7 @@ export type Database = {
           title: string
           song_title?: string | null
           status?: string
-          questionnaire_data: any
+          questionnaire_data: Json
           generated_lyrics?: string | null
           audio_url?: string | null
           backup_audio_url?: string | null
@@ -59,7 +67,7 @@ export type Database = {
           title?: string
           song_title?: string | null
           status?: string
-          questionnaire_data?: any
+          questionnaire_data?: Json
           generated_lyrics?: string | null
           audio_url?: string | null
           backup_audio_url?: string | null

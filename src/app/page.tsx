@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase';
 import { Music, Heart, Gift, Users, LogOut, User } from "lucide-react";
 
 export default function Home() {
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<{ user_metadata?: { full_name?: string }, email?: string } | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const supabase = createClient()
 
