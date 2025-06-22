@@ -13,6 +13,7 @@ import {
   Clock,
   Download,
   Play,
+  Square,
   Edit,
   RefreshCw,
   FileText,
@@ -41,6 +42,8 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [selectedSong, setSelectedSong] = useState<Song | null>(null)
   const [showLyricsModal, setShowLyricsModal] = useState(false)
+  const [playingSongId, setPlayingSongId] = useState<string | null>(null)
+  const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(null)
   const router = useRouter()
   const supabase = createClient()
 
@@ -59,6 +62,17 @@ export default function DashboardPage() {
 
     checkAuth()
   }, [router, supabase])
+
+  // Cleanup audio when component unmounts
+  useEffect(() => {
+    return () => {
+      if (currentAudio) {
+        currentAudio.pause()
+        setCurrentAudio(null)
+        setPlayingSongId(null)
+      }
+    }
+  }, [currentAudio])
 
   const fetchUserData = async (userId: string) => {
     setIsLoading(true)
@@ -136,6 +150,56 @@ export default function DashboardPage() {
   const viewLyrics = (song: Song) => {
     setSelectedSong(song)
     setShowLyricsModal(true)
+  }
+
+  const handlePlayStop = async (song: Song) => {
+    // If this song is currently playing, stop it
+    if (playingSongId === song.id && currentAudio) {
+      currentAudio.pause()
+      setPlayingSongId(null)
+      setCurrentAudio(null)
+      return
+    }
+
+    // If another song is playing, stop it first
+    if (currentAudio) {
+      currentAudio.pause()
+      setCurrentAudio(null)
+    }
+
+    // Start playing this song
+    try {
+      const bestUrl = await getBestAudioUrl(song.audio_url, song.backup_audio_url)
+      if (!bestUrl) {
+        throw new Error('No audio URL available')
+      }
+
+      const audio = new Audio(bestUrl)
+      
+      // Set up event listeners
+      audio.addEventListener('ended', () => {
+        setPlayingSongId(null)
+        setCurrentAudio(null)
+      })
+
+      audio.addEventListener('error', () => {
+        console.error('Error playing audio')
+        setPlayingSongId(null)
+        setCurrentAudio(null)
+        alert('Unable to play audio. The file may be temporarily unavailable.')
+      })
+
+      // Start playing
+      await audio.play()
+      setPlayingSongId(song.id)
+      setCurrentAudio(audio)
+      
+    } catch (error) {
+      console.error('Error playing audio:', error)
+      setPlayingSongId(null)
+      setCurrentAudio(null)
+      alert('Unable to play audio. The file may be temporarily unavailable.')
+    }
   }
 
   const deleteSong = async (songId: string, songTitle: string) => {
@@ -360,18 +424,15 @@ export default function DashboardPage() {
                       {song.status === 'completed' && (song.audio_url || song.backup_audio_url) && (
                         <>
                           <button 
-                            onClick={async () => {
-                              try {
-                                await playAudioWithFallback(song.audio_url, song.backup_audio_url)
-                              } catch (error) {
-                                console.error('Error playing audio:', error)
-                                alert('Unable to play audio. The file may be temporarily unavailable.')
-                              }
-                            }}
+                            onClick={() => handlePlayStop(song)}
                             className="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-colors"
-                            title="Play song"
+                            title={playingSongId === song.id ? "Stop song" : "Play song"}
                           >
-                            <Play className="h-5 w-5" />
+                            {playingSongId === song.id ? (
+                              <Square className="h-5 w-5" />
+                            ) : (
+                              <Play className="h-5 w-5" />
+                            )}
                           </button>
                           <button
                             onClick={async () => {

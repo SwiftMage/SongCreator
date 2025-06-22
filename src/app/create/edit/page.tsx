@@ -30,7 +30,7 @@ interface SongFormData {
   relationship: string
   
   // Step 2: Song Type
-  songType: 'love' | 'friendship' | 'funny' | 'dedication' | 'celebration' | 'birthday' | 'mothers_day' | 'fathers_day' | 'anniversary' | ''
+  songType: 'love' | 'friendship' | 'funny' | 'dedication' | 'celebration' | 'birthday' | 'mothers_day' | 'fathers_day' | 'anniversary' | 'custom' | ''
   
   // Step 3: Lyrics Choice
   lyricsChoice: 'ai' | 'own' | ''
@@ -74,7 +74,8 @@ const songTypes = [
   { id: 'birthday', label: 'Birthday Song', icon: Cake, description: 'Make their birthday extra special' },
   { id: 'mothers_day', label: "Mother's Day Song", icon: Heart, description: 'Show mom how much she means to you' },
   { id: 'fathers_day', label: "Father's Day Song", icon: Award, description: 'Honor dad with a personalized song' },
-  { id: 'anniversary', label: 'Anniversary Song', icon: Gift, description: 'Celebrate your time together' }
+  { id: 'anniversary', label: 'Anniversary Song', icon: Gift, description: 'Celebrate your time together' },
+  { id: 'custom', label: 'Custom Song', icon: Music, description: 'Create a personalized song without a specific theme' }
 ]
 
 const genres = [
@@ -479,7 +480,7 @@ function EditSongPage() {
             <div className="bg-white rounded-lg shadow-md p-6 animate-fade-in">
               <h2 className="text-2xl font-bold text-gray-900 mb-6">What type of song would you like?</h2>
               
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {songTypes.map((type) => {
                   const IconComponent = type.icon
                   return (
