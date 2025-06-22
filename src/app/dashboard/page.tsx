@@ -385,7 +385,8 @@ export default function DashboardPage() {
             <div className="space-y-4">
               {songs.map((song) => (
                 <div key={song.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between">
+                  {/* Desktop layout - horizontal */}
+                  <div className="hidden md:flex items-center justify-between">
                     <div className="flex-1">
                       <h3 className="text-lg font-semibold text-gray-900 mb-1">
                         {song.title}
@@ -411,116 +412,150 @@ export default function DashboardPage() {
                     </div>
                     
                     <div className="flex items-center space-x-2 ml-4">
-                      {song.generated_lyrics && (
-                        <button
-                          onClick={() => viewLyrics(song)}
-                          className="p-2 text-purple-600 hover:bg-purple-100 rounded-lg transition-colors"
-                          title="View lyrics"
-                        >
-                          <FileText className="h-5 w-5" />
-                        </button>
-                      )}
+
+                  {/* Mobile layout - vertical */}
+                  <div className="md:hidden">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-1 truncate">
+                          {song.title}
+                        </h3>
+                        <div className="flex items-center space-x-2 text-sm text-gray-600">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            song.status === 'completed' ? 'bg-green-100 text-green-800' :
+                            song.status === 'processing' ? 'bg-yellow-100 text-yellow-800' :
+                            song.status === 'failed' ? 'bg-red-100 text-red-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}>
+                            {song.status}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3 text-sm text-gray-600">
+                        <span className="flex items-center space-x-1">
+                          <Music className="h-4 w-4" />
+                          <span className="truncate">{song.questionnaire_data?.genre || 'Unknown'}</span>
+                        </span>
+                        <span className="flex items-center space-x-1">
+                          <Clock className="h-4 w-4" />
+                          <span className="text-xs">{formatDate(song.created_at)}</span>
+                        </span>
+                      </div>
                       
-                      {song.status === 'completed' && (song.audio_url || song.backup_audio_url) && (
-                        <>
-                          <button 
-                            onClick={() => handlePlayStop(song)}
-                            className="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-colors"
-                            title={playingSongId === song.id ? "Stop song" : "Play song"}
+                      <div className="flex items-center space-x-2 flex-shrink-0">
+                        {song.generated_lyrics && (
+                          <button
+                            onClick={() => viewLyrics(song)}
+                            className="p-2 text-purple-600 hover:bg-purple-100 rounded-lg transition-colors"
+                            title="View lyrics"
                           >
-                            {playingSongId === song.id ? (
-                              <Square className="h-5 w-5" />
-                            ) : (
-                              <Play className="h-5 w-5" />
-                            )}
+                            <FileText className="h-5 w-5" />
                           </button>
+                        )}
+                        
+                        {song.status === 'completed' && (song.audio_url || song.backup_audio_url) && (
+                          <>
+                            <button 
+                              onClick={() => handlePlayStop(song)}
+                              className="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-colors"
+                              title={playingSongId === song.id ? "Stop song" : "Play song"}
+                            >
+                              {playingSongId === song.id ? (
+                                <Square className="h-5 w-5" />
+                              ) : (
+                                <Play className="h-5 w-5" />
+                              )}
+                            </button>
+                            <button
+                              onClick={async () => {
+                                console.log('=== DASHBOARD DOWNLOAD BUTTON CLICKED ===')
+                                try {
+                                  console.log('=== DOWNLOAD DEBUG ===')
+                                  console.log('Raw song object:', song)
+                                  console.log('song.title:', song.title)
+                                  console.log('song.song_title:', song.song_title)
+                                  console.log('typeof song.title:', typeof song.title)
+                                  
+                                  const bestUrl = await getBestAudioUrl(song.audio_url, song.backup_audio_url)
+                                  if (bestUrl) {
+                                    // Use the original title and clean it for filename
+                                    const cleanTitle = song.title.replace(/[^a-zA-Z0-9\s-]/g, '').replace(/\s+/g, '-')
+                                    const filename = `${cleanTitle}.mp3`
+                                    console.log('Clean title:', cleanTitle)
+                                    console.log('Final filename:', filename)
+                                    
+                                    // Use our API to proxy the download with custom filename
+                                    const downloadUrl = `/api/download-song?url=${encodeURIComponent(bestUrl)}&filename=${encodeURIComponent(filename)}`
+                                    console.log('Using download API:', downloadUrl)
+                                    
+                                    const link = document.createElement('a')
+                                    link.href = downloadUrl
+                                    link.download = filename
+                                    document.body.appendChild(link)
+                                    link.click()
+                                    document.body.removeChild(link)
+                                  } else {
+                                    alert('Download not available. The file may be temporarily unavailable.')
+                                  }
+                                } catch (error) {
+                                  console.error('Error downloading audio:', error)
+                                  alert('Unable to download audio. The file may be temporarily unavailable.')
+                                }
+                              }}
+                              className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
+                              title="Download song"
+                            >
+                              <Download className="h-5 w-5" />
+                            </button>
+                          </>
+                        )}
+                        
+                        {song.status === 'completed' && !song.audio_url && (
                           <button
                             onClick={async () => {
-                              console.log('=== DASHBOARD DOWNLOAD BUTTON CLICKED ===')
                               try {
-                                console.log('=== DOWNLOAD DEBUG ===')
-                                console.log('Raw song object:', song)
-                                console.log('song.title:', song.title)
-                                console.log('song.song_title:', song.song_title)
-                                console.log('typeof song.title:', typeof song.title)
+                                const { error } = await supabase
+                                  .from('songs')
+                                  .update({ status: 'processing' })
+                                  .eq('id', song.id)
                                 
-                                const bestUrl = await getBestAudioUrl(song.audio_url, song.backup_audio_url)
-                                if (bestUrl) {
-                                  // Use the original title and clean it for filename
-                                  const cleanTitle = song.title.replace(/[^a-zA-Z0-9\s-]/g, '').replace(/\s+/g, '-')
-                                  const filename = `${cleanTitle}.mp3`
-                                  console.log('Clean title:', cleanTitle)
-                                  console.log('Final filename:', filename)
-                                  
-                                  // Use our API to proxy the download with custom filename
-                                  const downloadUrl = `/api/download-song?url=${encodeURIComponent(bestUrl)}&filename=${encodeURIComponent(filename)}`
-                                  console.log('Using download API:', downloadUrl)
-                                  
-                                  const link = document.createElement('a')
-                                  link.href = downloadUrl
-                                  link.download = filename
-                                  document.body.appendChild(link)
-                                  link.click()
-                                  document.body.removeChild(link)
-                                } else {
-                                  alert('Download not available. The file may be temporarily unavailable.')
-                                }
+                                if (error) throw error
+                                
+                                // Refresh the songs list
+                                await fetchUserData(user.id)
+                                alert('Song status reset to processing. You can now generate music for this song.')
                               } catch (error) {
-                                console.error('Error downloading audio:', error)
-                                alert('Unable to download audio. The file may be temporarily unavailable.')
+                                console.error('Error resetting song status:', error)
+                                alert('Failed to reset song status')
                               }
                             }}
-                            className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
-                            title="Download song"
+                            className="p-2 text-orange-600 hover:bg-orange-100 rounded-lg transition-colors"
+                            title="Generate music for this song"
                           >
-                            <Download className="h-5 w-5" />
+                            <RefreshCw className="h-5 w-5" />
                           </button>
-                        </>
-                      )}
-                      
-                      {song.status === 'completed' && !song.audio_url && (
-                        <button
-                          onClick={async () => {
-                            try {
-                              const { error } = await supabase
-                                .from('songs')
-                                .update({ status: 'processing' })
-                                .eq('id', song.id)
-                              
-                              if (error) throw error
-                              
-                              // Refresh the songs list
-                              await fetchUserData(user.id)
-                              alert('Song status reset to processing. You can now generate music for this song.')
-                            } catch (error) {
-                              console.error('Error resetting song status:', error)
-                              alert('Failed to reset song status')
-                            }
-                          }}
-                          className="p-2 text-orange-600 hover:bg-orange-100 rounded-lg transition-colors"
-                          title="Generate music for this song"
+                        )}
+                        
+                        <Link
+                          href={`/create/edit?songId=${song.id}`}
+                          className="p-2 text-purple-600 hover:bg-purple-100 rounded-lg transition-colors"
+                          title="Edit and regenerate song"
                         >
-                          <RefreshCw className="h-5 w-5" />
+                          <Edit className="h-5 w-5" />
+                        </Link>
+                        
+                        <button
+                          onClick={() => deleteSong(song.id, song.title)}
+                          className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
+                          title="Delete song"
+                        >
+                          <Trash2 className="h-5 w-5" />
                         </button>
-                      )}
-                      
-                      <Link
-                        href={`/create/edit?songId=${song.id}`}
-                        className="p-2 text-purple-600 hover:bg-purple-100 rounded-lg transition-colors"
-                        title="Edit and regenerate song"
-                      >
-                        <Edit className="h-5 w-5" />
-                      </Link>
-                      
-                      <button
-                        onClick={() => deleteSong(song.id, song.title)}
-                        className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
-                        title="Delete song"
-                      >
-                        <Trash2 className="h-5 w-5" />
-                      </button>
+                      </div>
                     </div>
-                  </div>
                 </div>
               ))}
             </div>
