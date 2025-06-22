@@ -171,7 +171,7 @@ export default function Home() {
         </h2>
         <div className="grid md:grid-cols-2 gap-8 max-w-2xl mx-auto">
           <div className="bg-white p-8 rounded-lg shadow-lg border-2 border-gray-200">
-            <h3 className="text-2xl font-bold mb-4">Single Song</h3>
+            <h3 className="text-2xl font-bold mb-4 text-gray-900">Single Song</h3>
             <div className="text-4xl font-bold text-purple-600 mb-4">$9.99</div>
             <ul className="space-y-2 text-gray-600">
               <li>✓ Custom AI-generated song</li>
@@ -190,7 +190,7 @@ export default function Home() {
             <div className="bg-purple-500 text-white px-3 py-1 rounded-full text-sm inline-block mb-2">
               Best Value
             </div>
-            <h3 className="text-2xl font-bold mb-4">3-Song Bundle</h3>
+            <h3 className="text-2xl font-bold mb-4 text-gray-900">3-Song Bundle</h3>
             <div className="text-4xl font-bold text-purple-600 mb-1">$24.99</div>
             <div className="text-gray-500 mb-4">$8.33 per song</div>
             <ul className="space-y-2 text-gray-600">
