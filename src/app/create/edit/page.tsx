@@ -24,7 +24,7 @@ import {
   RefreshCw
 } from 'lucide-react'
 
-interface FormData {
+interface SongFormData {
   // Step 1: Basic Info
   subjectName: string
   relationship: string
@@ -80,7 +80,7 @@ const songTypes = [
 const genres = [
   'Pop', 'Rock', 'Country', 'Hip-Hop', 'R&B', 'Folk', 'Indie Rock', 'Alternative', 
   'Blues', 'Jazz', 'Electronic', 'Dance', 'Techno', 'Reggae', 'Punk', 'Metal',
-  'Classical', 'Acoustic', 'Singer-Songwriter', 'Soft Rock', 'Latin', 'Rap'
+  'Classical', 'Acoustic', 'Singer-Songwriter', 'Soft Rock', 'Latin', 'Rap', "80's Rock", "90's Rock"
 ]
 
 const instruments = [
@@ -96,7 +96,7 @@ export default function EditSongPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [songId, setSongId] = useState<string | null>(null)
   const [originalSong, setOriginalSong] = useState<any>(null)
-  const [formData, setFormData] = useState<FormData>({
+  const [formData, setFormData] = useState<SongFormData>({
     subjectName: '',
     relationship: '',
     songType: '',
@@ -235,7 +235,7 @@ export default function EditSongPage() {
     }
   }
 
-  const addItem = (field: keyof FormData, value: string) => {
+  const addItem = (field: keyof SongFormData, value: string) => {
     if (value.trim()) {
       setFormData(prev => ({
         ...prev,
@@ -244,7 +244,7 @@ export default function EditSongPage() {
     }
   }
 
-  const removeItem = (field: keyof FormData, index: number) => {
+  const removeItem = (field: keyof SongFormData, index: number) => {
     setFormData(prev => ({
       ...prev,
       [field]: (prev[field] as string[]).filter((_, i) => i !== index)
@@ -933,8 +933,8 @@ interface CustomStyleSectionProps {
 }
 
 interface SongStyleSectionProps {
-  formData: FormData
-  setFormData: React.Dispatch<React.SetStateAction<FormData>>
+  formData: SongFormData
+  setFormData: React.Dispatch<React.SetStateAction<SongFormData>>
   genres: string[]
   instruments: string[]
   toggleStyleItem: (field: 'genres' | 'instruments', item: string) => void

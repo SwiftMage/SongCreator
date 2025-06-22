@@ -23,7 +23,7 @@ import {
   FileText
 } from 'lucide-react'
 
-interface FormData {
+interface SongFormData {
   // Step 1: Basic Info
   subjectName: string
   relationship: string
@@ -79,7 +79,7 @@ const songTypes = [
 const genres = [
   'Pop', 'Rock', 'Country', 'Hip-Hop', 'R&B', 'Folk', 'Indie Rock', 'Alternative', 
   'Blues', 'Jazz', 'Electronic', 'Dance', 'Techno', 'Reggae', 'Punk', 'Metal',
-  'Classical', 'Acoustic', 'Singer-Songwriter', 'Soft Rock', 'Latin', 'Rap'
+  'Classical', 'Acoustic', 'Singer-Songwriter', 'Soft Rock', 'Latin', 'Rap', "80's Rock", "90's Rock"
 ]
 
 const instruments = [
@@ -93,7 +93,7 @@ export default function CreateSongPage() {
   const [user, setUser] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [formData, setFormData] = useState<FormData>({
+  const [formData, setFormData] = useState<SongFormData>({
     subjectName: '',
     relationship: '',
     songType: '',
@@ -141,6 +141,11 @@ export default function CreateSongPage() {
   }, [router, supabase])
 
   useEffect(() => {
+    // Add initial state only once
+    window.history.pushState(null, '', window.location.href)
+  }, [])
+
+  useEffect(() => {
     // Handle browser back button
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       // Only show warning if user has made progress
@@ -163,7 +168,8 @@ export default function CreateSongPage() {
         formData.genres.length > 0 ||
         formData.instruments.length > 0 ||
         formData.customGenres.length > 0 ||
-        formData.customInstruments.length > 0
+        formData.customInstruments.length > 0 ||
+        formData.otherStyle
 
       if (hasProgress) {
         e.preventDefault()
@@ -191,7 +197,8 @@ export default function CreateSongPage() {
         formData.genres.length > 0 ||
         formData.instruments.length > 0 ||
         formData.customGenres.length > 0 ||
-        formData.customInstruments.length > 0
+        formData.customInstruments.length > 0 ||
+        formData.otherStyle
 
       if (hasProgress) {
         const confirmLeave = window.confirm(
@@ -207,9 +214,6 @@ export default function CreateSongPage() {
         }
       }
     }
-
-    // Add initial state
-    window.history.pushState(null, '', window.location.href)
     
     // Add event listeners
     window.addEventListener('beforeunload', handleBeforeUnload)
@@ -222,7 +226,7 @@ export default function CreateSongPage() {
     }
   }, [currentStep, formData, router])
 
-  const addItem = (field: keyof FormData, value: string) => {
+  const addItem = (field: keyof SongFormData, value: string) => {
     if (value.trim()) {
       setFormData(prev => ({
         ...prev,
@@ -231,7 +235,7 @@ export default function CreateSongPage() {
     }
   }
 
-  const removeItem = (field: keyof FormData, index: number) => {
+  const removeItem = (field: keyof SongFormData, index: number) => {
     setFormData(prev => ({
       ...prev,
       [field]: (prev[field] as string[]).filter((_, i) => i !== index)
@@ -293,7 +297,7 @@ export default function CreateSongPage() {
     }
   }
 
-  const generateAIPrompt = (data: FormData) => {
+  const generateAIPrompt = (data: SongFormData) => {
     let prompt = `Please generate lyrics for a ${data.songType} song`
     
     // Add song style details
@@ -1057,8 +1061,8 @@ interface CustomStyleSectionProps {
 }
 
 interface SongStyleSectionProps {
-  formData: FormData
-  setFormData: React.Dispatch<React.SetStateAction<FormData>>
+  formData: SongFormData
+  setFormData: React.Dispatch<React.SetStateAction<SongFormData>>
   genres: string[]
   instruments: string[]
   toggleStyleItem: (field: 'genres' | 'instruments', item: string) => void
