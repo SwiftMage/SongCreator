@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest) {
   try {
-    const { lyrics, songId, style } = await request.json()
+    const { lyrics, songId, style, model } = await request.json()
 
     if (!lyrics) {
       return NextResponse.json(
@@ -21,13 +21,14 @@ export async function POST(request: NextRequest) {
     console.log('Generating music for song:', songId)
     console.log('Lyrics:', lyrics)
     console.log('Style:', style)
+    console.log('Custom model:', model)
     console.log('API Key exists:', !!process.env.MUREKA_API_KEY)
     console.log('API Key length:', process.env.MUREKA_API_KEY?.length)
 
     // Prepare the request payload for Mureka API with supported parameters only
     const payload = {
       lyrics: lyrics,
-      model: "mureka-6", // Use the latest mureka-6 model for best quality
+      model: model || "mureka-6", // Use custom model if provided, otherwise default to mureka-6
       prompt: style || "pop, upbeat, modern, high quality, studio production"
     }
 

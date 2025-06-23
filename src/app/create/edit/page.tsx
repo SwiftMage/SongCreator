@@ -134,7 +134,7 @@ function EditSongPage() {
       const { data: { user } } = await supabase.auth.getUser()
       
       if (!user) {
-        router.push('/auth/login')
+        router.push('/auth')
         return
       }
       
@@ -151,6 +151,17 @@ function EditSongPage() {
 
     checkAuthAndLoadSong()
   }, [router, searchParams, supabase])
+
+  // Handle step parameter from URL
+  useEffect(() => {
+    const stepParam = searchParams.get('step')
+    if (stepParam) {
+      const stepNumber = parseInt(stepParam, 10)
+      if (stepNumber >= 1 && stepNumber <= 5) {
+        setCurrentStep(stepNumber)
+      }
+    }
+  }, [searchParams])
 
   const loadSongData = async (songId: string, userId: string) => {
     try {
@@ -284,7 +295,7 @@ function EditSongPage() {
   const canProceed = () => {
     switch (currentStep) {
       case 1:
-        return formData.subjectName.trim() && formData.relationship.trim()
+        return formData.subjectName.trim()
       case 2:
         return formData.songType !== ''
       case 3:
@@ -460,7 +471,7 @@ function EditSongPage() {
 
                 <div>
                   <label htmlFor="relationship" className="block text-sm font-medium text-gray-700 mb-2">
-                    What&apos;s your relationship with them?
+                    What&apos;s your relationship with them? <span className="text-gray-500 font-normal">(optional)</span>
                   </label>
                   <input
                     id="relationship"
@@ -480,7 +491,7 @@ function EditSongPage() {
             <div className="bg-white rounded-lg shadow-md p-6 animate-fade-in">
               <h2 className="text-2xl font-bold text-gray-900 mb-6">What type of song would you like?</h2>
               
-              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {songTypes.map((type) => {
                   const IconComponent = type.icon
                   return (

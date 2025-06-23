@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
-import { Music, ArrowLeft, Check, Loader2, Volume2 } from 'lucide-react'
+import { Music, ArrowLeft, Check, Loader2, Volume2, Download, Share2, RefreshCw, FileText, Settings, RotateCcw } from 'lucide-react'
 import { getBestAudioUrl } from '@/lib/audio-player'
 
 // Helper component for audio with fallback
@@ -126,6 +126,10 @@ function GeneratingSongPage() {
   const [musicApiRequest, setMusicApiRequest] = useState('')
   const [musicApiResponse, setMusicApiResponse] = useState('')
   const [songData, setSongData] = useState<any>(null)
+  
+  // Debug mode state
+  const [debugMode, setDebugMode] = useState(false)
+  const [customModel, setCustomModel] = useState('')
   
   // Music progress bar state
   const [musicProgress, setMusicProgress] = useState(0)
@@ -315,6 +319,134 @@ function GeneratingSongPage() {
     }, 1000)
   }
 
+  const generateMusicTest = async () => {
+    console.log('=== TEST GENERATE MUSIC CLICKED ===')
+    console.log('Debug Mode:', debugMode)
+    console.log('Custom Model:', customModel)
+    
+    if (!generatedLyrics || !songData) {
+      setError('No lyrics available for music generation')
+      return
+    }
+
+    setMusicStatus({
+      status: 'generating',
+      message: 'Generating test music...'
+    })
+    
+    // Start the 1-minute progress bar
+    startMusicProgressBar()
+
+    try {
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      
+      // Complete the progress bar with zoom animation
+      completeMusicProgressBar()
+      
+      // Use a simple HTML5 audio data URL with a minimal WAV file
+      // This is a minimal 1-second silence WAV file for testing
+      const dummyAudioUrl = 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmYe'
+      const dummyBackupUrl = dummyAudioUrl // Same for backup in demo
+      
+      setMusicStatus({
+        status: 'completed',
+        taskId: 'test-task-123',
+        audioUrl: dummyAudioUrl,
+        backupAudioUrl: dummyBackupUrl,
+        audioVariations: [
+          {
+            index: 0,
+            url: dummyAudioUrl,
+            flacUrl: dummyBackupUrl,
+            duration: 30000, // 30 seconds
+            lyricsWithTimings: null
+          },
+          {
+            index: 1,
+            url: dummyBackupUrl,
+            flacUrl: dummyAudioUrl,
+            duration: 25000, // 25 seconds
+            lyricsWithTimings: null
+          }
+        ],
+        backupVariations: [
+          {
+            index: 0,
+            backupUrl: dummyBackupUrl,
+            originalUrl: dummyAudioUrl
+          },
+          {
+            index: 1,
+            backupUrl: dummyAudioUrl,
+            originalUrl: dummyBackupUrl
+          }
+        ],
+        message: 'Test music generated successfully!'
+      })
+
+      // Update song in database with dummy data
+      const updateData = {
+        status: 'completed',
+        audio_url: dummyAudioUrl,
+        backup_audio_url: dummyBackupUrl,
+        mureka_data: {
+          taskId: 'test-task-123',
+          model: debugMode && customModel ? customModel : 'test-model',
+          audioVariations: [
+            {
+              index: 0,
+              url: dummyAudioUrl,
+              flacUrl: dummyBackupUrl,
+              duration: 30000
+            },
+            {
+              index: 1,
+              url: dummyBackupUrl,
+              flacUrl: dummyAudioUrl,
+              duration: 25000
+            }
+          ],
+          finishedAt: new Date().toISOString()
+        },
+        completed_at: new Date().toISOString()
+      }
+      
+      console.log('Updating song in database with test data...')
+      
+      try {
+        const { data: updatedSong, error: updateError } = await supabase
+          .from('songs')
+          .update(updateData)
+          .eq('id', songId)
+          .select()
+        
+        if (updateError) {
+          console.error('Error updating song with test audio:', updateError)
+        } else {
+          console.log('Successfully updated song with test audio URL')
+        }
+      } catch (e) {
+        console.error('Exception during test database update:', e)
+      }
+
+    } catch (error) {
+      console.error('Test music generation error:', error)
+      
+      // Clear progress bar on error
+      if (musicProgressInterval) {
+        clearInterval(musicProgressInterval)
+        setMusicProgressInterval(null)
+      }
+      setMusicProgress(0)
+      
+      setMusicStatus({
+        status: 'error',
+        message: error instanceof Error ? error.message : 'Failed to generate test music'
+      })
+    }
+  }
+
   const generateMusic = async () => {
     console.log('=== GENERATE MUSIC CLICKED ===')
     console.log('generatedLyrics:', !!generatedLyrics)
@@ -360,8 +492,15 @@ function GeneratingSongPage() {
       const musicRequest = {
         lyrics: generatedLyrics,
         songId: songId,
-        style: stylePrompt
+        style: stylePrompt,
+        ...(debugMode && customModel.trim() ? { model: customModel.trim() } : {})
       }
+      
+      // Log what we're sending for debugging
+      console.log('=== MUSIC REQUEST DEBUG ===')
+      console.log('Debug Mode:', debugMode)
+      console.log('Custom Model:', customModel)
+      console.log('Final Request:', musicRequest)
 
       setMusicApiRequest(JSON.stringify(musicRequest, null, 2))
 
@@ -634,6 +773,46 @@ function GeneratingSongPage() {
             </div>
           )}
 
+          {/* Debug Menu */}
+          {process.env.NODE_ENV === 'development' && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mb-8">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold text-yellow-800">🔧 Debug Mode</h3>
+                <button
+                  onClick={() => setDebugMode(!debugMode)}
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                    debugMode 
+                      ? 'bg-yellow-600 text-white hover:bg-yellow-700' 
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  {debugMode ? 'Debug ON' : 'Debug OFF'}
+                </button>
+              </div>
+              
+              {debugMode && (
+                <div className="space-y-4">
+                  <div>
+                    <label htmlFor="customModel" className="block text-sm font-medium text-yellow-800 mb-2">
+                      Custom Mureka Model String
+                    </label>
+                    <input
+                      id="customModel"
+                      type="text"
+                      value={customModel}
+                      onChange={(e) => setCustomModel(e.target.value)}
+                      className="w-full px-4 py-3 border border-yellow-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent text-gray-900 bg-white"
+                      placeholder="Enter custom model string (e.g., chirp-v3-5)"
+                    />
+                    <p className="text-xs text-yellow-700 mt-1">
+                      This will override the default model in the Mureka API request
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Generated Lyrics */}
           {generatedLyrics && (
             <div className="bg-white rounded-lg shadow-md p-6 mb-8">
@@ -691,7 +870,7 @@ function GeneratingSongPage() {
               )}
               
               {generationStatus.status === 'completed' && !isEditingLyrics && (
-                <div className="mt-6 flex space-x-4">
+                <div className="mt-6 flex space-x-4 flex-wrap">
                   <button
                     onClick={generateMusic}
                     disabled={musicStatus.status === 'generating'}
@@ -699,6 +878,14 @@ function GeneratingSongPage() {
                   >
                     <Volume2 className="h-5 w-5 inline mr-2" />
                     {musicStatus.status === 'generating' ? 'Generating Music...' : 'Generate Music'}
+                  </button>
+                  <button
+                    onClick={generateMusicTest}
+                    disabled={musicStatus.status === 'generating'}
+                    className="px-6 py-3 bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700 disabled:bg-gray-300 disabled:text-gray-500 transition-colors"
+                  >
+                    <Volume2 className="h-5 w-5 inline mr-2" />
+                    {musicStatus.status === 'generating' ? 'Generating Test...' : 'Test Generate (Demo)'}
                   </button>
                   <button
                     onClick={() => router.push('/dashboard')}
@@ -851,6 +1038,278 @@ function GeneratingSongPage() {
                   </div>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Love Your Song Section - Shows after music is completed */}
+          {musicStatus.status === 'completed' && musicStatus.audioUrl && (
+            <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+              <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">💖 Love your song?</h3>
+              
+              <div className="grid md:grid-cols-2 gap-6">
+                {/* Download Options */}
+                <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg p-6">
+                  <div className="flex items-center mb-4">
+                    <Download className="h-6 w-6 text-green-600 mr-2" />
+                    <h4 className="text-lg font-semibold text-gray-900">Download Your Song</h4>
+                  </div>
+                  <p className="text-gray-600 mb-4">Get your song in high quality to keep forever</p>
+                  
+                  {musicStatus.audioVariations && musicStatus.audioVariations.length > 1 ? (
+                    <div className="space-y-2">
+                      {musicStatus.audioVariations.map((variation, index) => {
+                        const backupVariation = musicStatus.backupVariations?.find(bv => bv.index === index)
+                        return (
+                          <div key={index} className="flex space-x-2">
+                            <DownloadButtonWithFallback
+                              primaryUrl={variation.url}
+                              backupUrl={backupVariation?.backupUrl}
+                              filename={`${(songData?.title || 'song').replace(/[^a-zA-Z0-9\s-]/g, '').replace(/\s+/g, '-')}-version-${index + 1}.mp3`}
+                              className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
+                              label={`Download Version ${index + 1} (MP3)`}
+                            />
+                            <DownloadButtonWithFallback
+                              primaryUrl={variation.flacUrl}
+                              backupUrl={backupVariation?.backupUrl}
+                              filename={`${(songData?.title || 'song').replace(/[^a-zA-Z0-9\s-]/g, '').replace(/\s+/g, '-')}-version-${index + 1}.flac`}
+                              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+                              label={`FLAC ${index + 1}`}
+                            />
+                          </div>
+                        )
+                      })}
+                    </div>
+                  ) : (
+                    <div className="flex space-x-3">
+                      <DownloadButtonWithFallback
+                        primaryUrl={musicStatus.audioUrl!}
+                        backupUrl={musicStatus.backupAudioUrl}
+                        filename={`${(songData?.title || 'song').replace(/[^a-zA-Z0-9\s-]/g, '').replace(/\s+/g, '-')}.mp3`}
+                        className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
+                        label="Download MP3"
+                      />
+                      <button className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors">
+                        Download FLAC
+                      </button>
+                    </div>
+                  )}
+                </div>
+                
+                {/* Social Sharing Options */}
+                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-6">
+                  <div className="flex items-center mb-4">
+                    <Share2 className="h-6 w-6 text-blue-600 mr-2" />
+                    <h4 className="text-lg font-semibold text-gray-900">Share Your Creation</h4>
+                  </div>
+                  <p className="text-gray-600 mb-4">Let the world hear your amazing song!</p>
+                  
+                  <div className="space-y-3">
+                    <button 
+                      onClick={() => {
+                        const text = encodeURIComponent(`🎶 I just made a custom song using SongCreator — and it SLAPS.
+Written with my stories, my vibe, my people.
+Check it out 🔥👇
+
+👉 ${window.location.origin}
+🧠 Powered by AI. 🎤 Made by me.
+
+#SongCreator #CustomSong #AIgenerated #PersonalAnthem #OriginalMusic #BuiltWithAI #SongwriterVibes`)
+                        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.origin)}&quote=${text}`, '_blank')
+                      }}
+                      className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2"
+                    >
+                      <img src="/images/Facebook_Logo_Primary.png" alt="Facebook" className="w-5 h-5" />
+                      <span>Share on Facebook</span>
+                    </button>
+                    
+                    <button 
+                      onClick={() => {
+                        const text = encodeURIComponent(`🎶 I just made a custom song using SongCreator — and it SLAPS.
+Written with my stories, my vibe, my people.
+Check it out 🔥👇
+
+👉 ${window.location.origin}
+🧠 Powered by AI. 🎤 Made by me.
+
+#SongCreator #CustomSong #AIgenerated #PersonalAnthem #OriginalMusic #BuiltWithAI #SongwriterVibes`)
+                        window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank')
+                      }}
+                      className="w-full px-4 py-2 bg-black text-white rounded-lg font-medium hover:bg-gray-800 transition-colors flex items-center justify-center space-x-2"
+                    >
+                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                      </svg>
+                      <span>Share on X (Twitter)</span>
+                    </button>
+                    
+                    <button 
+                      onClick={() => {
+                        const instagramText = `🎶 I just made a custom song using SongCreator — and it SLAPS.
+Written with my stories, my vibe, my people.
+Check it out 🔥👇
+
+👉 ${window.location.origin}
+🧠 Powered by AI. 🎤 Made by me.
+
+#SongCreator #CustomSong #AIgenerated #PersonalAnthem #OriginalMusic #BuiltWithAI #SongwriterVibes`
+                        window.open(`https://www.instagram.com/`, '_blank')
+                        // Note: Instagram doesn't have direct URL sharing for posts, but opens the app
+                        setTimeout(() => {
+                          navigator.clipboard.writeText(instagramText)
+                          alert('Instagram opened! Caption copied to clipboard - paste it in your post!')
+                        }, 1000)
+                      }}
+                      className="w-full px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg font-medium hover:from-purple-600 hover:to-pink-600 transition-colors flex items-center justify-center space-x-2"
+                    >
+                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                      </svg>
+                      <span>Share on Instagram</span>
+                    </button>
+                    
+                    <button 
+                      onClick={() => {
+                        if (navigator.share) {
+                          navigator.share({
+                            title: 'Check out my personalized song!',
+                            text: '🎵 I just created an amazing personalized song with SongCreator!',
+                            url: window.location.origin
+                          })
+                        } else {
+                          // Fallback - copy to clipboard
+                          navigator.clipboard.writeText(`🎵 I just created an amazing personalized song with SongCreator! Check it out: ${window.location.origin}`)
+                          alert('Link copied to clipboard!')
+                        }
+                      }}
+                      className="w-full px-4 py-2 bg-gray-600 text-white rounded-lg font-medium hover:bg-gray-700 transition-colors flex items-center justify-center space-x-2"
+                    >
+                      <Share2 className="h-4 w-4" />
+                      <span>More options...</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Not Loving Your Song Section - Shows after music is completed */}
+          {musicStatus.status === 'completed' && musicStatus.audioUrl && (
+            <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+              <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">🤔 Not loving the song?</h3>
+              
+              <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-lg p-6">
+                <p className="text-gray-700 mb-6 text-center">
+                  No worries! You can make changes to get the perfect song. Each option costs <strong>1 credit</strong>.
+                </p>
+                
+                <div className="grid md:grid-cols-3 gap-4">
+                  {/* Regenerate Song */}
+                  <div className="bg-white rounded-lg p-4 text-center shadow-sm">
+                    <RefreshCw className="h-8 w-8 text-purple-600 mx-auto mb-3" />
+                    <h4 className="font-semibold text-gray-900 mb-2">Regenerate Song</h4>
+                    <p className="text-sm text-gray-600 mb-4">Generate a new version with the same settings</p>
+                    <button 
+                      onClick={() => {
+                        if (confirm('This will cost 1 credit to regenerate the song with the same settings. Continue?')) {
+                          // Trigger regeneration logic here
+                          generateMusic()
+                        }
+                      }}
+                      className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition-colors"
+                    >
+                      Regenerate (1 credit)
+                    </button>
+                  </div>
+                  
+                  {/* Change Lyrics */}
+                  <div className="bg-white rounded-lg p-4 text-center shadow-sm">
+                    <FileText className="h-8 w-8 text-blue-600 mx-auto mb-3" />
+                    <h4 className="font-semibold text-gray-900 mb-2">Change Lyrics</h4>
+                    <p className="text-sm text-gray-600 mb-4">Choose how to handle the lyrics for your song</p>
+                    <button 
+                      onClick={() => {
+                        if (confirm('This will cost 1 credit to change the lyrics. You will be taken to the lyrics selection page. Continue?')) {
+                          // Navigate to edit page step 3 - "How would you like to handle the lyrics?"
+                          const url = new URL(`${window.location.origin}/create/edit`)
+                          url.searchParams.set('songId', songId!)
+                          url.searchParams.set('step', '3')
+                          router.push(url.toString())
+                        }
+                      }}
+                      className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                    >
+                      Change Lyrics (1 credit)
+                    </button>
+                  </div>
+                  
+                  {/* Change Description */}
+                  <div className="bg-white rounded-lg p-4 text-center shadow-sm">
+                    <Settings className="h-8 w-8 text-green-600 mx-auto mb-3" />
+                    <h4 className="font-semibold text-gray-900 mb-2">Change Description</h4>
+                    <p className="text-sm text-gray-600 mb-4">Modify the song details and attributes</p>
+                    <button 
+                      onClick={() => {
+                        if (confirm('This will cost 1 credit to change the song description. You will be taken to the details page. Continue?')) {
+                          // Navigate to create page with step 4 (details) and songId for editing
+                          router.push(`/create/edit?songId=${songId}&step=4`)
+                        }
+                      }}
+                      className="w-full px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
+                    >
+                      Change Description (1 credit)
+                    </button>
+                  </div>
+                </div>
+                
+                {/* Start Over Option */}
+                <div className="mt-6 pt-6 border-t border-gray-200">
+                  <div className="text-center">
+                    <RotateCcw className="h-8 w-8 text-gray-600 mx-auto mb-3" />
+                    <h4 className="font-semibold text-gray-900 mb-2">Start Over</h4>
+                    <p className="text-sm text-gray-600 mb-4">Create a completely new song from scratch</p>
+                    <button 
+                      onClick={() => {
+                        if (confirm('This will cost 1 credit to create a new song. You will be taken to the beginning of the song creation process. Continue?')) {
+                          router.push('/create')
+                        }
+                      }}
+                      className="px-6 py-2 bg-gray-700 text-white rounded-lg font-medium hover:bg-gray-800 transition-colors"
+                    >
+                      Start Over (1 credit)
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Return to Dashboard Section - Shows after music is completed */}
+          {musicStatus.status === 'completed' && musicStatus.audioUrl && (
+            <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+              <div className="text-center">
+                <h3 className="text-2xl font-bold text-gray-900 mb-4">🎵 All done?</h3>
+                <p className="text-gray-600 mb-6">
+                  Your song is ready! You can always come back to listen, download, or make changes later.
+                </p>
+                
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                  <button
+                    onClick={() => router.push('/dashboard')}
+                    className="px-8 py-4 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors flex items-center justify-center space-x-2"
+                  >
+                    <Music className="h-5 w-5" />
+                    <span>View All My Songs</span>
+                  </button>
+                  
+                  <button
+                    onClick={() => router.push('/create')}
+                    className="px-8 py-4 bg-gray-800 text-white rounded-lg font-semibold hover:bg-gray-900 transition-colors flex items-center justify-center space-x-2"
+                  >
+                    <span>✨</span>
+                    <span>Create Another Song</span>
+                  </button>
+                </div>
+              </div>
             </div>
           )}
 

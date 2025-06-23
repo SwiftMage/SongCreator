@@ -61,13 +61,13 @@ export default function Home() {
             ) : (
               <>
                 <Link 
-                  href="/auth/login"
+                  href="/auth"
                   className="text-gray-600 hover:text-gray-900 transition-colors"
                 >
                   Login
                 </Link>
                 <Link 
-                  href="/auth/register"
+                  href="/auth"
                   className="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition-colors"
                 >
                   Get Started

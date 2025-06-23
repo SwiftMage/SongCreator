@@ -44,7 +44,7 @@ export default function AccountPage() {
       const { data: { user } } = await supabase.auth.getUser()
       
       if (!user) {
-        router.push('/auth/login')
+        router.push('/auth')
         return
       }
       

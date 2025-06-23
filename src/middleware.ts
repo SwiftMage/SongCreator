@@ -39,13 +39,13 @@ export async function middleware(request: NextRequest) {
   )
 
   if (isProtectedPath && !session) {
-    const redirectUrl = new URL('/auth/login', request.url)
+    const redirectUrl = new URL('/auth', request.url)
     redirectUrl.searchParams.set('redirect', request.nextUrl.pathname)
     return NextResponse.redirect(redirectUrl)
   }
 
   // Redirect authenticated users away from auth pages
-  const authPaths = ['/auth/login', '/auth/register']
+  const authPaths = ['/auth/login', '/auth/register', '/auth']
   const isAuthPath = authPaths.some(path => 
     request.nextUrl.pathname.startsWith(path)
   )
