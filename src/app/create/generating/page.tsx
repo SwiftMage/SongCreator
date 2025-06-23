@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, Suspense } from 'react'
+import { useState, useEffect, useRef, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
@@ -126,21 +126,43 @@ function GeneratingSongPage() {
   const [musicApiRequest, setMusicApiRequest] = useState('')
   const [musicApiResponse, setMusicApiResponse] = useState('')
   const [songData, setSongData] = useState<any>(null)
+  const [hasGeneratedMusic, setHasGeneratedMusic] = useState(false)
   
   // Debug mode state
   const [debugMode, setDebugMode] = useState(false)
   const [customModel, setCustomModel] = useState('')
+  const [activeTasks, setActiveTasks] = useState<any[]>([])
+  const [isCheckingTasks, setIsCheckingTasks] = useState(false)
+  const [connectionTest, setConnectionTest] = useState<any>(null)
+  const [isTestingConnection, setIsTestingConnection] = useState(false)
+  const [isClient, setIsClient] = useState(false)
   
   // Music progress bar state
   const [musicProgress, setMusicProgress] = useState(0)
   const [musicProgressInterval, setMusicProgressInterval] = useState<NodeJS.Timeout | null>(null)
   const [showCompletionZoom, setShowCompletionZoom] = useState(false)
+  const [pollTimeoutId, setPollTimeoutId] = useState<NodeJS.Timeout | null>(null)
+  const [pollStartTime, setPollStartTime] = useState<number | null>(null)
+  
+  // Social sharing modal state
+  const [showShareModal, setShowShareModal] = useState(false)
+  const [shareText, setShareText] = useState('')
+  const [shareUrl, setShareUrl] = useState('')
+  
+  // Error details state
+  const [showErrorDetails, setShowErrorDetails] = useState(false)
+  const [errorDetails, setErrorDetails] = useState<any>(null)
 
   const router = useRouter()
   const searchParams = useSearchParams()
   const supabase = createClient()
+  
+  // Use refs to persist intervals across re-renders
+  const musicProgressIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const pollTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
+    setIsClient(true)
     const songIdParam = searchParams.get('songId')
     if (songIdParam) {
       setSongId(songIdParam)
@@ -155,14 +177,115 @@ function GeneratingSongPage() {
     }
   }, [searchParams])
 
-  // Cleanup music progress interval on unmount
+  // Cleanup music progress interval and polling on unmount
   useEffect(() => {
     return () => {
-      if (musicProgressInterval) {
-        clearInterval(musicProgressInterval)
+      console.log('Component unmounting - clearing intervals')
+      if (musicProgressIntervalRef.current) {
+        clearInterval(musicProgressIntervalRef.current)
+        musicProgressIntervalRef.current = null
+      }
+      if (pollTimeoutRef.current) {
+        clearTimeout(pollTimeoutRef.current)
+        pollTimeoutRef.current = null
       }
     }
+  }, [])
+  
+  // Debug: Track music progress interval changes
+  useEffect(() => {
+    console.log('Music progress interval changed:', musicProgressInterval ? 'SET' : 'CLEARED')
   }, [musicProgressInterval])
+  
+  // Function to test Mureka connection
+  const testMurekaConnection = async () => {
+    console.log('=== TEST CONNECTION CLICKED ===')
+    setIsTestingConnection(true)
+    try {
+      console.log('Making request to /api/test-mureka-connection')
+      const response = await fetch('/api/test-mureka-connection')
+      console.log('Response status:', response.status)
+      if (response.ok) {
+        const result = await response.json()
+        console.log('Connection test result:', result)
+        setConnectionTest(result)
+      } else {
+        console.error('Failed to test connection, status:', response.status)
+        const errorText = await response.text()
+        console.error('Error response:', errorText)
+        setConnectionTest({
+          connected: false,
+          statusCode: response.status,
+          error: errorText,
+          apiKeyConfigured: false
+        })
+      }
+    } catch (error) {
+      console.error('Error testing connection:', error)
+      setConnectionTest({
+        connected: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        apiKeyConfigured: false
+      })
+    }
+    setIsTestingConnection(false)
+    console.log('=== TEST CONNECTION FINISHED ===')
+  }
+
+  // Function to check for active Mureka tasks
+  const checkActiveTasks = async () => {
+    console.log('=== CHECK ACTIVE TASKS CLICKED ===')
+    setIsCheckingTasks(true)
+    try {
+      console.log('Making request to /api/list-mureka-tasks')
+      const response = await fetch('/api/list-mureka-tasks')
+      console.log('Response status:', response.status)
+      if (response.ok) {
+        const result = await response.json()
+        console.log('Active tasks result:', result)
+        setActiveTasks(result.activeTasks || [])
+      } else {
+        console.error('Failed to check active tasks, status:', response.status)
+        const errorText = await response.text()
+        console.error('Error response:', errorText)
+        alert(`Error: Failed to check active tasks (status: ${response.status}). Check console for details.`)
+      }
+    } catch (error) {
+      console.error('Error checking active tasks:', error)
+      alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}. Check console for details.`)
+    }
+    setIsCheckingTasks(false)
+    console.log('=== CHECK ACTIVE TASKS FINISHED ===')
+  }
+
+  // Function to cancel music generation
+  const cancelMusicGeneration = () => {
+    console.log('Cancelling music generation - clearing progress bar')
+    // Clear polling timeout
+    if (pollTimeoutRef.current) {
+      clearTimeout(pollTimeoutRef.current)
+      pollTimeoutRef.current = null
+      setPollTimeoutId(null)
+    }
+    
+    // Clear progress interval
+    if (musicProgressIntervalRef.current) {
+      clearInterval(musicProgressIntervalRef.current)
+      musicProgressIntervalRef.current = null
+      setMusicProgressInterval(null)
+    }
+    
+    // Reset states
+    setMusicProgress(0)
+    setPollStartTime(null)
+    setMusicStatus({
+      status: 'idle',
+      message: 'Generation cancelled'
+    })
+    
+    // Also check for any remaining active tasks
+    checkActiveTasks()
+  }
 
   const startGeneration = async (songId: string) => {
     try {
@@ -289,23 +412,42 @@ function GeneratingSongPage() {
   }
 
   const startMusicProgressBar = () => {
+    // Clear any existing interval first
+    if (musicProgressIntervalRef.current) {
+      console.log('Clearing existing progress interval')
+      clearInterval(musicProgressIntervalRef.current)
+      musicProgressIntervalRef.current = null
+    }
+    
+    // Reset progress state
     setMusicProgress(0)
     setShowCompletionZoom(false)
+    
+    console.log('Starting music progress bar - progress reset to 0')
     
     // Start progress bar that fills over 60 seconds
     const interval = setInterval(() => {
       setMusicProgress(prev => {
         const increment = 100 / (60 * 10) // 60 seconds, update every 100ms
-        return Math.min(prev + increment, 95) // Stop at 95% until completion
+        const newProgress = Math.min(prev + increment, 95) // Stop at 95% until completion
+        if (newProgress % 5 < 0.2) { // Log every 5% to avoid spam
+          console.log(`Progress bar update: ${prev.toFixed(1)}% -> ${newProgress.toFixed(1)}%`)
+        }
+        return newProgress
       })
     }, 100)
     
-    setMusicProgressInterval(interval)
+    console.log('Progress bar interval created:', interval)
+    musicProgressIntervalRef.current = interval
+    setMusicProgressInterval(interval) // Keep state for UI reactivity
   }
 
   const completeMusicProgressBar = () => {
-    if (musicProgressInterval) {
-      clearInterval(musicProgressInterval)
+    console.log('Completing music progress bar')
+    if (musicProgressIntervalRef.current) {
+      console.log('Clearing progress interval for completion')
+      clearInterval(musicProgressIntervalRef.current)
+      musicProgressIntervalRef.current = null
       setMusicProgressInterval(null)
     }
     
@@ -384,6 +526,9 @@ function GeneratingSongPage() {
         ],
         message: 'Test music generated successfully!'
       })
+      
+      // Mark that music has been generated
+      setHasGeneratedMusic(true)
 
       // Update song in database with dummy data
       const updateData = {
@@ -434,8 +579,9 @@ function GeneratingSongPage() {
       console.error('Test music generation error:', error)
       
       // Clear progress bar on error
-      if (musicProgressInterval) {
-        clearInterval(musicProgressInterval)
+      if (musicProgressIntervalRef.current) {
+        clearInterval(musicProgressIntervalRef.current)
+        musicProgressIntervalRef.current = null
         setMusicProgressInterval(null)
       }
       setMusicProgress(0)
@@ -456,6 +602,27 @@ function GeneratingSongPage() {
       setError('No lyrics available for music generation')
       return
     }
+
+    // Check for active tasks before starting
+    await checkActiveTasks()
+    const stuckTasks = activeTasks.filter(task => task.status === 'preparing')
+    if (stuckTasks.length > 0) {
+      const proceed = confirm(
+        `⚠️ Found ${stuckTasks.length} task(s) stuck in "preparing" status. This may cause rate limit errors.\n\n` +
+        `Do you want to proceed anyway? If you get a rate limit error, please wait 5-10 minutes before trying again.`
+      )
+      if (!proceed) {
+        return
+      }
+    }
+
+    // Clear any existing polling state before starting
+    if (pollTimeoutRef.current) {
+      clearTimeout(pollTimeoutRef.current)
+      pollTimeoutRef.current = null
+      setPollTimeoutId(null)
+    }
+    setPollStartTime(null) // Reset poll start time
 
     setMusicStatus({
       status: 'generating',
@@ -485,9 +652,6 @@ function GeneratingSongPage() {
       if (!stylePrompt) {
         stylePrompt = 'pop, modern'
       }
-
-      // Add quality-focused terms to improve audio fidelity
-      stylePrompt += ', high quality, studio production, clear vocals, professional mixing'
 
       const musicRequest = {
         lyrics: generatedLyrics,
@@ -540,27 +704,77 @@ function GeneratingSongPage() {
 
       // Start polling for music status
       console.log('Starting music status polling for task:', result.taskId)
+      const startTime = Date.now()
+      setPollStartTime(startTime)
+      console.log('Poll start time set to:', new Date(startTime).toISOString())
       pollMusicStatus(result.taskId)
 
     } catch (error) {
       console.error('Music generation error:', error)
       
       // Clear progress bar on error
-      if (musicProgressInterval) {
-        clearInterval(musicProgressInterval)
+      console.log('Clearing progress bar due to music generation error')
+      if (musicProgressIntervalRef.current) {
+        clearInterval(musicProgressIntervalRef.current)
+        musicProgressIntervalRef.current = null
         setMusicProgressInterval(null)
       }
       setMusicProgress(0)
       
+      const errorMessage = error instanceof Error ? error.message : 'Failed to generate music'
       setMusicStatus({
         status: 'error',
-        message: error instanceof Error ? error.message : 'Failed to generate music'
+        message: errorMessage
+      })
+      
+      // Store error details for expandable view
+      setErrorDetails({
+        type: 'Music Generation Error',
+        message: errorMessage,
+        timestamp: new Date().toISOString(),
+        error: error instanceof Error ? {
+          name: error.name,
+          message: error.message,
+          stack: error.stack
+        } : error
       })
     }
   }
 
   const pollMusicStatus = async (taskId: string) => {
     try {
+      // Check if polling has been running for more than 5 minutes (300,000ms)
+      if (pollStartTime && Date.now() - pollStartTime > 300000) {
+        const elapsed = Math.round((Date.now() - pollStartTime) / 1000)
+        console.log(`Polling timeout reached (${elapsed} seconds), cancelling request`)
+        cancelMusicGeneration()
+        const timeoutMessage = 'Music generation timed out. Please try again.'
+        setMusicStatus({
+          status: 'error',
+          message: timeoutMessage
+        })
+        
+        // Store timeout error details
+        setErrorDetails({
+          type: 'Generation Timeout',
+          message: timeoutMessage,
+          timestamp: new Date().toISOString(),
+          details: {
+            taskId: taskId,
+            elapsedSeconds: elapsed,
+            maxTimeout: 300,
+            reason: 'Polling exceeded 5 minute limit'
+          }
+        })
+        return
+      }
+
+      // Log current polling status
+      if (pollStartTime) {
+        const elapsed = Math.round((Date.now() - pollStartTime) / 1000)
+        console.log(`Polling music status for task ${taskId} (${elapsed}s elapsed)`)
+      }
+
       const response = await fetch('/api/check-music-status', {
         method: 'POST',
         headers: {
@@ -579,6 +793,13 @@ function GeneratingSongPage() {
       console.log('Result audioUrl:', result.audioUrl)
       
       if (result.status === 'succeeded' && result.audioUrl) {
+        // Clear timeout since we're successful
+        if (pollTimeoutRef.current) {
+          clearTimeout(pollTimeoutRef.current)
+          pollTimeoutRef.current = null
+          setPollTimeoutId(null)
+        }
+        
         // Complete the progress bar with zoom animation
         completeMusicProgressBar()
         
@@ -591,6 +812,9 @@ function GeneratingSongPage() {
           backupVariations: result.backupVariations,
           message: 'Music generated successfully!'
         })
+        
+        // Mark that music has been generated
+        setHasGeneratedMusic(true)
 
         // Update song in database with audio URL, backup URL, and all variations
         const updateData: any = {
@@ -637,36 +861,147 @@ function GeneratingSongPage() {
         }
 
       } else if (result.status === 'failed') {
+        console.log('Music generation failed, clearing progress bar')
         // Clear progress bar on failure
-        if (musicProgressInterval) {
-          clearInterval(musicProgressInterval)
+        if (musicProgressIntervalRef.current) {
+          clearInterval(musicProgressIntervalRef.current)
+          musicProgressIntervalRef.current = null
           setMusicProgressInterval(null)
         }
         setMusicProgress(0)
         
+        // Clear timeout
+        if (pollTimeoutRef.current) {
+          clearTimeout(pollTimeoutRef.current)
+          pollTimeoutRef.current = null
+          setPollTimeoutId(null)
+        }
+        
+        const failedMessage = 'Music generation failed'
         setMusicStatus({
           status: 'error',
-          message: 'Music generation failed'
+          message: failedMessage
+        })
+        
+        // Store failed status error details
+        setErrorDetails({
+          type: 'Generation Failed',
+          message: failedMessage,
+          timestamp: new Date().toISOString(),
+          details: {
+            taskId: taskId,
+            status: result.status,
+            response: sanitizeErrorDetails(result)
+          }
         })
       } else {
         // Still processing, poll again in 5 seconds
-        setTimeout(() => pollMusicStatus(taskId), 5000)
+        const timeoutId = setTimeout(() => pollMusicStatus(taskId), 5000)
+        pollTimeoutRef.current = timeoutId
+        setPollTimeoutId(timeoutId)
       }
 
     } catch (error) {
       console.error('Error polling music status:', error)
       
       // Clear progress bar on error
-      if (musicProgressInterval) {
-        clearInterval(musicProgressInterval)
+      console.log('Clearing progress bar due to polling error')
+      if (musicProgressIntervalRef.current) {
+        clearInterval(musicProgressIntervalRef.current)
+        musicProgressIntervalRef.current = null
         setMusicProgressInterval(null)
       }
       setMusicProgress(0)
       
+      const pollingErrorMessage = 'Failed to check music generation status'
       setMusicStatus({
         status: 'error',
-        message: 'Failed to check music generation status'
+        message: pollingErrorMessage
       })
+      
+      // Store polling error details
+      setErrorDetails({
+        type: 'Polling Error',
+        message: pollingErrorMessage,
+        timestamp: new Date().toISOString(),
+        error: error instanceof Error ? {
+          name: error.name,
+          message: error.message,
+          stack: error.stack
+        } : error,
+        details: {
+          taskId: taskId,
+          context: 'Error occurred while checking music generation status'
+        }
+      })
+    }
+  }
+
+  // Function to sanitize error details by removing sensitive information
+  const sanitizeErrorDetails = (details: any) => {
+    if (!details) return details
+    
+    const sanitized = JSON.parse(JSON.stringify(details)) // Deep clone
+    
+    // Function to recursively sanitize object
+    const sanitizeObject = (obj: any): any => {
+      if (typeof obj === 'string') {
+        // Remove URLs
+        obj = obj.replace(/https?:\/\/[^\s]+/g, '[URL_REDACTED]')
+        // Remove API keys (common patterns)
+        obj = obj.replace(/(?:key|token|secret|password)[=:]\s*[A-Za-z0-9+/=]{10,}/gi, '[API_KEY_REDACTED]')
+        // Remove bearer tokens
+        obj = obj.replace(/Bearer\s+[A-Za-z0-9+/=]{10,}/gi, 'Bearer [TOKEN_REDACTED]')
+        return obj
+      }
+      
+      if (Array.isArray(obj)) {
+        return obj.map(sanitizeObject)
+      }
+      
+      if (obj && typeof obj === 'object') {
+        const sanitizedObj: any = {}
+        for (const [key, value] of Object.entries(obj)) {
+          // Skip sensitive keys entirely
+          if (/(?:key|token|secret|password|authorization)/i.test(key)) {
+            sanitizedObj[key] = '[REDACTED]'
+          } else {
+            sanitizedObj[key] = sanitizeObject(value)
+          }
+        }
+        return sanitizedObj
+      }
+      
+      return obj
+    }
+    
+    return sanitizeObject(sanitized)
+  }
+
+  // Social sharing functions
+  const openShareModal = (platform: string) => {
+    const baseText = `🎶 I just made a custom song using SongCreator — and it SLAPS.
+Written with my stories, my vibe, my people.
+Check it out 🔥👇
+
+👉 ${window.location.origin}
+🧠 Powered by AI. 🎤 Made by me.
+
+#SongCreator #CustomSong #AIgenerated #PersonalAnthem #OriginalMusic #BuiltWithAI #SongwriterVibes`
+    
+    setShareText(baseText)
+    setShareUrl(platform === 'facebook' ? `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.origin)}` : 
+                platform === 'twitter' ? `https://twitter.com/intent/tweet?text=${encodeURIComponent(baseText)}` : 
+                'https://www.instagram.com/')
+    setShowShareModal(true)
+  }
+
+  const copyShareText = async () => {
+    try {
+      await navigator.clipboard.writeText(shareText)
+      alert('Share text copied to clipboard!')
+    } catch (err) {
+      alert('Failed to copy text. Please copy it manually.')
     }
   }
 
@@ -762,7 +1097,7 @@ function GeneratingSongPage() {
           )}
 
           {/* Debug: Request String */}
-          {requestString && (
+          {debugMode && requestString && (
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 mb-8">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Debug: AI Request</h3>
               <div className="bg-white border rounded-lg p-4">
@@ -773,44 +1108,111 @@ function GeneratingSongPage() {
             </div>
           )}
 
-          {/* Debug Menu */}
-          {process.env.NODE_ENV === 'development' && (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mb-8">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold text-yellow-800">🔧 Debug Mode</h3>
-                <button
-                  onClick={() => setDebugMode(!debugMode)}
-                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                    debugMode 
-                      ? 'bg-yellow-600 text-white hover:bg-yellow-700' 
-                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                  }`}
-                >
-                  {debugMode ? 'Debug ON' : 'Debug OFF'}
-                </button>
+          {/* Debug Toggle */}
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-8">
+            <button
+              onClick={() => setDebugMode(!debugMode)}
+              className="w-full px-4 py-2 bg-gray-600 text-white rounded-lg font-medium hover:bg-gray-700 transition-colors"
+            >
+              {debugMode ? '🔧 Hide Debug Controls' : '🔧 Show Debug Controls'}
+            </button>
+          </div>
+
+          {/* Debug Section - Only show when debugMode is true */}
+          {debugMode && (
+            <>
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mb-8">
+                <h3 className="text-lg font-bold text-yellow-800 mb-4">🔧 Debug & Diagnostics</h3>
+                <div className="space-y-3">
+                  <button
+                    onClick={checkActiveTasks}
+                    disabled={isCheckingTasks}
+                    className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:bg-gray-400 transition-colors"
+                  >
+                    {isCheckingTasks ? '🔄 Checking Active Tasks...' : '🔍 Check Active Tasks'}
+                  </button>
+                  <button
+                    onClick={testMurekaConnection}
+                    disabled={isTestingConnection}
+                    className="w-full px-4 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 disabled:bg-gray-400 transition-colors"
+                  >
+                    {isTestingConnection ? '🔄 Testing Connection...' : '🔌 Test Connection'}
+                  </button>
+                  <button
+                    onClick={cancelMusicGeneration}
+                    className="w-full px-4 py-3 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors"
+                  >
+                    🛑 Stop All Requests
+                  </button>
+                </div>
               </div>
-              
-              {debugMode && (
+
+              {/* Debug: Custom Model Input */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
+                <h3 className="text-lg font-bold text-blue-800 mb-4">🎛️ Advanced Options</h3>
                 <div className="space-y-4">
                   <div>
-                    <label htmlFor="customModel" className="block text-sm font-medium text-yellow-800 mb-2">
-                      Custom Mureka Model String
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Custom Model (optional)
                     </label>
                     <input
-                      id="customModel"
                       type="text"
                       value={customModel}
                       onChange={(e) => setCustomModel(e.target.value)}
-                      className="w-full px-4 py-3 border border-yellow-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent text-gray-900 bg-white"
-                      placeholder="Enter custom model string (e.g., chirp-v3-5)"
+                      placeholder="e.g., mureka-v3"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     />
-                    <p className="text-xs text-yellow-700 mt-1">
-                      This will override the default model in the Mureka API request
+                    <p className="text-xs text-gray-500 mt-1">
+                      Leave empty to use default model
                     </p>
                   </div>
                 </div>
+              </div>
+            </>
+          )}
+
+          {/* Debug Results - Only show when debugMode is true */}
+          {debugMode && (
+            <>
+              {/* Active Tasks Results */}
+              {isClient && activeTasks.length > 0 && (
+                <div className="bg-yellow-100 border border-yellow-400 rounded-lg p-6 mb-8">
+                  <h3 className="text-lg font-bold text-yellow-800 mb-4">Active Tasks Found</h3>
+                  <div className="space-y-3">
+                    {activeTasks.map((task, index) => (
+                      <div key={index} className="bg-white rounded-lg p-4">
+                        <div className="grid grid-cols-2 gap-2 text-sm">
+                          <div><strong>Task ID:</strong> {task.taskId}</div>
+                          <div><strong>Status:</strong> {task.status}</div>
+                          <div><strong>Model:</strong> {task.model}</div>
+                          <div><strong>Created:</strong> {new Date(task.murekaCreatedAt).toLocaleString()}</div>
+                        </div>
+                        {task.status === 'preparing' && (
+                          <div className="text-red-600 font-medium mt-2">⚠️ This task appears stuck</div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
               )}
-            </div>
+
+              {/* Connection Test Results */}
+              {isClient && connectionTest && (
+                <div className={`rounded-lg p-6 mb-8 ${connectionTest.connected ? 'bg-green-100 border border-green-400' : 'bg-red-100 border border-red-400'}`}>
+                  <h3 className={`text-lg font-bold mb-4 ${connectionTest.connected ? 'text-green-800' : 'text-red-800'}`}>
+                    Connection Test Results
+                  </h3>
+                  <div className="space-y-2 text-black">
+                    <div><strong>Status:</strong> {connectionTest.connected ? '✅ Connected' : '❌ Failed'}</div>
+                    <div><strong>Response Code:</strong> {connectionTest.statusCode}</div>
+                    <div><strong>API Key:</strong> {connectionTest.apiKeyConfigured ? 'Configured' : 'Missing'}</div>
+                    {connectionTest.error && (
+                      <div><strong>Error:</strong> {connectionTest.error}</div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </>
           )}
 
           {/* Generated Lyrics */}
@@ -872,20 +1274,36 @@ function GeneratingSongPage() {
               {generationStatus.status === 'completed' && !isEditingLyrics && (
                 <div className="mt-6 flex space-x-4 flex-wrap">
                   <button
-                    onClick={generateMusic}
+                    onClick={() => {
+                      if (hasGeneratedMusic) {
+                        if (confirm('This will cost 1 credit to regenerate the music. Continue?')) {
+                          generateMusic()
+                        }
+                      } else {
+                        generateMusic()
+                      }
+                    }}
                     disabled={musicStatus.status === 'generating'}
                     className="px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 disabled:bg-gray-300 disabled:text-gray-500 transition-colors"
                   >
                     <Volume2 className="h-5 w-5 inline mr-2" />
-                    {musicStatus.status === 'generating' ? 'Generating Music...' : 'Generate Music'}
+                    {musicStatus.status === 'generating' ? 'Generating Music...' : hasGeneratedMusic ? 'Regenerate Music (1 credit)' : 'Generate Music'}
                   </button>
                   <button
-                    onClick={generateMusicTest}
+                    onClick={() => {
+                      if (hasGeneratedMusic) {
+                        if (confirm('This will cost 1 credit to regenerate the test music. Continue?')) {
+                          generateMusicTest()
+                        }
+                      } else {
+                        generateMusicTest()
+                      }
+                    }}
                     disabled={musicStatus.status === 'generating'}
                     className="px-6 py-3 bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700 disabled:bg-gray-300 disabled:text-gray-500 transition-colors"
                   >
                     <Volume2 className="h-5 w-5 inline mr-2" />
-                    {musicStatus.status === 'generating' ? 'Generating Test...' : 'Test Generate (Demo)'}
+                    {musicStatus.status === 'generating' ? 'Generating Test...' : hasGeneratedMusic ? 'Test Regenerate (1 credit)' : 'Test Generate (Demo)'}
                   </button>
                   <button
                     onClick={() => router.push('/dashboard')}
@@ -1016,7 +1434,7 @@ function GeneratingSongPage() {
               )}
 
               {/* Debug: Music API Request */}
-              {musicApiRequest && (
+              {debugMode && musicApiRequest && (
                 <div className="mb-6">
                   <h4 className="text-lg font-semibold text-gray-900 mb-3">Debug: Mureka API Request</h4>
                   <div className="bg-gray-100 border rounded-lg p-4">
@@ -1028,7 +1446,7 @@ function GeneratingSongPage() {
               )}
 
               {/* Debug: Music API Response */}
-              {musicApiResponse && (
+              {debugMode && musicApiResponse && (
                 <div className="mb-6">
                   <h4 className="text-lg font-semibold text-gray-900 mb-3">Debug: Mureka API Response</h4>
                   <div className="bg-gray-100 border rounded-lg p-4">
@@ -1038,6 +1456,90 @@ function GeneratingSongPage() {
                   </div>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Error Details Section - Shows when there's an error with details */}
+          {musicStatus.status === 'error' && errorDetails && (
+            <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+              <div className="flex items-start space-x-4">
+                <div className="flex-shrink-0">
+                  <div className="h-8 w-8 rounded-full bg-red-600 flex items-center justify-center">
+                    <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <h4 className="text-lg font-semibold text-red-800 mb-2">Music Generation Error</h4>
+                  <p className="text-red-700 mb-4">{musicStatus.message}</p>
+                  
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-red-800">Error Details</span>
+                      <button
+                        onClick={() => setShowErrorDetails(!showErrorDetails)}
+                        className="text-red-600 hover:text-red-700 text-sm font-medium flex items-center space-x-1"
+                      >
+                        <span>{showErrorDetails ? 'Hide' : 'Show'} Details</span>
+                        <svg 
+                          className={`w-4 h-4 transition-transform ${showErrorDetails ? 'rotate-180' : ''}`} 
+                          fill="none" 
+                          stroke="currentColor" 
+                          viewBox="0 0 24 24"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+                    </div>
+                    
+                    {showErrorDetails && (
+                      <div className="mt-3">
+                        <div className="text-xs text-red-600 mb-2">
+                          Error Type: {errorDetails.type} | Time: {new Date(errorDetails.timestamp).toLocaleString()}
+                        </div>
+                        <div className="bg-white border border-red-200 rounded p-3 max-h-64 overflow-y-auto">
+                          <pre className="text-xs text-gray-700 whitespace-pre-wrap font-mono">
+                            {JSON.stringify(sanitizeErrorDetails(errorDetails), null, 2)}
+                          </pre>
+                        </div>
+                        <div className="mt-2 text-xs text-red-600">
+                          * Sensitive information (URLs, API keys) has been redacted for security
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="mt-4 flex space-x-3">
+                    <button
+                      onClick={() => {
+                        setErrorDetails(null)
+                        setShowErrorDetails(false)
+                        generateMusic()
+                      }}
+                      className="px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors flex items-center space-x-2"
+                    >
+                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      </svg>
+                      <span>Try Again</span>
+                    </button>
+                    
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(JSON.stringify(sanitizeErrorDetails(errorDetails), null, 2))
+                        alert('Error details copied to clipboard!')
+                      }}
+                      className="px-4 py-2 bg-gray-600 text-white rounded-lg font-medium hover:bg-gray-700 transition-colors flex items-center space-x-2"
+                    >
+                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                      <span>Copy Details</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 
@@ -1105,17 +1607,7 @@ function GeneratingSongPage() {
                   
                   <div className="space-y-3">
                     <button 
-                      onClick={() => {
-                        const text = encodeURIComponent(`🎶 I just made a custom song using SongCreator — and it SLAPS.
-Written with my stories, my vibe, my people.
-Check it out 🔥👇
-
-👉 ${window.location.origin}
-🧠 Powered by AI. 🎤 Made by me.
-
-#SongCreator #CustomSong #AIgenerated #PersonalAnthem #OriginalMusic #BuiltWithAI #SongwriterVibes`)
-                        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.origin)}&quote=${text}`, '_blank')
-                      }}
+                      onClick={() => openShareModal('facebook')}
                       className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2"
                     >
                       <img src="/images/Facebook_Logo_Primary.png" alt="Facebook" className="w-5 h-5" />
@@ -1143,22 +1635,7 @@ Check it out 🔥👇
                     </button>
                     
                     <button 
-                      onClick={() => {
-                        const instagramText = `🎶 I just made a custom song using SongCreator — and it SLAPS.
-Written with my stories, my vibe, my people.
-Check it out 🔥👇
-
-👉 ${window.location.origin}
-🧠 Powered by AI. 🎤 Made by me.
-
-#SongCreator #CustomSong #AIgenerated #PersonalAnthem #OriginalMusic #BuiltWithAI #SongwriterVibes`
-                        window.open(`https://www.instagram.com/`, '_blank')
-                        // Note: Instagram doesn't have direct URL sharing for posts, but opens the app
-                        setTimeout(() => {
-                          navigator.clipboard.writeText(instagramText)
-                          alert('Instagram opened! Caption copied to clipboard - paste it in your post!')
-                        }, 1000)
-                      }}
+                      onClick={() => openShareModal('instagram')}
                       className="w-full px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg font-medium hover:from-purple-600 hover:to-pink-600 transition-colors flex items-center justify-center space-x-2"
                     >
                       <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -1211,7 +1688,6 @@ Check it out 🔥👇
                     <button 
                       onClick={() => {
                         if (confirm('This will cost 1 credit to regenerate the song with the same settings. Continue?')) {
-                          // Trigger regeneration logic here
                           generateMusic()
                         }
                       }}
@@ -1324,6 +1800,65 @@ Check it out 🔥👇
           )}
         </div>
       </main>
+
+      {/* Social Share Modal */}
+      {showShareModal && (
+        <div 
+          className="fixed inset-0 flex items-center justify-center z-50 p-4" 
+          style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+        >
+          <div className="bg-white rounded-lg max-w-md w-full p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Share Your Song</h3>
+              <button
+                onClick={() => setShowShareModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Share text:
+              </label>
+              <textarea
+                value={shareText}
+                onChange={(e) => setShareText(e.target.value)}
+                className="w-full h-32 p-3 border border-gray-300 rounded-lg resize-none text-sm text-gray-900"
+                placeholder="Edit your share text..."
+              />
+            </div>
+            
+            <div className="flex space-x-3">
+              <button
+                onClick={copyShareText}
+                className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg font-medium hover:bg-gray-700 transition-colors flex items-center justify-center space-x-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+                <span>Copy Text</span>
+              </button>
+              
+              <button
+                onClick={() => {
+                  window.open(shareUrl, '_blank')
+                  setShowShareModal(false)
+                }}
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+                <span>Open & Share</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

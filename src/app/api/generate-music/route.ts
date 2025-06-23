@@ -28,13 +28,17 @@ export async function POST(request: NextRequest) {
     // Prepare the request payload for Mureka API with supported parameters only
     const payload = {
       lyrics: lyrics,
-      model: model || "mureka-6", // Use custom model if provided, otherwise default to mureka-6
-      prompt: style || "pop, upbeat, modern, high quality, studio production"
+      prompt: style || "pop, upbeat, modern"
+    }
+    
+    // Only add model if explicitly provided (to avoid potential issues with default)
+    if (model) {
+      payload.model = model
     }
 
     console.log('Mureka API Request:', JSON.stringify(payload, null, 2))
 
-    // Make request to Mureka API
+    // Make request to Mureka API with retry logic for rate limits
     const headers = {
       'Authorization': `Bearer ${process.env.MUREKA_API_KEY}`,
       'Content-Type': 'application/json',
@@ -45,15 +49,49 @@ export async function POST(request: NextRequest) {
       'Content-Type': 'application/json',
     })
     
-    const murekaResponse = await fetch('https://api.mureka.ai/v1/song/generate', {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(payload)
-    })
+    let murekaResponse
+    let retryCount = 0
+    const maxRetries = 3
+    
+    while (retryCount <= maxRetries) {
+      murekaResponse = await fetch('https://api.mureka.ai/v1/song/generate', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(payload)
+      })
+
+      // If successful, break out of retry loop
+      if (murekaResponse.ok) {
+        break
+      }
+
+      // If it's a rate limit error and we have retries left
+      if (murekaResponse.status === 429 && retryCount < maxRetries) {
+        const errorData = await murekaResponse.text()
+        console.log(`Rate limit hit (attempt ${retryCount + 1}/${maxRetries + 1}). Waiting before retry...`)
+        console.log('Error response:', errorData)
+        
+        // Exponential backoff: wait 30s, 60s, 120s
+        const waitTime = 30000 * Math.pow(2, retryCount)
+        console.log(`Waiting ${waitTime/1000} seconds before retry...`)
+        
+        await new Promise(resolve => setTimeout(resolve, waitTime))
+        retryCount++
+        continue
+      }
+
+      // For non-rate-limit errors or if we've exhausted retries, break and handle error
+      break
+    }
 
     if (!murekaResponse.ok) {
       const errorData = await murekaResponse.text()
-      console.error('Mureka API Error:', errorData)
+      console.error('Mureka API Error (final attempt):', errorData)
+      
+      if (murekaResponse.status === 429) {
+        throw new Error(`Rate limit reached. Please wait 5-10 minutes before trying again. If this persists, you may have a stuck task - check the debug panel for active tasks.`)
+      }
+      
       throw new Error(`Mureka API returned ${murekaResponse.status}: ${errorData}`)
     }
 
