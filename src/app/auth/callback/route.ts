@@ -7,7 +7,9 @@ export async function GET(request: Request) {
   const code = searchParams.get('code')
   
   console.log('Callback route hit:', request.url)
+  console.log('Origin:', origin)
   console.log('Code:', code)
+  console.log('All search params:', Object.fromEntries(searchParams.entries()))
 
   if (code) {
     const cookieStore = await cookies()
