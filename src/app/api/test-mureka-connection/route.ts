@@ -2,6 +2,14 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(request: NextRequest) {
   try {
+    // Check for maintenance mode
+    if (process.env.MAINTENANCE_MODE === 'true') {
+      return NextResponse.json(
+        { error: 'Service temporarily unavailable. Please try again later.' },
+        { status: 503 }
+      )
+    }
+
     if (!process.env.MUREKA_API_KEY) {
       return NextResponse.json(
         { error: 'Mureka API key not configured' },

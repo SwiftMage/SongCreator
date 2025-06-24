@@ -7,6 +7,14 @@ const openai = new OpenAI({
 
 export async function POST(request: NextRequest) {
   try {
+    // Check for maintenance mode
+    if (process.env.MAINTENANCE_MODE === 'true') {
+      return NextResponse.json(
+        { error: 'Service temporarily unavailable. Please try again later.' },
+        { status: 503 }
+      )
+    }
+
     const { prompt, songId } = await request.json()
 
     if (!prompt) {
