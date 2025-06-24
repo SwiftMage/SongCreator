@@ -520,7 +520,7 @@ export default function CreateSongPage() {
               <div className="music-note">♪</div>
             </div>
           </div>
-          <p className="text-gray-600">Loading song creator...</p>
+          <p className="text-gray-600">Loading Song Mint...</p>
         </div>
       </div>
     )

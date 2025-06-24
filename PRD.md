@@ -1,4 +1,4 @@
-# Custom Song Generator SaaS - Product Requirements Document
+# Song Mint - Custom Song Generator SaaS - Product Requirements Document
 
 ## 1. Product Overview
 

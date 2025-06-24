@@ -326,7 +326,7 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                Welcome back, {user?.user_metadata?.full_name || 'Music Creator'}!
+                Welcome back, {user?.user_metadata?.full_name || 'Song Creator'}!
               </h1>
               <p className="text-gray-600">
                 Create beautiful AI-generated songs for any occasion
