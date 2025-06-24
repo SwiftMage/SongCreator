@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
     console.log('API Key length:', process.env.MUREKA_API_KEY?.length)
 
     // Prepare the request payload for Mureka API with supported parameters only
-    const payload = {
+    const payload: { lyrics: any; prompt: any; model?: string } = {
       lyrics: lyrics,
       prompt: style || "pop, upbeat, modern"
     }
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
       'Content-Type': 'application/json',
     })
     
-    let murekaResponse
+    let murekaResponse: Response | undefined
     let retryCount = 0
     const maxRetries = 3
     
@@ -92,7 +92,11 @@ export async function POST(request: NextRequest) {
       break
     }
 
-    if (!murekaResponse.ok) {
+    if (!murekaResponse || !murekaResponse.ok) {
+      if (!murekaResponse) {
+        throw new Error('Failed to connect to Mureka API')
+      }
+      
       const errorData = await murekaResponse.text()
       console.error('Mureka API Error (final attempt):', errorData)
       

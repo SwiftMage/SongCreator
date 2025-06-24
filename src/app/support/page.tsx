@@ -9,7 +9,7 @@ import {
   Clock,
   CheckCircle
 } from 'lucide-react'
-import { Logo } from '@/components/Logo'
+import Logo from '@/components/Logo'
 
 export default function SupportPage() {
   return (

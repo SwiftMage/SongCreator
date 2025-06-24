@@ -28,9 +28,14 @@ export default function PricingPage() {
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
             Choose Your Plan
           </h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-4">
             Create amazing personalized songs with our AI. Pick the plan that works best for you.
           </p>
+          <div className="bg-purple-100 border border-purple-200 rounded-lg p-4 max-w-xl mx-auto">
+            <p className="text-purple-800 font-medium">
+              ✨ Each song comes with 2 unique versions - only 1 credit needed!
+            </p>
+          </div>
         </div>
 
         <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
@@ -42,6 +47,10 @@ export default function PricingPage() {
               <li className="flex items-center space-x-2">
                 <Check className="h-5 w-5 text-green-500" />
                 <span>1 custom AI-generated song</span>
+              </li>
+              <li className="flex items-center space-x-2">
+                <Check className="h-5 w-5 text-green-500" />
+                <span className="font-medium text-purple-600">2 unique versions per song</span>
               </li>
               <li className="flex items-center space-x-2">
                 <Check className="h-5 w-5 text-green-500" />
@@ -78,6 +87,10 @@ export default function PricingPage() {
               </li>
               <li className="flex items-center space-x-2">
                 <Check className="h-5 w-5 text-green-500" />
+                <span className="font-medium text-purple-600">2 unique versions per song (6 total)</span>
+              </li>
+              <li className="flex items-center space-x-2">
+                <Check className="h-5 w-5 text-green-500" />
                 <span>High-quality audio downloads</span>
               </li>
               <li className="flex items-center space-x-2">
@@ -107,6 +120,10 @@ export default function PricingPage() {
               <li className="flex items-center space-x-2">
                 <Check className="h-5 w-5 text-green-500" />
                 <span>5 custom AI-generated songs</span>
+              </li>
+              <li className="flex items-center space-x-2">
+                <Check className="h-5 w-5 text-green-500" />
+                <span className="font-medium text-purple-600">2 unique versions per song (10 total)</span>
               </li>
               <li className="flex items-center space-x-2">
                 <Check className="h-5 w-5 text-green-500" />

@@ -10,6 +10,11 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Song Mint - Custom AI-Generated Songs",
   description: "Create personalized, AI-generated songs for any occasion. Perfect for birthdays, anniversaries, weddings, and special moments.",
+  icons: {
+    icon: '/favicon.svg',
+    shortcut: '/favicon.svg',
+    apple: '/apple-touch-icon.svg',
+  },
 };
 
 export default function RootLayout({

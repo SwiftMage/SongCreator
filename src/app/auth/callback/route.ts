@@ -32,9 +32,9 @@ export async function GET(request: Request) {
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     console.log('Exchange error:', error)
     if (!error) {
-      // Redirect to success page with verification message
-      console.log('Redirecting to verified page')
-      return NextResponse.redirect(`${origin}/auth/verified`)
+      // Redirect directly to dashboard after successful OAuth
+      console.log('Redirecting to dashboard')
+      return NextResponse.redirect(`${origin}/dashboard`)
     }
   }
 

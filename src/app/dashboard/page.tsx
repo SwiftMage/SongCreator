@@ -432,7 +432,7 @@ export default function DashboardPage() {
                               <div className="music-note">♪</div>
                             </div>
                           </div>
-                          <span>{song.questionnaire_data?.genre || 'Unknown'}</span>
+                          <span>{song.questionnaire_data?.genre || 'No genre'}</span>
                         </span>
                         <span className="flex items-center space-x-1">
                           <Clock className="h-4 w-4" />
@@ -589,7 +589,7 @@ export default function DashboardPage() {
                               <div className="music-note">♪</div>
                             </div>
                           </div>
-                          <span className="truncate">{song.questionnaire_data?.genre || 'Unknown'}</span>
+                          <span className="truncate">{song.questionnaire_data?.genre || 'No genre'}</span>
                         </span>
                         <span className="flex items-center space-x-1">
                           <Clock className="h-4 w-4" />
