@@ -1067,10 +1067,13 @@ Check it out 🔥👇
             <Logo />
             
             <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2 text-gray-600">
+              <Link 
+                href="/pricing"
+                className="flex items-center space-x-2 text-gray-600 hover:text-purple-600 transition-colors cursor-pointer"
+              >
                 <ShoppingCart className="h-5 w-5 text-purple-600" />
                 <span className="font-medium">{profile?.credits_remaining || 0} Credits</span>
-              </div>
+              </Link>
               <div className="h-6 w-px bg-gray-300" />
               <button
                 onClick={() => router.push('/dashboard')}
@@ -1808,7 +1811,11 @@ Check it out 🔥👇
                     onClick={() => router.push('/dashboard')}
                     className="px-8 py-4 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors flex items-center justify-center space-x-2"
                   >
-                    <Music className="h-5 w-5" />
+                    <div className="songmint-icon-only">
+                      <div className="logo-icon">
+                        <div className="music-note">♪</div>
+                      </div>
+                    </div>
                     <span>View All My Songs</span>
                   </button>
                   

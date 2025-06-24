@@ -266,7 +266,11 @@ export default function DashboardPage() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center">
         <div className="text-center">
-          <Music className="h-12 w-12 text-purple-600 animate-pulse mx-auto mb-4" />
+          <div className="songmint-icon-only">
+            <div className="logo-icon">
+              <div className="music-note">♪</div>
+            </div>
+          </div>
           <p className="text-gray-600">Loading your dashboard...</p>
         </div>
       </div>
@@ -288,10 +292,13 @@ export default function DashboardPage() {
             <Logo />
             
             <nav className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2 text-gray-600">
+              <Link 
+                href="/pricing"
+                className="flex items-center space-x-2 text-gray-600 hover:text-purple-600 transition-colors cursor-pointer"
+              >
                 <ShoppingCart className="h-5 w-5 text-purple-600" />
                 <span className="font-medium">{profile?.credits_remaining || 0} Credits</span>
-              </div>
+              </Link>
               <div className="h-6 w-px bg-gray-300" />
               <Link 
                 href="/dashboard/account"
@@ -311,19 +318,6 @@ export default function DashboardPage() {
           </div>
         </div>
       </header>
-
-      {/* DEBUG: Test Logo */}
-      <div style={{padding: '20px', background: '#1a1a2e'}}>
-        <div style={{marginBottom: '10px', color: 'white'}}>
-          Test Spinner (should spin): <span className="test-animation" style={{display: 'inline-block'}}>🔄</span>
-        </div>
-        <div className="songmint-logo">
-          <div className="logo-icon">
-            <div className="music-note">♪</div>
-          </div>
-          <div className="logo-text">SongMint</div>
-        </div>
-      </div>
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
@@ -407,7 +401,11 @@ export default function DashboardPage() {
           
           {songs.length === 0 ? (
             <div className="text-center py-12">
-              <Music className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+              <div className="songmint-icon-only">
+                <div className="logo-icon">
+                  <div className="music-note">♪</div>
+                </div>
+              </div>
               <p className="text-gray-500 mb-4">You haven&apos;t created any songs yet</p>
               <Link
                 href="/create"
@@ -429,7 +427,11 @@ export default function DashboardPage() {
                       </h3>
                       <div className="flex items-center space-x-4 text-sm text-gray-600">
                         <span className="flex items-center space-x-1">
-                          <Music className="h-4 w-4" />
+                          <div className="songmint-icon-only">
+                            <div className="logo-icon">
+                              <div className="music-note">♪</div>
+                            </div>
+                          </div>
                           <span>{song.questionnaire_data?.genre || 'Unknown'}</span>
                         </span>
                         <span className="flex items-center space-x-1">
@@ -582,7 +584,11 @@ export default function DashboardPage() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3 text-sm text-gray-600">
                         <span className="flex items-center space-x-1">
-                          <Music className="h-4 w-4" />
+                          <div className="songmint-icon-only">
+                            <div className="logo-icon">
+                              <div className="music-note">♪</div>
+                            </div>
+                          </div>
                           <span className="truncate">{song.questionnaire_data?.genre || 'Unknown'}</span>
                         </span>
                         <span className="flex items-center space-x-1">

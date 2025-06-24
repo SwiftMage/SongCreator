@@ -399,7 +399,11 @@ function EditSongPage() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center">
         <div className="text-center">
-          <Music className="h-12 w-12 text-purple-600 animate-pulse mx-auto mb-4" />
+          <div className="songmint-icon-only">
+            <div className="logo-icon">
+              <div className="music-note">♪</div>
+            </div>
+          </div>
           <p className="text-gray-600">Loading song editor...</p>
         </div>
       </div>
@@ -415,10 +419,13 @@ function EditSongPage() {
             <Logo />
             
             <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2 text-gray-600">
+              <Link 
+                href="/pricing"
+                className="flex items-center space-x-2 text-gray-600 hover:text-purple-600 transition-colors cursor-pointer"
+              >
                 <ShoppingCart className="h-5 w-5 text-purple-600" />
                 <span className="font-medium">{profile?.credits_remaining || 0} Credits</span>
-              </div>
+              </Link>
               <div className="h-6 w-px bg-gray-300" />
               <button
                 onClick={() => router.push('/dashboard')}

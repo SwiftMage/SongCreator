@@ -120,7 +120,11 @@ export default function AccountPage() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center">
         <div className="text-center">
-          <Music className="h-12 w-12 text-purple-600 animate-pulse mx-auto mb-4" />
+          <div className="songmint-icon-only">
+            <div className="logo-icon">
+              <div className="music-note">♪</div>
+            </div>
+          </div>
           <p className="text-gray-600">Loading your account...</p>
         </div>
       </div>

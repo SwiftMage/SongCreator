@@ -162,3 +162,31 @@ body {
   transform: rotate(45deg);
   animation: shine 4s ease-in-out infinite;
 }
+
+/* Icon-only version for replacing single notes */
+.songmint-icon-only {
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.songmint-icon-only:hover {
+    transform: translateY(-2px);
+}
+
+.songmint-icon-only .logo-icon {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #00f5ff 0%, #ff006e 100%);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 25px rgba(0, 245, 255, 0.3);
+    animation: iconGlow 3s ease-in-out infinite alternate;
+}
+
+.songmint-icon-only .music-note {
+    font-size: 24px;
+    color: white;
+    font-weight: bold;
+}
