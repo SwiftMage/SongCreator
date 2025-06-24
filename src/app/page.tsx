@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { createClient } from '@/lib/supabase';
-import { Music, Heart, Gift, Users, LogOut, User } from "lucide-react";
+import Logo from '@/components/Logo';
+import { Heart, Gift, Users, LogOut, User, Music } from "lucide-react";
 
 export default function Home() {
   const [user, setUser] = useState<{ user_metadata?: { full_name?: string }, email?: string } | null>(null)
@@ -29,10 +30,7 @@ export default function Home() {
       {/* Navigation */}
       <nav className="container mx-auto px-4 py-6">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Music className="h-8 w-8 text-purple-600" />
-            <span className="text-2xl font-bold text-gray-900">SongCreator</span>
-          </div>
+          <Logo />
           <div className="flex items-center space-x-4">
             {isLoading ? (
               <div className="h-6 w-20 bg-gray-200 rounded animate-pulse" />
@@ -214,10 +212,7 @@ export default function Home() {
       <footer className="bg-gray-900 text-white py-12">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0">
-            <div className="flex items-center space-x-2">
-              <Music className="h-6 w-6" />
-              <span className="text-lg font-semibold">SongCreator</span>
-            </div>
+            <Logo />
             
             <div className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-6">
               <Link 
@@ -235,7 +230,7 @@ export default function Home() {
             </div>
             
             <div className="text-gray-400 text-center md:text-right">
-              © 2024 SongCreator. All rights reserved.
+              © 2024 Song Mint. All rights reserved.
             </div>
           </div>
         </div>

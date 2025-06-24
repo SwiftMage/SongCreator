@@ -1,8 +1,8 @@
-# SongCreator - Product Specification
+# Song Mint - Product Specification
 
 ## Overview
 
-SongCreator is an AI-powered web application that enables users to create personalized songs for any occasion. By combining detailed questionnaires with advanced AI technology, the platform generates custom lyrics and music that capture personal relationships, memories, and emotions.
+Song Mint is an AI-powered web application that enables users to create personalized songs for any occasion. By combining detailed questionnaires with advanced AI technology, the platform generates custom lyrics and music that capture personal relationships, memories, and emotions.
 
 ## Core Concept
 
@@ -279,4 +279,4 @@ MUREKA_API_KEY=your-mureka-key
 
 ---
 
-*This specification represents the current state of SongCreator as of December 2024. Features and technical details may evolve based on user feedback and technological advances.*
+*This specification represents the current state of Song Mint as of December 2024. Features and technical details may evolve based on user feedback and technological advances.*

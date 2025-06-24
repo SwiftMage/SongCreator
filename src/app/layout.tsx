@@ -8,7 +8,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "SongCreator - Custom AI-Generated Songs",
+  title: "Song Mint - Custom AI-Generated Songs",
   description: "Create personalized, AI-generated songs for any occasion. Perfect for birthdays, anniversaries, weddings, and special moments.",
 };
 

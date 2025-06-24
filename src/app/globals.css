@@ -1,5 +1,39 @@
 @import "tailwindcss";
 
+/* KEYFRAMES FIRST - Before any classes that use them */
+@keyframes iconGlow {
+  0% { 
+    box-shadow: 0 8px 25px rgba(0, 245, 255, 0.3);
+    transform: scale(1);
+  }
+  100% { 
+    box-shadow: 0 8px 25px rgba(255, 0, 110, 0.4);
+    transform: scale(1.02);
+  }
+}
+
+@keyframes testSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes miniWave {
+  0%, 100% { transform: scaleY(0.8); opacity: 0.6; }
+  50% { transform: scaleY(1.2); opacity: 1; }
+}
+
+@keyframes shine {
+  0% { 
+    transform: translateX(-200%) translateY(-200%) rotate(45deg); 
+  }
+  50% { 
+    transform: translateX(-200%) translateY(-200%) rotate(45deg); 
+  }
+  100% { 
+    transform: translateX(200%) translateY(200%) rotate(45deg); 
+  }
+}
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -53,4 +87,78 @@ body {
 
 .animate-pulse {
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* SongMint Logo CSS - Exact Implementation */
+.songmint-logo {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.songmint-logo:hover {
+  transform: translateY(-2px);
+}
+
+.logo-icon {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, #00f5ff 0%, #ff006e 100%);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+  box-shadow: 0 8px 25px rgba(0, 245, 255, 0.3);
+  animation: iconGlow 3s ease-in-out infinite alternate;
+  position: relative;
+  overflow: hidden;
+}
+
+.logo-text {
+  font-size: 24px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #00f5ff 0%, #ff006e 50%, #8338ec 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.music-note {
+  font-size: 20px;
+  color: white;
+  font-weight: bold;
+}
+
+.mini-waves {
+  display: flex;
+  align-items: center;
+  margin-left: 8px;
+  gap: 1px;
+}
+
+.mini-wave {
+  width: 2px;
+  background: linear-gradient(to top, #00f5ff, #ff006e);
+  border-radius: 1px;
+  animation: miniWave 1.5s ease-in-out infinite;
+}
+
+.mini-wave:nth-child(1) { height: 8px; animation-delay: 0s; }
+.mini-wave:nth-child(2) { height: 12px; animation-delay: 0.2s; }
+.mini-wave:nth-child(3) { height: 16px; animation-delay: 0.4s; }
+.mini-wave:nth-child(4) { height: 12px; animation-delay: 0.6s; }
+.mini-wave:nth-child(5) { height: 8px; animation-delay: 0.8s; }
+
+.logo-icon::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transform: rotate(45deg);
+  animation: shine 4s ease-in-out infinite;
 }

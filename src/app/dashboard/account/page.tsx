@@ -16,6 +16,7 @@ import {
   Save,
   ShoppingCart
 } from 'lucide-react'
+import Logo from '@/components/Logo'
 
 export default function AccountPage() {
   const [user, setUser] = useState<any>(null)
@@ -132,10 +133,7 @@ export default function AccountPage() {
       <header className="bg-white shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <Link href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
-              <Music className="h-8 w-8 text-purple-600" />
-              <span className="text-2xl font-bold text-gray-900">SongCreator</span>
-            </Link>
+            <Logo />
             
             <Link 
               href="/dashboard"

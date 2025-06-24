@@ -40,7 +40,7 @@ async function downloadAudioFile(url: string): Promise<Buffer> {
   const response = await fetch(url, {
     method: 'GET',
     headers: {
-      'User-Agent': 'SongCreator/1.0'
+      'User-Agent': 'SongMint/1.0'
     }
   })
   

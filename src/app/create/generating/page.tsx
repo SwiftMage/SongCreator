@@ -4,8 +4,9 @@ import { useState, useEffect, useRef, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
-import { Music, ArrowLeft, Check, Loader2, Volume2, Download, Share2, RefreshCw, FileText, Settings, RotateCcw } from 'lucide-react'
+import { Music, ArrowLeft, Check, Loader2, Volume2, Download, Share2, RefreshCw, FileText, Settings, RotateCcw, ShoppingCart } from 'lucide-react'
 import { getBestAudioUrl } from '@/lib/audio-player'
+import Logo from '@/components/Logo'
 
 // Helper component for audio with fallback
 function AudioWithFallback({ 
@@ -117,6 +118,8 @@ function GeneratingSongPage() {
   const [isSavingLyrics, setIsSavingLyrics] = useState(false)
   const [error, setError] = useState('')
   const [songId, setSongId] = useState<string | null>(null)
+  const [user, setUser] = useState<any>(null)
+  const [profile, setProfile] = useState<any>(null)
   
   // Music generation state
   const [musicStatus, setMusicStatus] = useState<MusicGenerationStatus>({
@@ -162,20 +165,48 @@ function GeneratingSongPage() {
   const pollTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
-    setIsClient(true)
-    const songIdParam = searchParams.get('songId')
-    if (songIdParam) {
-      setSongId(songIdParam)
-      startGeneration(songIdParam)
-    } else {
-      setError('No song ID provided')
-      setGenerationStatus({
-        status: 'error',
-        progress: 0,
-        message: 'Invalid song request'
-      })
+    const initializePage = async () => {
+      setIsClient(true)
+      
+      // Check authentication
+      const { data: { user } } = await supabase.auth.getUser()
+      
+      if (!user) {
+        router.push('/auth')
+        return
+      }
+      
+      setUser(user)
+      
+      // Fetch user's profile
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single()
+      
+      if (profileError) {
+        console.error('Error fetching profile:', profileError)
+      } else if (profileData) {
+        setProfile(profileData)
+      }
+      
+      const songIdParam = searchParams.get('songId')
+      if (songIdParam) {
+        setSongId(songIdParam)
+        startGeneration(songIdParam)
+      } else {
+        setError('No song ID provided')
+        setGenerationStatus({
+          status: 'error',
+          progress: 0,
+          message: 'Invalid song request'
+        })
+      }
     }
-  }, [searchParams])
+    
+    initializePage()
+  }, [searchParams, router, supabase])
 
   // Cleanup music progress interval and polling on unmount
   useEffect(() => {
@@ -980,14 +1011,14 @@ function GeneratingSongPage() {
 
   // Social sharing functions
   const openShareModal = (platform: string) => {
-    const baseText = `🎶 I just made a custom song using SongCreator — and it SLAPS.
+    const baseText = `🎶 I just made a custom song using Song Mint — and it SLAPS.
 Written with my stories, my vibe, my people.
 Check it out 🔥👇
 
 👉 ${window.location.origin}
 🧠 Powered by AI. 🎤 Made by me.
 
-#SongCreator #CustomSong #AIgenerated #PersonalAnthem #OriginalMusic #BuiltWithAI #SongwriterVibes`
+#SongMint #CustomSong #AIgenerated #PersonalAnthem #OriginalMusic #BuiltWithAI #SongwriterVibes`
     
     setShareText(baseText)
     setShareUrl(platform === 'facebook' ? `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.origin)}` : 
@@ -1033,19 +1064,23 @@ Check it out 🔥👇
       <header className="bg-white shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <Link href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
-              <Music className="h-8 w-8 text-purple-600" />
-              <span className="text-2xl font-bold text-gray-900">SongCreator</span>
-            </Link>
+            <Logo />
             
-            <button
-              onClick={() => router.push('/dashboard')}
-              className="text-gray-600 hover:text-gray-900 flex items-center space-x-2 transition-colors"
-              disabled={generationStatus.status === 'generating'}
-            >
-              <ArrowLeft className="h-5 w-5" />
-              <span>Back to Dashboard</span>
-            </button>
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2 text-gray-600">
+                <ShoppingCart className="h-5 w-5 text-purple-600" />
+                <span className="font-medium">{profile?.credits_remaining || 0} Credits</span>
+              </div>
+              <div className="h-6 w-px bg-gray-300" />
+              <button
+                onClick={() => router.push('/dashboard')}
+                className="text-gray-600 hover:text-gray-900 flex items-center space-x-2 transition-colors"
+                disabled={generationStatus.status === 'generating'}
+              >
+                <ArrowLeft className="h-5 w-5" />
+                <span>Back to Dashboard</span>
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -1616,14 +1651,14 @@ Check it out 🔥👇
                     
                     <button 
                       onClick={() => {
-                        const text = encodeURIComponent(`🎶 I just made a custom song using SongCreator — and it SLAPS.
+                        const text = encodeURIComponent(`🎶 I just made a custom song using Song Mint — and it SLAPS.
 Written with my stories, my vibe, my people.
 Check it out 🔥👇
 
 👉 ${window.location.origin}
 🧠 Powered by AI. 🎤 Made by me.
 
-#SongCreator #CustomSong #AIgenerated #PersonalAnthem #OriginalMusic #BuiltWithAI #SongwriterVibes`)
+#SongMint #CustomSong #AIgenerated #PersonalAnthem #OriginalMusic #BuiltWithAI #SongwriterVibes`)
                         window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank')
                       }}
                       className="w-full px-4 py-2 bg-black text-white rounded-lg font-medium hover:bg-gray-800 transition-colors flex items-center justify-center space-x-2"
@@ -1649,12 +1684,12 @@ Check it out 🔥👇
                         if (navigator.share) {
                           navigator.share({
                             title: 'Check out my personalized song!',
-                            text: '🎵 I just created an amazing personalized song with SongCreator!',
+                            text: '🎵 I just created an amazing personalized song with Song Mint!',
                             url: window.location.origin
                           })
                         } else {
                           // Fallback - copy to clipboard
-                          navigator.clipboard.writeText(`🎵 I just created an amazing personalized song with SongCreator! Check it out: ${window.location.origin}`)
+                          navigator.clipboard.writeText(`🎵 I just created an amazing personalized song with Song Mint! Check it out: ${window.location.origin}`)
                           alert('Link copied to clipboard!')
                         }
                       }}

@@ -4,7 +4,8 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
-import { Music, Mail, Lock, Eye, EyeOff } from 'lucide-react'
+import Logo from '@/components/Logo'
+import { Mail, Lock, Eye, EyeOff } from 'lucide-react'
 
 export default function AuthPage() {
   const [mode, setMode] = useState<'signup' | 'signin'>('signup')
@@ -123,10 +124,9 @@ export default function AuthPage() {
         <div className="bg-white rounded-lg shadow-lg p-8">
           {/* Header */}
           <div className="text-center mb-8">
-            <Link href="/" className="flex items-center justify-center space-x-2 mb-4">
-              <Music className="h-8 w-8 text-purple-600" />
-              <span className="text-2xl font-bold text-gray-900">SongCreator</span>
-            </Link>
+            <div className="flex justify-center mb-4">
+              <Logo />
+            </div>
             <h1 className="text-2xl font-bold text-gray-900">
               {mode === 'signup' ? 'Create your account' : 'Welcome back'}
             </h1>

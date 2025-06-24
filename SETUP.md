@@ -1,4 +1,4 @@
-# SongCreator Setup Guide
+# Song Mint Setup Guide
 
 ## 1. Supabase Setup
 
@@ -6,7 +6,7 @@
 1. Go to [supabase.com](https://supabase.com) and sign up/login
 2. Click "New Project"
 3. Choose your organization and set:
-   - Project name: `songcreator`
+   - Project name: `song-mint`
    - Database password: (generate a strong password)
    - Region: Choose closest to your users
 4. Wait for project to be created (2-3 minutes)

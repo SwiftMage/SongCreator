@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
+import Logo from '@/components/Logo'
 import { 
   Music, 
   ArrowLeft, 
@@ -20,7 +21,8 @@ import {
   Gift,
   Cake,
   Wand2,
-  FileText
+  FileText,
+  ShoppingCart
 } from 'lucide-react'
 
 interface SongFormData {
@@ -92,6 +94,7 @@ const instruments = [
 export default function CreateSongPage() {
   const [currentStep, setCurrentStep] = useState(1)
   const [user, setUser] = useState<any>(null)
+  const [profile, setProfile] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState<SongFormData>({
@@ -135,6 +138,20 @@ export default function CreateSongPage() {
       }
       
       setUser(user)
+      
+      // Fetch user's profile
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single()
+      
+      if (profileError) {
+        console.error('Error fetching profile:', profileError)
+      } else if (profileData) {
+        setProfile(profileData)
+      }
+      
       setIsLoading(false)
     }
 
@@ -511,18 +528,22 @@ export default function CreateSongPage() {
       <header className="bg-white shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <Link href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
-              <Music className="h-8 w-8 text-purple-600" />
-              <span className="text-2xl font-bold text-gray-900">SongCreator</span>
-            </Link>
+            <Logo />
             
-            <button
-              onClick={() => router.push('/dashboard')}
-              className="text-gray-600 hover:text-gray-900 flex items-center space-x-2 transition-colors"
-            >
-              <ArrowLeft className="h-5 w-5" />
-              <span>Back to Dashboard</span>
-            </button>
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2 text-gray-600">
+                <ShoppingCart className="h-5 w-5 text-purple-600" />
+                <span className="font-medium">{profile?.credits_remaining || 0} Credits</span>
+              </div>
+              <div className="h-6 w-px bg-gray-300" />
+              <button
+                onClick={() => router.push('/dashboard')}
+                className="text-gray-600 hover:text-gray-900 flex items-center space-x-2 transition-colors"
+              >
+                <ArrowLeft className="h-5 w-5" />
+                <span>Back to Dashboard</span>
+              </button>
+            </div>
           </div>
         </div>
       </header>

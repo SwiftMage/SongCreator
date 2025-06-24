@@ -21,6 +21,7 @@ import {
   Trash2
 } from 'lucide-react'
 import { playAudioWithFallback, getBestAudioUrl } from '@/lib/audio-player'
+import Logo from '@/components/Logo'
 
 interface Song {
   id: string
@@ -62,6 +63,26 @@ export default function DashboardPage() {
 
     checkAuth()
   }, [router, supabase])
+
+  // Debug CSS animations
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const iconElement = document.querySelector('.logo-icon')
+      console.log('=== CSS ANIMATION DEBUG ===')
+      console.log('Logo icon element:', iconElement)
+      if (iconElement) {
+        const computedStyles = window.getComputedStyle(iconElement)
+        console.log('Animation property:', computedStyles.animation)
+        console.log('Animation name:', computedStyles.animationName)
+        console.log('Animation duration:', computedStyles.animationDuration)
+        console.log('All computed styles:', computedStyles)
+      } else {
+        console.log('ERROR: .logo-icon element not found!')
+      }
+    }, 1000)
+    
+    return () => clearTimeout(timer)
+  }, [])
 
   // Cleanup audio when component unmounts
   useEffect(() => {
@@ -264,12 +285,14 @@ export default function DashboardPage() {
       <header className="bg-white shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <Link href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
-              <Music className="h-8 w-8 text-purple-600" />
-              <span className="text-2xl font-bold text-gray-900">SongCreator</span>
-            </Link>
+            <Logo />
             
             <nav className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2 text-gray-600">
+                <ShoppingCart className="h-5 w-5 text-purple-600" />
+                <span className="font-medium">{profile?.credits_remaining || 0} Credits</span>
+              </div>
+              <div className="h-6 w-px bg-gray-300" />
               <Link 
                 href="/dashboard/account"
                 className="text-gray-600 hover:text-gray-900 flex items-center space-x-2 transition-colors"
@@ -288,6 +311,19 @@ export default function DashboardPage() {
           </div>
         </div>
       </header>
+
+      {/* DEBUG: Test Logo */}
+      <div style={{padding: '20px', background: '#1a1a2e'}}>
+        <div style={{marginBottom: '10px', color: 'white'}}>
+          Test Spinner (should spin): <span className="test-animation" style={{display: 'inline-block'}}>🔄</span>
+        </div>
+        <div className="songmint-logo">
+          <div className="logo-icon">
+            <div className="music-note">♪</div>
+          </div>
+          <div className="logo-text">SongMint</div>
+        </div>
+      </div>
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
