@@ -264,6 +264,18 @@ export default function AuthPage() {
               {mode === 'signup' ? 'Sign in' : 'Sign up'}
             </button>
           </p>
+          
+          {/* Terms of Service and Privacy Policy */}
+          <p className="text-center text-xs text-gray-500 mt-4">
+            By {mode === 'signup' ? 'creating an account' : 'signing in'}, you agree to our{' '}
+            <Link href="/terms" className="text-purple-600 hover:text-purple-700 underline">
+              Terms of Service
+            </Link>
+            {' '}and{' '}
+            <Link href="/privacy" className="text-purple-600 hover:text-purple-700 underline">
+              Privacy Policy
+            </Link>
+          </p>
         </div>
       </div>
     </div>

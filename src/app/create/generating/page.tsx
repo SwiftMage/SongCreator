@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
-import { Music, ArrowLeft, Check, Loader2, Volume2, Download, Share2, RefreshCw, FileText, Settings, RotateCcw, ShoppingCart } from 'lucide-react'
+import { Music, ArrowLeft, Check, Loader2, Volume2, Download, Share2, RefreshCw, FileText, Settings, RotateCcw, ShoppingCart, AlertCircle } from 'lucide-react'
 import { getBestAudioUrl } from '@/lib/audio-player'
 import Logo from '@/components/Logo'
 
@@ -146,6 +146,11 @@ function GeneratingSongPage() {
   const [showCompletionZoom, setShowCompletionZoom] = useState(false)
   const [pollTimeoutId, setPollTimeoutId] = useState<NodeJS.Timeout | null>(null)
   const [pollStartTime, setPollStartTime] = useState<number | null>(null)
+  
+  // Issue reporting state
+  const [showIssueModal, setShowIssueModal] = useState(false)
+  const [issueDescription, setIssueDescription] = useState('')
+  const [isSubmittingIssue, setIsSubmittingIssue] = useState(false)
   
   // Social sharing modal state
   const [showShareModal, setShowShareModal] = useState(false)
@@ -621,6 +626,46 @@ function GeneratingSongPage() {
         status: 'error',
         message: error instanceof Error ? error.message : 'Failed to generate test music'
       })
+    }
+  }
+
+  const submitIssueReport = async () => {
+    if (!issueDescription.trim()) {
+      alert('Please describe the issue you encountered')
+      return
+    }
+
+    setIsSubmittingIssue(true)
+    
+    try {
+      const songUrl = `${window.location.origin}/create/generating?songId=${songId}`
+      
+      const response = await fetch('/api/report-issue', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          songId,
+          songUrl,
+          issueDescription: issueDescription.trim()
+        })
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to send report')
+      }
+
+      alert('Thank you for your report! We will review it and contact you via email if we need more information.')
+      setShowIssueModal(false)
+      setIssueDescription('')
+      
+    } catch (error) {
+      console.error('Error submitting issue report:', error)
+      alert('Failed to send the report. Please try again or email us directly at appspire@icloud.com')
+    } finally {
+      setIsSubmittingIssue(false)
     }
   }
 
@@ -1793,6 +1838,21 @@ Check it out 🔥👇
                     </button>
                   </div>
                 </div>
+                
+                {/* Report Issue Option */}
+                <div className="mt-6 pt-6 border-t border-gray-200">
+                  <div className="text-center">
+                    <AlertCircle className="h-8 w-8 text-red-600 mx-auto mb-3" />
+                    <h4 className="font-semibold text-gray-900 mb-2">Something went wrong?</h4>
+                    <p className="text-sm text-gray-600 mb-4">Report an issue with your song generation</p>
+                    <button 
+                      onClick={() => setShowIssueModal(true)}
+                      className="px-6 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors"
+                    >
+                      Report Issue
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -1896,6 +1956,74 @@ Check it out 🔥👇
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                 </svg>
                 <span>Open & Share</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Issue Report Modal */}
+      {showIssueModal && (
+        <div 
+          className="fixed inset-0 flex items-center justify-center z-50 p-4" 
+          style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+        >
+          <div className="bg-white rounded-lg max-w-md w-full p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Report an Issue</h3>
+              <button
+                onClick={() => {
+                  setShowIssueModal(false)
+                  setIssueDescription('')
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            <div className="mb-4">
+              <p className="text-sm text-gray-600 mb-4">
+                Please describe what went wrong with your song generation. We'll review your report and contact you via email.
+              </p>
+              
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                What went wrong?
+              </label>
+              <textarea
+                value={issueDescription}
+                onChange={(e) => setIssueDescription(e.target.value)}
+                className="w-full h-32 p-3 border border-gray-300 rounded-lg resize-none text-sm text-gray-900"
+                placeholder="e.g., The song doesn't match my description, audio quality issues, wrong genre, etc."
+                disabled={isSubmittingIssue}
+              />
+            </div>
+            
+            <div className="bg-gray-50 rounded-lg p-3 mb-4">
+              <p className="text-xs text-gray-500">
+                Your email and song details will be automatically included in the report.
+              </p>
+            </div>
+            
+            <div className="flex space-x-3">
+              <button
+                onClick={submitIssueReport}
+                disabled={isSubmittingIssue || !issueDescription.trim()}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {isSubmittingIssue ? 'Sending...' : 'Send Report'}
+              </button>
+              <button
+                onClick={() => {
+                  setShowIssueModal(false)
+                  setIssueDescription('')
+                }}
+                disabled={isSubmittingIssue}
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors"
+              >
+                Cancel
               </button>
             </div>
           </div>

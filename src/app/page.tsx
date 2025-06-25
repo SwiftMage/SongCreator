@@ -221,6 +221,12 @@ export default function Home() {
               >
                 Support
               </Link>
+              <Link 
+                href="/contact" 
+                className="text-gray-300 hover:text-white transition-colors"
+              >
+                Contact
+              </Link>
               <a 
                 href="mailto:appspire@icloud.com"
                 className="text-gray-300 hover:text-white transition-colors"

@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { 
   ArrowLeft, 
@@ -7,11 +8,66 @@ import {
   MessageCircle, 
   HelpCircle,
   Clock,
-  CheckCircle
+  CheckCircle,
+  Send,
+  X
 } from 'lucide-react'
 import Logo from '@/components/Logo'
+import { createClient } from '@/lib/supabase/client'
 
 export default function SupportPage() {
+  const [showContactForm, setShowContactForm] = useState(false)
+  const [subject, setSubject] = useState('')
+  const [message, setMessage] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle')
+  const [user, setUser] = useState<any>(null)
+
+  useEffect(() => {
+    const getUser = async () => {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      setUser(user)
+    }
+    getUser()
+  }, [])
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsSubmitting(true)
+    setSubmitStatus('idle')
+
+    try {
+      const response = await fetch('/api/send-support-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          subject,
+          message,
+        }),
+      })
+
+      if (response.ok) {
+        setSubmitStatus('success')
+        setSubject('')
+        setMessage('')
+        setTimeout(() => {
+          setShowContactForm(false)
+          setSubmitStatus('idle')
+        }, 2000)
+      } else {
+        setSubmitStatus('error')
+      }
+    } catch (error) {
+      console.error('Error sending email:', error)
+      setSubmitStatus('error')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50">
       {/* Header */}
@@ -58,15 +114,19 @@ export default function SupportPage() {
                 <div className="bg-purple-50 rounded-lg p-6">
                   <div className="flex items-center space-x-3 mb-3">
                     <Mail className="h-6 w-6 text-purple-600" />
-                    <span className="font-semibold text-purple-900">Email Support</span>
+                    <span className="font-semibold text-purple-900">Contact Support</span>
                   </div>
-                  <p className="text-purple-800 mb-2">Send us an email at:</p>
-                  <a 
-                    href="mailto:appspire@icloud.com"
-                    className="text-lg font-mono bg-white px-4 py-2 rounded-lg border border-purple-200 hover:border-purple-400 transition-colors inline-block"
+                  <p className="text-purple-800 mb-4">Get help with your account or technical issues:</p>
+                  <button
+                    onClick={() => setShowContactForm(true)}
+                    className="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition-colors flex items-center space-x-2"
                   >
-                    appspire@icloud.com
-                  </a>
+                    <Send className="h-5 w-5" />
+                    <span>Send Support Request</span>
+                  </button>
+                  <p className="text-sm text-purple-700 mt-2">
+                    Or email us directly at: <a href="mailto:appspire@icloud.com" className="underline">appspire@icloud.com</a>
+                  </p>
                 </div>
               </div>
 
@@ -214,6 +274,90 @@ export default function SupportPage() {
           </div>
         </div>
       </main>
+
+      {/* Contact Form Modal */}
+      {showContactForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-gray-900">Contact Support</h2>
+                <button
+                  onClick={() => setShowContactForm(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+              <p className="text-gray-600 mt-2">
+                Tell us about your issue and we'll get back to you soon.
+              </p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="p-6 space-y-6">
+              <div>
+                <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-2">
+                  Subject
+                </label>
+                <input
+                  type="text"
+                  id="subject"
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
+                  required
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                  placeholder="What can we help you with?"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">
+                  Message
+                </label>
+                <textarea
+                  id="message"
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  required
+                  rows={6}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors resize-none"
+                  placeholder="Please describe your issue or question in detail..."
+                />
+              </div>
+
+              {submitStatus === 'success' && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-green-800">
+                  Your support request has been sent successfully! We'll get back to you soon.
+                </div>
+              )}
+
+              {submitStatus === 'error' && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-800">
+                  There was an error sending your request. Please try again or email us directly at appspire@icloud.com
+                </div>
+              )}
+
+              <div className="flex justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={() => setShowContactForm(false)}
+                  className="px-6 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="px-6 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                >
+                  <Send className="h-5 w-5" />
+                  <span>{isSubmitting ? 'Sending...' : 'Send Request'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

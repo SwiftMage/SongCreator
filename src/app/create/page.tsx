@@ -996,7 +996,7 @@ export default function CreateSongPage() {
               <button
                 onClick={handleSubmit}
                 disabled={isSubmitting || !canProceed()}
-                className="flex items-center space-x-2 px-8 py-4 bg-gray-800 text-white rounded-lg font-semibold hover:bg-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="flex items-center space-x-2 px-8 py-4 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-md hover:shadow-lg"
               >
                 <div className="songmint-icon-only">
                   <div className="logo-icon">
