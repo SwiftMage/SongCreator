@@ -319,12 +319,12 @@ export default function Home() {
 
       {/* Demo Player - Slide Down */}
       <div className={`overflow-hidden transition-all duration-500 ease-in-out ${
-        showDemoPlayer ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+        showDemoPlayer ? 'max-h-[600px] opacity-100' : 'max-h-0 opacity-0'
       }`}>
         <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-lg">
-          <div className="container mx-auto px-4 py-6">
+          <div className="container mx-auto px-4 py-4">
             {/* Close Button */}
-            <div className="flex justify-end mb-4">
+            <div className="flex justify-end mb-2">
               <button
                 onClick={closeDemoPlayer}
                 className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
@@ -334,38 +334,38 @@ export default function Home() {
             </div>
 
             {/* Song Cards Scrollable Row */}
-            <div className="mb-6">
-              <div className="flex space-x-4 overflow-x-auto pb-2 scrollbar-hide">
+            <div className="mb-4">
+              <div className="flex space-x-3 overflow-x-auto pb-2 scrollbar-hide">
                 {demoSongs.map((song, index) => (
                   <div
                     key={song.id}
                     onClick={() => playAudio(index)}
-                    className={`flex-shrink-0 w-48 p-3 rounded-lg cursor-pointer transition-all ${
+                    className={`flex-shrink-0 w-40 p-2 rounded-lg cursor-pointer transition-all ${
                       currentSongIndex === index
                         ? 'bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 border-2 border-purple-300 dark:border-purple-700'
                         : 'bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 border-2 border-transparent'
                     }`}
                   >
                     {/* Song Image */}
-                    <div className="relative mb-3">
+                    <div className="relative mb-2">
                       <img
                         src={song.image}
                         alt={song.title}
-                        className="w-full h-32 object-cover rounded-lg"
+                        className="w-full h-24 object-cover rounded-lg"
                       />
                       {currentSongIndex === index && (
                         <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-lg">
                           {isPlaying ? (
-                            <Pause className="h-8 w-8 text-white" />
+                            <Pause className="h-6 w-6 text-white" />
                           ) : (
-                            <Play className="h-8 w-8 text-white" />
+                            <Play className="h-6 w-6 text-white" />
                           )}
                         </div>
                       )}
                     </div>
                     
                     {/* Song Info */}
-                    <div className="text-sm">
+                    <div className="text-xs">
                       <h4 className="font-semibold text-gray-900 dark:text-white truncate">
                         {song.title}
                       </h4>
@@ -382,42 +382,42 @@ export default function Home() {
             </div>
 
             {/* Player Controls */}
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
-              <div className="flex items-center justify-between mb-3">
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-3">
+              <div className="flex items-center justify-between mb-2">
                 {/* Current Song Info */}
                 <div className="flex items-center space-x-3">
                   <img
                     src={demoSongs[currentSongIndex].image}
                     alt={demoSongs[currentSongIndex].title}
-                    className="w-12 h-12 object-cover rounded-lg"
+                    className="w-10 h-10 object-cover rounded-lg"
                   />
                   <div>
-                    <h4 className="font-semibold text-gray-900 dark:text-white">
+                    <h4 className="font-semibold text-gray-900 dark:text-white text-sm">
                       {demoSongs[currentSongIndex].title}
                     </h4>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <p className="text-xs text-gray-600 dark:text-gray-400">
                       {demoSongs[currentSongIndex].artist}
                     </p>
                   </div>
                 </div>
 
                 {/* Control Buttons */}
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-1">
                   <button
                     onClick={playPreviousSong}
                     className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-white dark:hover:bg-gray-700"
                   >
-                    <SkipBack className="h-5 w-5" />
+                    <SkipBack className="h-4 w-4" />
                   </button>
                   
                   <button
                     onClick={togglePlayPause}
-                    className="p-3 bg-gradient-to-r from-[#00f5ff] via-[#ff006e] to-[#8338ec] text-white rounded-full hover:scale-105 transition-transform shadow-lg"
+                    className="p-2 bg-gradient-to-r from-[#00f5ff] via-[#ff006e] to-[#8338ec] text-white rounded-full hover:scale-105 transition-transform shadow-lg"
                   >
                     {isPlaying ? (
-                      <Pause className="h-6 w-6" />
+                      <Pause className="h-5 w-5" />
                     ) : (
-                      <Play className="h-6 w-6" />
+                      <Play className="h-5 w-5" />
                     )}
                   </button>
                   
@@ -425,17 +425,17 @@ export default function Home() {
                     onClick={playNextSong}
                     className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-white dark:hover:bg-gray-700"
                   >
-                    <SkipForward className="h-5 w-5" />
+                    <SkipForward className="h-4 w-4" />
                   </button>
                 </div>
               </div>
 
               {/* Progress Bar */}
-              <div className="flex items-center space-x-3 text-sm text-gray-600 dark:text-gray-400">
+              <div className="flex items-center space-x-3 text-xs text-gray-600 dark:text-gray-400">
                 <span>{formatTime(currentTime)}</span>
-                <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
                   <div
-                    className="bg-gradient-to-r from-[#00f5ff] via-[#ff006e] to-[#8338ec] h-2 rounded-full transition-all duration-300"
+                    className="bg-gradient-to-r from-[#00f5ff] via-[#ff006e] to-[#8338ec] h-1.5 rounded-full transition-all duration-300"
                     style={{
                       width: duration > 0 ? `${(currentTime / duration) * 100}%` : '0%'
                     }}
