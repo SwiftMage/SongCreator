@@ -440,9 +440,10 @@ export default function Home() {
                       linear-gradient(135deg, #00f5ff 0%, #ff006e 50%, #8338ec 100%) border-box;
           border: 2px solid transparent;
         }
-        .dark .border-gradient {
+        :global(.dark) .border-gradient {
           background: linear-gradient(to bottom right, rgb(31 41 55), rgb(31 41 55)) padding-box,
                       linear-gradient(135deg, #00f5ff 0%, #ff006e 50%, #8338ec 100%) border-box;
+          border: 2px solid transparent;
         }
       `}</style>
 
