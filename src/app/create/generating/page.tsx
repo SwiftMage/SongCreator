@@ -1154,7 +1154,7 @@ Check it out 🔥👇
               <div className="flex-1">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{generationStatus.message}</h3>
                 <div className="mt-2">
-                  <div className="w-full bg-gray-200 rounded-full h-3">
+                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
                     <div 
                       className={`h-3 rounded-full transition-all duration-500 ${getProgressColor()}`}
                       style={{ width: `${generationStatus.progress}%` }}
@@ -1181,10 +1181,10 @@ Check it out 🔥👇
 
           {/* Debug: Request String */}
           {debugMode && requestString && (
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 mb-8">
+            <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6 mb-8">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Debug: AI Request</h3>
-              <div className="bg-white border rounded-lg p-4">
-                <pre className="text-sm text-gray-700 whitespace-pre-wrap font-mono">
+              <div className="bg-white dark:bg-gray-800 border dark:border-gray-600 rounded-lg p-4">
+                <pre className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap font-mono">
                   {requestString}
                 </pre>
               </div>
@@ -1192,7 +1192,7 @@ Check it out 🔥👇
           )}
 
           {/* Debug Toggle */}
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-8">
+          <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-8">
             <button
               onClick={() => setDebugMode(!debugMode)}
               className="w-full px-4 py-2 bg-gray-600 text-white rounded-lg font-medium hover:bg-gray-700 transition-colors"
@@ -1235,7 +1235,7 @@ Check it out 🔥👇
                 <h3 className="text-lg font-bold text-blue-800 mb-4">🎛️ Advanced Options</h3>
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Custom Model (optional)
                     </label>
                     <input
@@ -1263,7 +1263,7 @@ Check it out 🔥👇
                   <h3 className="text-lg font-bold text-yellow-800 mb-4">Active Tasks Found</h3>
                   <div className="space-y-3">
                     {activeTasks.map((task, index) => (
-                      <div key={index} className="bg-white rounded-lg p-4">
+                      <div key={index} className="bg-white dark:bg-gray-700 rounded-lg p-4">
                         <div className="grid grid-cols-2 gap-2 text-sm">
                           <div><strong>Task ID:</strong> {task.taskId}</div>
                           <div><strong>Status:</strong> {task.status}</div>
@@ -1322,7 +1322,7 @@ Check it out 🔥👇
                     <textarea
                       value={editedLyrics}
                       onChange={(e) => setEditedLyrics(e.target.value)}
-                      className="w-full h-96 p-4 border border-gray-300 rounded-lg resize-none font-serif leading-relaxed text-gray-900 dark:text-white bg-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      className="w-full h-96 p-4 border border-gray-300 dark:border-gray-600 rounded-lg resize-none font-serif leading-relaxed text-gray-900 dark:text-white bg-white dark:bg-gray-700 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                       placeholder="Edit your lyrics here..."
                     />
                   </div>
@@ -1429,7 +1429,7 @@ Check it out 🔥👇
                       <span>Generating your music...</span>
                       <span>{Math.round(musicProgress)}%</span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
+                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4 overflow-hidden">
                       <div 
                         className={`h-4 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-200 ease-out ${
                           showCompletionZoom ? 'animate-pulse scale-105' : ''
@@ -1465,7 +1465,7 @@ Check it out 🔥👇
                         const backupVariation = musicStatus.backupVariations?.find(bv => bv.index === index)
                         
                         return (
-                          <div key={index} className="bg-gray-50 rounded-lg p-4">
+                          <div key={index} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
                             <h5 className="font-medium text-gray-900 dark:text-white mb-2">Version {index + 1}</h5>
                             <AudioWithFallback
                               primaryUrl={variation.url}
@@ -1521,7 +1521,7 @@ Check it out 🔥👇
                 <div className="mb-6">
                   <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Debug: Mureka API Request</h4>
                   <div className="bg-gray-100 border rounded-lg p-4">
-                    <pre className="text-sm text-gray-700 whitespace-pre-wrap font-mono">
+                    <pre className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap font-mono">
                       {musicApiRequest}
                     </pre>
                   </div>
@@ -1533,7 +1533,7 @@ Check it out 🔥👇
                 <div className="mb-6">
                   <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Debug: Mureka API Response</h4>
                   <div className="bg-gray-100 border rounded-lg p-4">
-                    <pre className="text-sm text-gray-700 whitespace-pre-wrap font-mono">
+                    <pre className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap font-mono">
                       {musicApiResponse}
                     </pre>
                   </div>
@@ -1581,8 +1581,8 @@ Check it out 🔥👇
                         <div className="text-xs text-red-600 mb-2">
                           Error Type: {errorDetails.type} | Time: {new Date(errorDetails.timestamp).toLocaleString()}
                         </div>
-                        <div className="bg-white border border-red-200 rounded p-3 max-h-64 overflow-y-auto">
-                          <pre className="text-xs text-gray-700 whitespace-pre-wrap font-mono">
+                        <div className="bg-white dark:bg-gray-800 border border-red-200 dark:border-red-700 rounded p-3 max-h-64 overflow-y-auto">
+                          <pre className="text-xs text-gray-700 dark:text-gray-300 whitespace-pre-wrap font-mono">
                             {JSON.stringify(sanitizeErrorDetails(errorDetails), null, 2)}
                           </pre>
                         </div>
@@ -1758,13 +1758,13 @@ Check it out 🔥👇
               <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 text-center">🤔 Not loving the song?</h3>
               
               <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-lg p-6">
-                <p className="text-gray-700 mb-6 text-center">
+                <p className="text-gray-700 dark:text-gray-300 mb-6 text-center">
                   No worries! You can make changes to get the perfect song. Each option costs <strong>1 credit</strong>.
                 </p>
                 
                 <div className="grid md:grid-cols-3 gap-4">
                   {/* Regenerate Song */}
-                  <div className="bg-white rounded-lg p-4 text-center shadow-sm">
+                  <div className="bg-white dark:bg-gray-700 rounded-lg p-4 text-center shadow-sm">
                     <RefreshCw className="h-8 w-8 text-purple-600 mx-auto mb-3" />
                     <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Regenerate Song</h4>
                     <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">Generate a new version with the same settings</p>
@@ -1781,7 +1781,7 @@ Check it out 🔥👇
                   </div>
                   
                   {/* Change Lyrics */}
-                  <div className="bg-white rounded-lg p-4 text-center shadow-sm">
+                  <div className="bg-white dark:bg-gray-700 rounded-lg p-4 text-center shadow-sm">
                     <FileText className="h-8 w-8 text-blue-600 mx-auto mb-3" />
                     <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Change Lyrics</h4>
                     <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">Choose how to handle the lyrics for your song</p>
@@ -1802,7 +1802,7 @@ Check it out 🔥👇
                   </div>
                   
                   {/* Change Description */}
-                  <div className="bg-white rounded-lg p-4 text-center shadow-sm">
+                  <div className="bg-white dark:bg-gray-700 rounded-lg p-4 text-center shadow-sm">
                     <Settings className="h-8 w-8 text-green-600 mx-auto mb-3" />
                     <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Change Description</h4>
                     <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">Modify the song details and attributes</p>
@@ -1909,7 +1909,7 @@ Check it out 🔥👇
           className="fixed inset-0 flex items-center justify-center z-50 p-4" 
           style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
         >
-          <div className="bg-white rounded-lg max-w-md w-full p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full p-6">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Share Your Song</h3>
               <button
@@ -1923,7 +1923,7 @@ Check it out 🔥👇
             </div>
             
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Share text:
               </label>
               <textarea
@@ -1968,7 +1968,7 @@ Check it out 🔥👇
           className="fixed inset-0 flex items-center justify-center z-50 p-4" 
           style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
         >
-          <div className="bg-white rounded-lg max-w-md w-full p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full p-6">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Report an Issue</h3>
               <button
@@ -1989,7 +1989,7 @@ Check it out 🔥👇
                 Please describe what went wrong with your song generation. We'll review your report and contact you via email.
               </p>
               
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 What went wrong?
               </label>
               <textarea
@@ -2001,7 +2001,7 @@ Check it out 🔥👇
               />
             </div>
             
-            <div className="bg-gray-50 rounded-lg p-3 mb-4">
+            <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 mb-4">
               <p className="text-xs text-gray-500">
                 Your email and song details will be automatically included in the report.
               </p>
@@ -2021,7 +2021,7 @@ Check it out 🔥👇
                   setIssueDescription('')
                 }}
                 disabled={isSubmittingIssue}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors"
+                className="px-4 py-2 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-medium hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors"
               >
                 Cancel
               </button>
