@@ -98,6 +98,7 @@ export default function CreateSongPage() {
   const [profile, setProfile] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showConfirmation, setShowConfirmation] = useState(false)
   const [formData, setFormData] = useState<SongFormData>({
     subjectName: '',
     relationship: '',
@@ -997,7 +998,13 @@ export default function CreateSongPage() {
               </button>
             ) : (
               <button
-                onClick={handleSubmit}
+                onClick={() => {
+                  if (process.env.NODE_ENV === 'production') {
+                    setShowConfirmation(true)
+                  } else {
+                    handleSubmit()
+                  }
+                }}
                 disabled={isSubmitting || !canProceed()}
                 className="flex items-center space-x-2 px-8 py-4 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-md hover:shadow-lg"
               >
@@ -1006,12 +1013,43 @@ export default function CreateSongPage() {
                     <div className="music-note">♪</div>
                   </div>
                 </div>
-                <span>{isSubmitting ? 'Creating...' : 'Create Song'}</span>
+                <span>{isSubmitting ? 'Creating...' : 'Create Song (1 credit)'}</span>
               </button>
             )}
           </div>
         </div>
       </main>
+
+      {/* Confirmation Dialog */}
+      {showConfirmation && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              Confirm Song Creation
+            </h3>
+            <p className="text-gray-600 dark:text-gray-300 mb-6">
+              This will use 1 credit to create your personalized song. Are you sure you want to continue?
+            </p>
+            <div className="flex space-x-4">
+              <button
+                onClick={() => setShowConfirmation(false)}
+                className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  setShowConfirmation(false)
+                  handleSubmit()
+                }}
+                className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+              >
+                Create Song
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -1058,7 +1096,7 @@ function DetailSection({ title, subtitle, icon: IconComponent, items, onAdd, onR
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           onKeyPress={handleKeyPress}
-          className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 dark:text-white dark:bg-gray-700 dark:placeholder-gray-400"
+          className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
           placeholder={placeholder}
         />
         <button
@@ -1138,7 +1176,7 @@ function CustomStyleSection({ title, items, onAdd, onRemove, placeholder }: Cust
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           onKeyPress={handleKeyPress}
-          className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900"
+          className="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
           placeholder={placeholder}
         />
         <button
