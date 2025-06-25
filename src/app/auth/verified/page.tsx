@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import DarkModeToggle from '@/components/DarkModeToggle';
 
 export default function EmailVerified() {
   const router = useRouter();
@@ -17,8 +18,11 @@ export default function EmailVerified() {
   }, [router]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-100 via-blue-50 to-pink-100">
-      <div className="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full text-center">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-100 via-blue-50 to-pink-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      <div className="bg-white dark:bg-gray-900 p-8 rounded-2xl shadow-xl max-w-md w-full text-center relative">
+        <div className="absolute top-4 right-4">
+          <DarkModeToggle />
+        </div>
         <div className="mb-6">
           <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto">
             <svg

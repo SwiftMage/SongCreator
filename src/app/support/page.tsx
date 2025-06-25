@@ -13,6 +13,7 @@ import {
   X
 } from 'lucide-react'
 import Logo from '@/components/Logo'
+import DarkModeToggle from '@/components/DarkModeToggle'
 import { createClient } from '@/lib/supabase/client'
 
 export default function SupportPage() {
@@ -76,13 +77,16 @@ export default function SupportPage() {
           <div className="flex items-center justify-between">
             <Logo />
             
-            <Link
-              href="/"
-              className="text-gray-600 hover:text-gray-900 flex items-center space-x-2 transition-colors"
-            >
-              <ArrowLeft className="h-5 w-5" />
-              <span>Back to Home</span>
-            </Link>
+            <div className="flex items-center space-x-4">
+              <DarkModeToggle />
+              <Link
+                href="/"
+                className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white flex items-center space-x-2 transition-colors"
+              >
+                <ArrowLeft className="h-5 w-5" />
+                <span>Back to Home</span>
+              </Link>
+            </div>
           </div>
         </div>
       </header>

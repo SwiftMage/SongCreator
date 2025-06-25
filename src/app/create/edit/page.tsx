@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 import Logo from '@/components/Logo'
+import DarkModeToggle from '@/components/DarkModeToggle'
 import { 
   Music, 
   ArrowLeft, 
@@ -426,6 +427,8 @@ function EditSongPage() {
                 <ShoppingCart className="h-5 w-5 text-purple-600" />
                 <span className="font-medium">{profile?.credits_remaining || 0} Credits</span>
               </Link>
+              <div className="h-6 w-px bg-gray-300" />
+              <DarkModeToggle />
               <div className="h-6 w-px bg-gray-300" />
               <button
                 onClick={() => router.push('/dashboard')}

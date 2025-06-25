@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase'
 import { Music, ArrowLeft, Check, Loader2, Volume2, Download, Share2, RefreshCw, FileText, Settings, RotateCcw, ShoppingCart, AlertCircle } from 'lucide-react'
 import { getBestAudioUrl } from '@/lib/audio-player'
 import Logo from '@/components/Logo'
+import DarkModeToggle from '@/components/DarkModeToggle'
 
 // Helper component for audio with fallback
 function AudioWithFallback({ 
@@ -1119,6 +1120,8 @@ Check it out 🔥👇
                 <ShoppingCart className="h-5 w-5 text-purple-600" />
                 <span className="font-medium">{profile?.credits_remaining || 0} Credits</span>
               </Link>
+              <div className="h-6 w-px bg-gray-300" />
+              <DarkModeToggle />
               <div className="h-6 w-px bg-gray-300" />
               <button
                 onClick={() => router.push('/dashboard')}

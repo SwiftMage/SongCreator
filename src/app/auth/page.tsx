@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import Logo from '@/components/Logo'
+import DarkModeToggle from '@/components/DarkModeToggle'
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react'
 
 export default function AuthPage() {
@@ -124,8 +125,12 @@ export default function AuthPage() {
         <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg p-8">
           {/* Header */}
           <div className="text-center mb-8">
-            <div className="flex justify-center mb-4">
+            <div className="flex justify-between items-center mb-4">
+              <div className="flex-1"></div>
               <Logo />
+              <div className="flex-1 flex justify-end">
+                <DarkModeToggle />
+              </div>
             </div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
               {mode === 'signup' ? 'Create your account' : 'Welcome back'}

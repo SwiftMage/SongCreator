@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, Send } from 'lucide-react'
 import Logo from '@/components/Logo'
+import DarkModeToggle from '@/components/DarkModeToggle'
 
 export default function ContactPage() {
   const [subject, setSubject] = useState('')
@@ -44,20 +45,23 @@ export default function ContactPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-gray-800">
       {/* Header */}
-      <header className="bg-white shadow-sm">
+      <header className="bg-white dark:bg-gray-900 shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <Logo />
             
-            <Link
-              href="/"
-              className="text-gray-600 hover:text-gray-900 flex items-center space-x-2 transition-colors"
-            >
-              <ArrowLeft className="h-5 w-5" />
-              <span>Back to Home</span>
-            </Link>
+            <div className="flex items-center space-x-4">
+              <DarkModeToggle />
+              <Link
+                href="/"
+                className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white flex items-center space-x-2 transition-colors"
+              >
+                <ArrowLeft className="h-5 w-5" />
+                <span>Back to Home</span>
+              </Link>
+            </div>
           </div>
         </div>
       </header>

@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react'
 import Logo from '@/components/Logo'
+import DarkModeToggle from '@/components/DarkModeToggle'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -74,8 +75,12 @@ export default function LoginPage() {
         <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg p-8">
           {/* Header */}
           <div className="text-center mb-8">
-            <div className="flex justify-center mb-4">
+            <div className="flex justify-between items-center mb-4">
+              <div className="flex-1"></div>
               <Logo />
+              <div className="flex-1 flex justify-end">
+                <DarkModeToggle />
+              </div>
             </div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Welcome back</h1>
             <p className="text-gray-600 dark:text-gray-400 mt-2">Sign in to create your custom songs</p>

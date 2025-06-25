@@ -17,6 +17,7 @@ import {
   ShoppingCart
 } from 'lucide-react'
 import Logo from '@/components/Logo'
+import DarkModeToggle from '@/components/DarkModeToggle'
 
 export default function AccountPage() {
   const [user, setUser] = useState<any>(null)
@@ -139,13 +140,16 @@ export default function AccountPage() {
           <div className="flex items-center justify-between">
             <Logo />
             
-            <Link 
-              href="/dashboard"
-              className="text-gray-600 hover:text-gray-900 flex items-center space-x-2 transition-colors"
-            >
-              <ArrowLeft className="h-5 w-5" />
-              <span>Back to Dashboard</span>
-            </Link>
+            <div className="flex items-center space-x-4">
+              <DarkModeToggle />
+              <Link 
+                href="/dashboard"
+                className="text-gray-600 hover:text-gray-900 flex items-center space-x-2 transition-colors"
+              >
+                <ArrowLeft className="h-5 w-5" />
+                <span>Back to Dashboard</span>
+              </Link>
+            </div>
           </div>
         </div>
       </header>

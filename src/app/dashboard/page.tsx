@@ -22,6 +22,7 @@ import {
 } from 'lucide-react'
 import { playAudioWithFallback, getBestAudioUrl } from '@/lib/audio-player'
 import Logo from '@/components/Logo'
+import DarkModeToggle from '@/components/DarkModeToggle'
 
 interface Song {
   id: string
@@ -299,6 +300,8 @@ export default function DashboardPage() {
                 <ShoppingCart className="h-5 w-5 text-purple-600" />
                 <span className="font-medium">{profile?.credits_remaining || 0} Credits</span>
               </Link>
+              <div className="h-6 w-px bg-gray-300" />
+              <DarkModeToggle />
               <div className="h-6 w-px bg-gray-300" />
               <Link 
                 href="/dashboard/account"
