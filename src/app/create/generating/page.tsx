@@ -1633,7 +1633,7 @@ Check it out 🔥👇
               
               <div className="grid md:grid-cols-2 gap-6">
                 {/* Download Options */}
-                <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg p-6">
+                <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg p-6">
                   <div className="flex items-center mb-4">
                     <Download className="h-6 w-6 text-green-600 mr-2" />
                     <h4 className="text-lg font-semibold text-gray-900 dark:text-white">Download Your Song</h4>
@@ -1681,7 +1681,7 @@ Check it out 🔥👇
                 </div>
                 
                 {/* Social Sharing Options */}
-                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-6">
+                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg p-6">
                   <div className="flex items-center mb-4">
                     <Share2 className="h-6 w-6 text-blue-600 mr-2" />
                     <h4 className="text-lg font-semibold text-gray-900 dark:text-white">Share Your Creation</h4>
