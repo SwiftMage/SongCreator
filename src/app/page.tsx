@@ -5,11 +5,81 @@ import { useEffect, useState } from "react";
 import { createClient } from '@/lib/supabase';
 import Logo from '@/components/Logo';
 import DarkModeToggle from '@/components/DarkModeToggle';
-import { Heart, Gift, Users, LogOut, User, Music, Sparkles, Zap, Shield, ArrowRight, Check, Play } from "lucide-react";
+import { Heart, Gift, Users, LogOut, User, Music, Sparkles, Zap, Shield, ArrowRight, Check, Play, Pause, SkipForward, SkipBack, X, ChevronLeft, ChevronRight } from "lucide-react";
+
+// Mock demo songs data
+const demoSongs = [
+  {
+    id: 1,
+    title: "Birthday Surprise",
+    artist: "Song Mint AI",
+    genre: "Pop",
+    occasion: "Birthday",
+    audioUrl: "/demo-songs/birthday-surprise.mp3",
+    image: "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=300&h=300&fit=crop&crop=center",
+    duration: "2:45"
+  },
+  {
+    id: 2,
+    title: "Forever Yours",
+    artist: "Song Mint AI",
+    genre: "Romantic",
+    occasion: "Anniversary",
+    audioUrl: "/demo-songs/forever-yours.mp3",
+    image: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=300&h=300&fit=crop&crop=center",
+    duration: "3:12"
+  },
+  {
+    id: 3,
+    title: "Friend Like You",
+    artist: "Song Mint AI",
+    genre: "Folk",
+    occasion: "Friendship",
+    audioUrl: "/demo-songs/friend-like-you.mp3",
+    image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=300&h=300&fit=crop&crop=center",
+    duration: "2:58"
+  },
+  {
+    id: 4,
+    title: "Graduation Day",
+    artist: "Song Mint AI",
+    genre: "Upbeat",
+    occasion: "Celebration",
+    audioUrl: "/demo-songs/graduation-day.mp3",
+    image: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=300&h=300&fit=crop&crop=center",
+    duration: "3:24"
+  },
+  {
+    id: 5,
+    title: "Mom's Love",
+    artist: "Song Mint AI",
+    genre: "Country",
+    occasion: "Mother's Day",
+    audioUrl: "/demo-songs/moms-love.mp3",
+    image: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=300&h=300&fit=crop&crop=center",
+    duration: "2:36"
+  },
+  {
+    id: 6,
+    title: "Wedding Waltz",
+    artist: "Song Mint AI",
+    genre: "Classical",
+    occasion: "Wedding",
+    audioUrl: "/demo-songs/wedding-waltz.mp3",
+    image: "https://images.unsplash.com/photo-1469371670807-013ccf25f16a?w=300&h=300&fit=crop&crop=center",
+    duration: "4:15"
+  }
+]
 
 export default function Home() {
   const [user, setUser] = useState<{ user_metadata?: { full_name?: string }, email?: string } | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [showDemoPlayer, setShowDemoPlayer] = useState(false)
+  const [currentSongIndex, setCurrentSongIndex] = useState(0)
+  const [isPlaying, setIsPlaying] = useState(false)
+  const [audio, setAudio] = useState<HTMLAudioElement | null>(null)
+  const [currentTime, setCurrentTime] = useState(0)
+  const [duration, setDuration] = useState(0)
   const supabase = createClient()
 
   useEffect(() => {
@@ -21,9 +91,114 @@ export default function Home() {
     checkAuth()
   }, [supabase])
 
+  // Cleanup audio on unmount
+  useEffect(() => {
+    return () => {
+      if (audio) {
+        audio.pause()
+        audio.src = ''
+      }
+    }
+  }, [])
+
+  // Audio management
+  useEffect(() => {
+    if (audio) {
+      const updateTime = () => setCurrentTime(audio.currentTime)
+      const updateDuration = () => setDuration(audio.duration)
+      const handleEnded = () => {
+        setIsPlaying(false)
+        setCurrentTime(0)
+        // Auto-advance to next song
+        if (currentSongIndex < demoSongs.length - 1) {
+          setTimeout(() => playNextSong(), 1000)
+        }
+      }
+
+      audio.addEventListener('timeupdate', updateTime)
+      audio.addEventListener('loadedmetadata', updateDuration)
+      audio.addEventListener('ended', handleEnded)
+
+      return () => {
+        audio.removeEventListener('timeupdate', updateTime)
+        audio.removeEventListener('loadedmetadata', updateDuration)
+        audio.removeEventListener('ended', handleEnded)
+      }
+    }
+  }, [audio, currentSongIndex])
+
   const handleLogout = async () => {
     await supabase.auth.signOut()
     setUser(null)
+  }
+
+  const openDemoPlayer = () => {
+    setShowDemoPlayer(true)
+    // Start playing the first song automatically
+    setTimeout(() => {
+      playAudio(0)
+    }, 300) // Small delay for animation
+  }
+
+  const closeDemoPlayer = () => {
+    if (audio) {
+      audio.pause()
+      setIsPlaying(false)
+    }
+    setShowDemoPlayer(false)
+  }
+
+  const playAudio = (index: number) => {
+    if (audio) {
+      audio.pause()
+    }
+
+    const newAudio = new Audio(`/demo-audio/demo-${index + 1}.mp3`) // Use placeholder audio
+    newAudio.volume = 0.7
+    
+    newAudio.play().then(() => {
+      setAudio(newAudio)
+      setCurrentSongIndex(index)
+      setIsPlaying(true)
+    }).catch(() => {
+      // If audio fails to load, just update the UI without actual audio
+      setAudio(newAudio)
+      setCurrentSongIndex(index)
+      setIsPlaying(true)
+      console.log('Demo audio not available, showing UI only')
+    })
+  }
+
+  const togglePlayPause = () => {
+    if (!audio) return
+
+    if (isPlaying) {
+      audio.pause()
+      setIsPlaying(false)
+    } else {
+      audio.play().then(() => {
+        setIsPlaying(true)
+      }).catch(() => {
+        setIsPlaying(true) // Visual feedback even if audio fails
+      })
+    }
+  }
+
+  const playNextSong = () => {
+    const nextIndex = (currentSongIndex + 1) % demoSongs.length
+    playAudio(nextIndex)
+  }
+
+  const playPreviousSong = () => {
+    const prevIndex = currentSongIndex === 0 ? demoSongs.length - 1 : currentSongIndex - 1
+    playAudio(prevIndex)
+  }
+
+  const formatTime = (time: number) => {
+    if (isNaN(time)) return '0:00'
+    const minutes = Math.floor(time / 60)
+    const seconds = Math.floor(time % 60)
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`
   }
 
   return (
@@ -115,7 +290,10 @@ export default function Home() {
                 </span>
               </Link>
               
-              <button className="px-8 py-4 text-gray-700 dark:text-gray-300 font-semibold rounded-xl border-2 border-gray-300 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-600 transition-all flex items-center gap-2 group">
+              <button 
+                onClick={openDemoPlayer}
+                className="px-8 py-4 text-gray-700 dark:text-gray-300 font-semibold rounded-xl border-2 border-gray-300 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-600 transition-all flex items-center gap-2 group"
+              >
                 <Play className="h-5 w-5 text-[#ff006e] group-hover:scale-110 transition-transform" />
                 Listen to Examples
               </button>
@@ -138,6 +316,137 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Demo Player - Slide Down */}
+      <div className={`overflow-hidden transition-all duration-500 ease-in-out ${
+        showDemoPlayer ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+      }`}>
+        <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-lg">
+          <div className="container mx-auto px-4 py-6">
+            {/* Close Button */}
+            <div className="flex justify-end mb-4">
+              <button
+                onClick={closeDemoPlayer}
+                className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Song Cards Scrollable Row */}
+            <div className="mb-6">
+              <div className="flex space-x-4 overflow-x-auto pb-2 scrollbar-hide">
+                {demoSongs.map((song, index) => (
+                  <div
+                    key={song.id}
+                    onClick={() => playAudio(index)}
+                    className={`flex-shrink-0 w-48 p-3 rounded-lg cursor-pointer transition-all ${
+                      currentSongIndex === index
+                        ? 'bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 border-2 border-purple-300 dark:border-purple-700'
+                        : 'bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 border-2 border-transparent'
+                    }`}
+                  >
+                    {/* Song Image */}
+                    <div className="relative mb-3">
+                      <img
+                        src={song.image}
+                        alt={song.title}
+                        className="w-full h-32 object-cover rounded-lg"
+                      />
+                      {currentSongIndex === index && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-lg">
+                          {isPlaying ? (
+                            <Pause className="h-8 w-8 text-white" />
+                          ) : (
+                            <Play className="h-8 w-8 text-white" />
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Song Info */}
+                    <div className="text-sm">
+                      <h4 className="font-semibold text-gray-900 dark:text-white truncate">
+                        {song.title}
+                      </h4>
+                      <p className="text-gray-600 dark:text-gray-400 truncate">
+                        {song.occasion} • {song.genre}
+                      </p>
+                      <p className="text-gray-500 dark:text-gray-500 text-xs">
+                        {song.duration}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Player Controls */}
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
+              <div className="flex items-center justify-between mb-3">
+                {/* Current Song Info */}
+                <div className="flex items-center space-x-3">
+                  <img
+                    src={demoSongs[currentSongIndex].image}
+                    alt={demoSongs[currentSongIndex].title}
+                    className="w-12 h-12 object-cover rounded-lg"
+                  />
+                  <div>
+                    <h4 className="font-semibold text-gray-900 dark:text-white">
+                      {demoSongs[currentSongIndex].title}
+                    </h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      {demoSongs[currentSongIndex].artist}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Control Buttons */}
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={playPreviousSong}
+                    className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-white dark:hover:bg-gray-700"
+                  >
+                    <SkipBack className="h-5 w-5" />
+                  </button>
+                  
+                  <button
+                    onClick={togglePlayPause}
+                    className="p-3 bg-gradient-to-r from-[#00f5ff] via-[#ff006e] to-[#8338ec] text-white rounded-full hover:scale-105 transition-transform shadow-lg"
+                  >
+                    {isPlaying ? (
+                      <Pause className="h-6 w-6" />
+                    ) : (
+                      <Play className="h-6 w-6" />
+                    )}
+                  </button>
+                  
+                  <button
+                    onClick={playNextSong}
+                    className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-white dark:hover:bg-gray-700"
+                  >
+                    <SkipForward className="h-5 w-5" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Progress Bar */}
+              <div className="flex items-center space-x-3 text-sm text-gray-600 dark:text-gray-400">
+                <span>{formatTime(currentTime)}</span>
+                <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                  <div
+                    className="bg-gradient-to-r from-[#00f5ff] via-[#ff006e] to-[#8338ec] h-2 rounded-full transition-all duration-300"
+                    style={{
+                      width: duration > 0 ? `${(currentTime / duration) * 100}%` : '0%'
+                    }}
+                  />
+                </div>
+                <span>{formatTime(duration)}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Features Section */}
       <section className="py-24 bg-white dark:bg-gray-900">
@@ -444,6 +753,13 @@ export default function Home() {
           background: linear-gradient(to bottom right, rgb(31 41 55), rgb(31 41 55)) padding-box,
                       linear-gradient(135deg, #00f5ff 0%, #ff006e 50%, #8338ec 100%) border-box;
           border: 2px solid transparent;
+        }
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
         }
       `}</style>
 
