@@ -305,14 +305,14 @@ export default function DashboardPage() {
               <div className="h-6 w-px bg-gray-300" />
               <Link 
                 href="/dashboard/account"
-                className="text-gray-600 hover:text-gray-900 flex items-center space-x-2 transition-colors"
+                className="text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 flex items-center space-x-2 transition-colors"
               >
                 <Settings className="h-5 w-5" />
                 <span>Account</span>
               </Link>
               <button
                 onClick={handleLogout}
-                className="text-gray-600 hover:text-gray-900 flex items-center space-x-2 transition-colors"
+                className="text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 flex items-center space-x-2 transition-colors"
               >
                 <LogOut className="h-5 w-5" />
                 <span>Logout</span>
