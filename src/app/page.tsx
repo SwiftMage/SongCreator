@@ -16,7 +16,7 @@ const demoSongs = [
     genre: "Pop",
     occasion: "Birthday",
     audioUrl: "/demo-songs/birthday-surprise.mp3",
-    image: "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=300&h=300&fit=crop&crop=center",
+    image: "https://images.unsplash.com/photo-1464207687429-7505649dae38?w=300&h=300&fit=crop&crop=center",
     duration: "2:45"
   },
   {
@@ -68,6 +68,16 @@ const demoSongs = [
     audioUrl: "/demo-songs/wedding-waltz.mp3",
     image: "https://images.unsplash.com/photo-1469371670807-013ccf25f16a?w=300&h=300&fit=crop&crop=center",
     duration: "4:15"
+  },
+  {
+    id: 7,
+    title: "My Hero Dad",
+    artist: "Song Mint AI",
+    genre: "Rock",
+    occasion: "Father's Day",
+    audioUrl: "/demo-songs/my-hero-dad.mp3",
+    image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=300&h=300&fit=crop&crop=center",
+    duration: "3:08"
   }
 ]
 
@@ -324,7 +334,7 @@ export default function Home() {
         <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-lg">
           <div className="container mx-auto px-4 py-6">
             {/* Close Button */}
-            <div className="flex justify-end mb-4">
+            <div className="flex justify-end mb-2">
               <button
                 onClick={closeDemoPlayer}
                 className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
