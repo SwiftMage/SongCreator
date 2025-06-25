@@ -227,16 +227,10 @@ export default function Home() {
               >
                 Contact
               </Link>
-              <a 
-                href="mailto:appspire@icloud.com"
-                className="text-gray-300 hover:text-white transition-colors"
-              >
-                appspire@icloud.com
-              </a>
             </div>
             
             <div className="text-gray-400 text-center md:text-right">
-              © 2024 Song Mint. All rights reserved.
+              © 2025 Song Mint. All rights reserved.
             </div>
           </div>
         </div>
