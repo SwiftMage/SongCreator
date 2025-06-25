@@ -1167,7 +1167,7 @@ Check it out 🔥👇
 
           {/* Error Display */}
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-6 mb-8">
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-lg p-6 mb-8">
               <h3 className="text-lg font-semibold text-red-900 mb-2">Generation Failed</h3>
               <p className="text-red-700">{error}</p>
               <button
@@ -1204,7 +1204,7 @@ Check it out 🔥👇
           {/* Debug Section - Only show when debugMode is true */}
           {debugMode && (
             <>
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mb-8">
+              <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg p-6 mb-8">
                 <h3 className="text-lg font-bold text-yellow-800 mb-4">🔧 Debug & Diagnostics</h3>
                 <div className="space-y-3">
                   <button
@@ -1231,7 +1231,7 @@ Check it out 🔥👇
               </div>
 
               {/* Debug: Custom Model Input */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-6 mb-8">
                 <h3 className="text-lg font-bold text-blue-800 mb-4">🎛️ Advanced Options</h3>
                 <div className="space-y-4">
                   <div>
@@ -1557,7 +1557,7 @@ Check it out 🔥👇
                   <h4 className="text-lg font-semibold text-red-800 mb-2">Music Generation Error</h4>
                   <p className="text-red-700 mb-4">{musicStatus.message}</p>
                   
-                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-lg p-4">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm font-medium text-red-800">Error Details</span>
                       <button
@@ -1757,7 +1757,7 @@ Check it out 🔥👇
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8">
               <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 text-center">🤔 Not loving the song?</h3>
               
-              <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-lg p-6">
+              <div className="bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-lg p-6">
                 <p className="text-gray-700 dark:text-gray-300 mb-6 text-center">
                   No worries! You can make changes to get the perfect song. Each option costs <strong>1 credit</strong>.
                 </p>
