@@ -22,6 +22,7 @@ import {
 } from 'lucide-react'
 import { playAudioWithFallback, getBestAudioUrl } from '@/lib/audio-player'
 import Logo from '@/components/Logo'
+import DarkModeToggle from '@/components/DarkModeToggle'
 
 interface Song {
   id: string
@@ -264,14 +265,14 @@ export default function DashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
         <div className="text-center">
           <div className="songmint-icon-only">
             <div className="logo-icon">
               <div className="music-note">♪</div>
             </div>
           </div>
-          <p className="text-gray-600">Loading your dashboard...</p>
+          <p className="text-gray-600 dark:text-gray-400">Loading your dashboard...</p>
         </div>
       </div>
     )
@@ -284,9 +285,9 @@ export default function DashboardPage() {
   console.log('Remaining credits:', remainingCredits)
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-gray-800">
       {/* Header */}
-      <header className="bg-white shadow-sm">
+      <header className="bg-white dark:bg-gray-900 shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <Logo />
@@ -294,22 +295,24 @@ export default function DashboardPage() {
             <nav className="flex items-center space-x-4">
               <Link 
                 href="/pricing"
-                className="flex items-center space-x-2 text-gray-600 hover:text-purple-600 transition-colors cursor-pointer"
+                className="flex items-center space-x-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors cursor-pointer"
               >
                 <ShoppingCart className="h-5 w-5 text-purple-600" />
                 <span className="font-medium">{profile?.credits_remaining || 0} Credits</span>
               </Link>
               <div className="h-6 w-px bg-gray-300" />
+              <DarkModeToggle />
+              <div className="h-6 w-px bg-gray-300" />
               <Link 
                 href="/dashboard/account"
-                className="text-gray-600 hover:text-gray-900 flex items-center space-x-2 transition-colors"
+                className="text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 flex items-center space-x-2 transition-colors"
               >
                 <Settings className="h-5 w-5" />
                 <span>Account</span>
               </Link>
               <button
                 onClick={handleLogout}
-                className="text-gray-600 hover:text-gray-900 flex items-center space-x-2 transition-colors"
+                className="text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 flex items-center space-x-2 transition-colors"
               >
                 <LogOut className="h-5 w-5" />
                 <span>Logout</span>
@@ -322,24 +325,24 @@ export default function DashboardPage() {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
         {/* Welcome & Credits Section */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                 Welcome back, {user?.user_metadata?.full_name || 'Song Creator'}!
               </h1>
-              <p className="text-gray-600">
+              <p className="text-gray-600 dark:text-gray-300">
                 Create beautiful AI-generated songs for any occasion
               </p>
             </div>
             
             <div className="text-center">
-              <div className="bg-purple-100 rounded-lg p-4">
-                <p className="text-sm text-purple-600 mb-1">Song Credits</p>
-                <p className="text-3xl font-bold text-purple-900">
+              <div className="bg-purple-100 dark:bg-purple-900/30 rounded-lg p-4">
+                <p className="text-sm text-purple-600 dark:text-purple-400 mb-1">Song Credits</p>
+                <p className="text-3xl font-bold text-purple-900 dark:text-purple-300">
                   {remainingCredits}
                 </p>
-                <p className="text-sm text-purple-600 mt-1">remaining</p>
+                <p className="text-sm text-purple-600 dark:text-purple-400 mt-1">remaining</p>
                 {/* Temporary button for testing - always show for now */}
                 <button
                   onClick={async () => {
@@ -396,8 +399,8 @@ export default function DashboardPage() {
         </div>
 
         {/* Songs List */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-6">Your Songs</h2>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Your Songs</h2>
           
           {songs.length === 0 ? (
             <div className="text-center py-12">
@@ -406,7 +409,7 @@ export default function DashboardPage() {
                   <div className="music-note">♪</div>
                 </div>
               </div>
-              <p className="text-gray-500 mb-4">You haven&apos;t created any songs yet</p>
+              <p className="text-gray-500 dark:text-gray-400 mb-4">You haven&apos;t created any songs yet</p>
               <Link
                 href="/create"
                 className="inline-flex items-center space-x-2 px-8 py-4 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors"
@@ -418,14 +421,14 @@ export default function DashboardPage() {
           ) : (
             <div className="space-y-4">
               {songs.map((song) => (
-                <div key={song.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                <div key={song.id} className="border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow">
                   {/* Desktop layout - horizontal */}
                   <div className="hidden md:flex items-center justify-between">
                     <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
                         {song.title}
                       </h3>
-                      <div className="flex items-center space-x-4 text-sm text-gray-600">
+                      <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-300">
                         <span className="flex items-center space-x-1">
                           <div className="songmint-icon-only">
                             <div className="logo-icon">

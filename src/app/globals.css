@@ -1,4 +1,6 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 /* KEYFRAMES FIRST - Before any classes that use them */
 @keyframes iconGlow {
@@ -37,15 +39,17 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --gradient-start: #00f5ff;
+  --gradient-middle: #ff006e;
+  --gradient-end: #8338ec;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
 }
 
+/* Custom properties remain for CSS usage */
 
 body {
   background: var(--background);
