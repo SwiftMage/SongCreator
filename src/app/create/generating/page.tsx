@@ -1104,9 +1104,9 @@ Check it out 🔥👇
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-gray-800">
       {/* Header */}
-      <header className="bg-white shadow-sm">
+      <header className="bg-white dark:bg-gray-900 shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <Logo />
@@ -1114,7 +1114,7 @@ Check it out 🔥👇
             <div className="flex items-center space-x-4">
               <Link 
                 href="/pricing"
-                className="flex items-center space-x-2 text-gray-600 hover:text-purple-600 transition-colors cursor-pointer"
+                className="flex items-center space-x-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 transition-colors cursor-pointer"
               >
                 <ShoppingCart className="h-5 w-5 text-purple-600" />
                 <span className="font-medium">{profile?.credits_remaining || 0} Credits</span>
@@ -1122,7 +1122,7 @@ Check it out 🔥👇
               <div className="h-6 w-px bg-gray-300" />
               <button
                 onClick={() => router.push('/dashboard')}
-                className="text-gray-600 hover:text-gray-900 flex items-center space-x-2 transition-colors"
+                className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-white flex items-center space-x-2 transition-colors"
                 disabled={generationStatus.status === 'generating'}
               >
                 <ArrowLeft className="h-5 w-5" />
@@ -1137,10 +1137,10 @@ Check it out 🔥👇
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
               {generationStatus.status === 'completed' ? 'Your Song is Ready!' : 'Generating Your Song'}
             </h1>
-            <p className="text-gray-600">
+            <p className="text-gray-600 dark:text-gray-400">
               {generationStatus.status === 'completed' 
                 ? 'Your personalized song has been created successfully!' 
                 : 'Please wait while we create your personalized song...'}
@@ -1148,11 +1148,11 @@ Check it out 🔥👇
           </div>
 
           {/* Status Card */}
-          <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8">
             <div className="flex items-center space-x-4 mb-4">
               {getStatusIcon()}
               <div className="flex-1">
-                <h3 className="text-lg font-semibold text-gray-900">{generationStatus.message}</h3>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{generationStatus.message}</h3>
                 <div className="mt-2">
                   <div className="w-full bg-gray-200 rounded-full h-3">
                     <div 
@@ -1182,7 +1182,7 @@ Check it out 🔥👇
           {/* Debug: Request String */}
           {debugMode && requestString && (
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 mb-8">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Debug: AI Request</h3>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Debug: AI Request</h3>
               <div className="bg-white border rounded-lg p-4">
                 <pre className="text-sm text-gray-700 whitespace-pre-wrap font-mono">
                   {requestString}
@@ -1300,9 +1300,9 @@ Check it out 🔥👇
 
           {/* Generated Lyrics */}
           {generatedLyrics && (
-            <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-bold text-gray-900">Your Generated Lyrics</h3>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">Your Generated Lyrics</h3>
                 {!isEditingLyrics && (
                   <button
                     onClick={() => {
@@ -1322,7 +1322,7 @@ Check it out 🔥👇
                     <textarea
                       value={editedLyrics}
                       onChange={(e) => setEditedLyrics(e.target.value)}
-                      className="w-full h-96 p-4 border border-gray-300 rounded-lg resize-none font-serif leading-relaxed text-gray-900 bg-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      className="w-full h-96 p-4 border border-gray-300 rounded-lg resize-none font-serif leading-relaxed text-gray-900 dark:text-white bg-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                       placeholder="Edit your lyrics here..."
                     />
                   </div>
@@ -1348,7 +1348,7 @@ Check it out 🔥👇
                 </div>
               ) : (
                 <div className="bg-purple-50 border border-purple-200 rounded-lg p-6">
-                  <pre className="text-gray-900 whitespace-pre-wrap font-serif leading-relaxed">
+                  <pre className="text-gray-900 dark:text-white whitespace-pre-wrap font-serif leading-relaxed">
                     {generatedLyrics}
                   </pre>
                 </div>
@@ -1410,8 +1410,8 @@ Check it out 🔥👇
 
           {/* Music Generation Section */}
           {(musicStatus.status !== 'idle' || musicApiRequest) && (
-            <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Music Generation</h3>
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Music Generation</h3>
               
               {/* Music Status */}
               <div className="mb-6">
@@ -1419,13 +1419,13 @@ Check it out 🔥👇
                   {musicStatus.status === 'generating' && <Loader2 className="h-6 w-6 text-purple-600 animate-spin" />}
                   {musicStatus.status === 'completed' && <Check className="h-6 w-6 text-green-600" />}
                   {musicStatus.status === 'error' && <div className="h-6 w-6 rounded-full bg-red-600" />}
-                  <span className="text-lg font-medium text-gray-900">{musicStatus.message}</span>
+                  <span className="text-lg font-medium text-gray-900 dark:text-white">{musicStatus.message}</span>
                 </div>
                 
                 {/* Music Generation Progress Bar */}
                 {musicStatus.status === 'generating' && (
                   <div className="mb-4">
-                    <div className="flex justify-between text-sm text-gray-600 mb-2">
+                    <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
                       <span>Generating your music...</span>
                       <span>{Math.round(musicProgress)}%</span>
                     </div>
@@ -1451,13 +1451,13 @@ Check it out 🔥👇
               {/* Generated Audio */}
               {musicStatus.status === 'completed' && musicStatus.audioUrl && (
                 <div className="mb-6">
-                  <h4 className="text-lg font-semibold text-gray-900 mb-3">
+                  <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
                     Your Generated Song{musicStatus.audioVariations && musicStatus.audioVariations.length > 1 ? 's' : ''}
                   </h4>
                   
                   {musicStatus.audioVariations && musicStatus.audioVariations.length > 1 ? (
                     <div className="space-y-4">
-                      <p className="text-sm text-gray-600 mb-4">
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
                         Mureka generated {musicStatus.audioVariations.length} variations of your song. Listen to each one and download your favorite!
                       </p>
                       {musicStatus.audioVariations.map((variation, index) => {
@@ -1466,7 +1466,7 @@ Check it out 🔥👇
                         
                         return (
                           <div key={index} className="bg-gray-50 rounded-lg p-4">
-                            <h5 className="font-medium text-gray-900 mb-2">Version {index + 1}</h5>
+                            <h5 className="font-medium text-gray-900 dark:text-white mb-2">Version {index + 1}</h5>
                             <AudioWithFallback
                               primaryUrl={variation.url}
                               backupUrl={backupVariation?.backupUrl}
@@ -1519,7 +1519,7 @@ Check it out 🔥👇
               {/* Debug: Music API Request */}
               {debugMode && musicApiRequest && (
                 <div className="mb-6">
-                  <h4 className="text-lg font-semibold text-gray-900 mb-3">Debug: Mureka API Request</h4>
+                  <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Debug: Mureka API Request</h4>
                   <div className="bg-gray-100 border rounded-lg p-4">
                     <pre className="text-sm text-gray-700 whitespace-pre-wrap font-mono">
                       {musicApiRequest}
@@ -1531,7 +1531,7 @@ Check it out 🔥👇
               {/* Debug: Music API Response */}
               {debugMode && musicApiResponse && (
                 <div className="mb-6">
-                  <h4 className="text-lg font-semibold text-gray-900 mb-3">Debug: Mureka API Response</h4>
+                  <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Debug: Mureka API Response</h4>
                   <div className="bg-gray-100 border rounded-lg p-4">
                     <pre className="text-sm text-gray-700 whitespace-pre-wrap font-mono">
                       {musicApiResponse}
@@ -1544,7 +1544,7 @@ Check it out 🔥👇
 
           {/* Error Details Section - Shows when there's an error with details */}
           {musicStatus.status === 'error' && errorDetails && (
-            <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8">
               <div className="flex items-start space-x-4">
                 <div className="flex-shrink-0">
                   <div className="h-8 w-8 rounded-full bg-red-600 flex items-center justify-center">
@@ -1628,17 +1628,17 @@ Check it out 🔥👇
 
           {/* Love Your Song Section - Shows after music is completed */}
           {musicStatus.status === 'completed' && musicStatus.audioUrl && (
-            <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-              <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">💖 Love your song?</h3>
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8">
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 text-center">💖 Love your song?</h3>
               
               <div className="grid md:grid-cols-2 gap-6">
                 {/* Download Options */}
                 <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg p-6">
                   <div className="flex items-center mb-4">
                     <Download className="h-6 w-6 text-green-600 mr-2" />
-                    <h4 className="text-lg font-semibold text-gray-900">Download Your Song</h4>
+                    <h4 className="text-lg font-semibold text-gray-900 dark:text-white">Download Your Song</h4>
                   </div>
-                  <p className="text-gray-600 mb-4">Get your song in high quality to keep forever</p>
+                  <p className="text-gray-600 dark:text-gray-400 mb-4">Get your song in high quality to keep forever</p>
                   
                   {musicStatus.audioVariations && musicStatus.audioVariations.length > 1 ? (
                     <div className="space-y-2">
@@ -1684,9 +1684,9 @@ Check it out 🔥👇
                 <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-6">
                   <div className="flex items-center mb-4">
                     <Share2 className="h-6 w-6 text-blue-600 mr-2" />
-                    <h4 className="text-lg font-semibold text-gray-900">Share Your Creation</h4>
+                    <h4 className="text-lg font-semibold text-gray-900 dark:text-white">Share Your Creation</h4>
                   </div>
-                  <p className="text-gray-600 mb-4">Let the world hear your amazing song!</p>
+                  <p className="text-gray-600 dark:text-gray-400 mb-4">Let the world hear your amazing song!</p>
                   
                   <div className="space-y-3">
                     <button 
@@ -1754,8 +1754,8 @@ Check it out 🔥👇
 
           {/* Not Loving Your Song Section - Shows after music is completed */}
           {musicStatus.status === 'completed' && musicStatus.audioUrl && (
-            <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-              <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">🤔 Not loving the song?</h3>
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8">
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 text-center">🤔 Not loving the song?</h3>
               
               <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-lg p-6">
                 <p className="text-gray-700 mb-6 text-center">
@@ -1766,8 +1766,8 @@ Check it out 🔥👇
                   {/* Regenerate Song */}
                   <div className="bg-white rounded-lg p-4 text-center shadow-sm">
                     <RefreshCw className="h-8 w-8 text-purple-600 mx-auto mb-3" />
-                    <h4 className="font-semibold text-gray-900 mb-2">Regenerate Song</h4>
-                    <p className="text-sm text-gray-600 mb-4">Generate a new version with the same settings</p>
+                    <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Regenerate Song</h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">Generate a new version with the same settings</p>
                     <button 
                       onClick={() => {
                         if (confirm('This will cost 1 credit to regenerate the song with the same settings. Continue?')) {
@@ -1783,8 +1783,8 @@ Check it out 🔥👇
                   {/* Change Lyrics */}
                   <div className="bg-white rounded-lg p-4 text-center shadow-sm">
                     <FileText className="h-8 w-8 text-blue-600 mx-auto mb-3" />
-                    <h4 className="font-semibold text-gray-900 mb-2">Change Lyrics</h4>
-                    <p className="text-sm text-gray-600 mb-4">Choose how to handle the lyrics for your song</p>
+                    <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Change Lyrics</h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">Choose how to handle the lyrics for your song</p>
                     <button 
                       onClick={() => {
                         if (confirm('This will cost 1 credit to change the lyrics. You will be taken to the lyrics selection page. Continue?')) {
@@ -1804,8 +1804,8 @@ Check it out 🔥👇
                   {/* Change Description */}
                   <div className="bg-white rounded-lg p-4 text-center shadow-sm">
                     <Settings className="h-8 w-8 text-green-600 mx-auto mb-3" />
-                    <h4 className="font-semibold text-gray-900 mb-2">Change Description</h4>
-                    <p className="text-sm text-gray-600 mb-4">Modify the song details and attributes</p>
+                    <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Change Description</h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">Modify the song details and attributes</p>
                     <button 
                       onClick={() => {
                         if (confirm('This will cost 1 credit to change the song description. You will be taken to the details page. Continue?')) {
@@ -1823,9 +1823,9 @@ Check it out 🔥👇
                 {/* Start Over Option */}
                 <div className="mt-6 pt-6 border-t border-gray-200">
                   <div className="text-center">
-                    <RotateCcw className="h-8 w-8 text-gray-600 mx-auto mb-3" />
-                    <h4 className="font-semibold text-gray-900 mb-2">Start Over</h4>
-                    <p className="text-sm text-gray-600 mb-4">Create a completely new song from scratch</p>
+                    <RotateCcw className="h-8 w-8 text-gray-600 dark:text-gray-400 mx-auto mb-3" />
+                    <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Start Over</h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">Create a completely new song from scratch</p>
                     <button 
                       onClick={() => {
                         if (confirm('This will cost 1 credit to create a new song. You will be taken to the beginning of the song creation process. Continue?')) {
@@ -1843,8 +1843,8 @@ Check it out 🔥👇
                 <div className="mt-6 pt-6 border-t border-gray-200">
                   <div className="text-center">
                     <AlertCircle className="h-8 w-8 text-red-600 mx-auto mb-3" />
-                    <h4 className="font-semibold text-gray-900 mb-2">Something went wrong?</h4>
-                    <p className="text-sm text-gray-600 mb-4">Report an issue with your song generation</p>
+                    <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Something went wrong?</h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">Report an issue with your song generation</p>
                     <button 
                       onClick={() => setShowIssueModal(true)}
                       className="px-6 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors"
@@ -1859,10 +1859,10 @@ Check it out 🔥👇
 
           {/* Return to Dashboard Section - Shows after music is completed */}
           {musicStatus.status === 'completed' && musicStatus.audioUrl && (
-            <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8">
               <div className="text-center">
-                <h3 className="text-2xl font-bold text-gray-900 mb-4">🎵 All done?</h3>
-                <p className="text-gray-600 mb-6">
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">🎵 All done?</h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-6">
                   Your song is ready! You can always come back to listen, download, or make changes later.
                 </p>
                 
@@ -1911,10 +1911,10 @@ Check it out 🔥👇
         >
           <div className="bg-white rounded-lg max-w-md w-full p-6">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Share Your Song</h3>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Share Your Song</h3>
               <button
                 onClick={() => setShowShareModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-gray-400 hover:text-gray-600 dark:text-gray-400"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1929,7 +1929,7 @@ Check it out 🔥👇
               <textarea
                 value={shareText}
                 onChange={(e) => setShareText(e.target.value)}
-                className="w-full h-32 p-3 border border-gray-300 rounded-lg resize-none text-sm text-gray-900"
+                className="w-full h-32 p-3 border border-gray-300 rounded-lg resize-none text-sm text-gray-900 dark:text-white"
                 placeholder="Edit your share text..."
               />
             </div>
@@ -1970,13 +1970,13 @@ Check it out 🔥👇
         >
           <div className="bg-white rounded-lg max-w-md w-full p-6">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Report an Issue</h3>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Report an Issue</h3>
               <button
                 onClick={() => {
                   setShowIssueModal(false)
                   setIssueDescription('')
                 }}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-gray-400 hover:text-gray-600 dark:text-gray-400"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1985,7 +1985,7 @@ Check it out 🔥👇
             </div>
             
             <div className="mb-4">
-              <p className="text-sm text-gray-600 mb-4">
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
                 Please describe what went wrong with your song generation. We'll review your report and contact you via email.
               </p>
               
@@ -1995,7 +1995,7 @@ Check it out 🔥👇
               <textarea
                 value={issueDescription}
                 onChange={(e) => setIssueDescription(e.target.value)}
-                className="w-full h-32 p-3 border border-gray-300 rounded-lg resize-none text-sm text-gray-900"
+                className="w-full h-32 p-3 border border-gray-300 rounded-lg resize-none text-sm text-gray-900 dark:text-white"
                 placeholder="e.g., The song doesn't match my description, audio quality issues, wrong genre, etc."
                 disabled={isSubmittingIssue}
               />
