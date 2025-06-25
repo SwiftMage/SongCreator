@@ -580,7 +580,7 @@ export default function CreateSongPage() {
           {/* Step 1: Basic Info */}
           {currentStep === 1 && (
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 animate-fade-in">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white dark:text-white mb-6">Tell us about your song</h2>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Tell us about your song</h2>
               
               <div className="space-y-6">
                 <div>
@@ -617,7 +617,7 @@ export default function CreateSongPage() {
           {/* Step 2: Song Type */}
           {currentStep === 2 && (
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 animate-fade-in">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white dark:text-white mb-6">What type of song would you like?</h2>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">What type of song would you like?</h2>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {songTypes.map((type) => {
@@ -628,22 +628,22 @@ export default function CreateSongPage() {
                       onClick={() => setFormData(prev => ({ ...prev, songType: type.id as any }))}
                       className={`p-6 rounded-lg border-2 transition-all text-left ${
                         formData.songType === type.id
-                          ? 'border-purple-600 bg-purple-50'
-                          : 'border-gray-200 hover:border-purple-300 hover:bg-purple-25'
+                          ? 'border-purple-600 bg-purple-50 dark:bg-purple-900/30 dark:border-purple-400'
+                          : 'border-gray-200 dark:border-gray-600 hover:border-purple-300 dark:hover:border-purple-500 hover:bg-purple-25 dark:hover:bg-purple-900/20'
                       }`}
                     >
                       <div className="flex items-center space-x-3 mb-2">
                         <IconComponent className={`h-6 w-6 ${
-                          formData.songType === type.id ? 'text-purple-600' : 'text-gray-600'
+                          formData.songType === type.id ? 'text-purple-600 dark:text-purple-400' : 'text-gray-600 dark:text-gray-400'
                         }`} />
                         <h3 className={`text-lg font-semibold ${
-                          formData.songType === type.id ? 'text-purple-900' : 'text-gray-900'
+                          formData.songType === type.id ? 'text-purple-900 dark:text-purple-300' : 'text-gray-900 dark:text-white'
                         }`}>
                           {type.label}
                         </h3>
                       </div>
                       <p className={`text-sm ${
-                        formData.songType === type.id ? 'text-purple-700' : 'text-gray-600'
+                        formData.songType === type.id ? 'text-purple-700 dark:text-purple-300' : 'text-gray-600 dark:text-gray-300'
                       }`}>
                         {type.description}
                       </p>
@@ -657,29 +657,29 @@ export default function CreateSongPage() {
           {/* Step 3: Lyrics Choice */}
           {currentStep === 3 && (
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 animate-fade-in">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white dark:text-white mb-6">How would you like to create your lyrics?</h2>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">How would you like to create your lyrics?</h2>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <button
                   onClick={() => setFormData(prev => ({ ...prev, lyricsChoice: 'ai' }))}
                   className={`p-8 rounded-lg border-2 transition-all text-left ${
                     formData.lyricsChoice === 'ai'
-                      ? 'border-purple-600 bg-purple-50'
-                      : 'border-gray-200 hover:border-purple-300 hover:bg-purple-25'
+                      ? 'border-purple-600 bg-purple-50 dark:bg-purple-900/30 dark:border-purple-400'
+                      : 'border-gray-200 dark:border-gray-600 hover:border-purple-300 dark:hover:border-purple-500 hover:bg-purple-25 dark:hover:bg-purple-900/20'
                   }`}
                 >
                   <div className="flex items-center space-x-4 mb-4">
                     <Wand2 className={`h-8 w-8 ${
-                      formData.lyricsChoice === 'ai' ? 'text-purple-600' : 'text-gray-600'
+                      formData.lyricsChoice === 'ai' ? 'text-purple-600 dark:text-purple-400' : 'text-gray-600 dark:text-gray-400'
                     }`} />
                     <h3 className={`text-xl font-semibold ${
-                      formData.lyricsChoice === 'ai' ? 'text-purple-900' : 'text-gray-900'
+                      formData.lyricsChoice === 'ai' ? 'text-purple-900 dark:text-purple-300' : 'text-gray-900 dark:text-white'
                     }`}>
                       Help me create lyrics
                     </h3>
                   </div>
                   <p className={`text-sm ${
-                    formData.lyricsChoice === 'ai' ? 'text-purple-700' : 'text-gray-600'
+                    formData.lyricsChoice === 'ai' ? 'text-purple-700 dark:text-purple-300' : 'text-gray-600 dark:text-gray-300'
                   }`}>
                     I&apos;ll help you create personalized lyrics by asking about your relationship, memories, and what makes them special. Our AI will craft heartfelt lyrics just for you.
                   </p>
@@ -689,22 +689,22 @@ export default function CreateSongPage() {
                   onClick={() => setFormData(prev => ({ ...prev, lyricsChoice: 'own' }))}
                   className={`p-8 rounded-lg border-2 transition-all text-left ${
                     formData.lyricsChoice === 'own'
-                      ? 'border-purple-600 bg-purple-50'
-                      : 'border-gray-200 hover:border-purple-300 hover:bg-purple-25'
+                      ? 'border-purple-600 bg-purple-50 dark:bg-purple-900/30 dark:border-purple-400'
+                      : 'border-gray-200 dark:border-gray-600 hover:border-purple-300 dark:hover:border-purple-500 hover:bg-purple-25 dark:hover:bg-purple-900/20'
                   }`}
                 >
                   <div className="flex items-center space-x-4 mb-4">
                     <FileText className={`h-8 w-8 ${
-                      formData.lyricsChoice === 'own' ? 'text-purple-600' : 'text-gray-600'
+                      formData.lyricsChoice === 'own' ? 'text-purple-600 dark:text-purple-400' : 'text-gray-600 dark:text-gray-400'
                     }`} />
                     <h3 className={`text-xl font-semibold ${
-                      formData.lyricsChoice === 'own' ? 'text-purple-900' : 'text-gray-900'
+                      formData.lyricsChoice === 'own' ? 'text-purple-900 dark:text-purple-300' : 'text-gray-900 dark:text-white'
                     }`}>
                       I have my own lyrics
                     </h3>
                   </div>
                   <p className={`text-sm ${
-                    formData.lyricsChoice === 'own' ? 'text-purple-700' : 'text-gray-600'
+                    formData.lyricsChoice === 'own' ? 'text-purple-700 dark:text-purple-300' : 'text-gray-600 dark:text-gray-300'
                   }`}>
                     I&apos;ve already written lyrics and want to turn them into a professional song. Just provide your lyrics and we&apos;ll create the music for you.
                   </p>
@@ -1072,9 +1072,9 @@ function DetailSection({ title, subtitle, icon: IconComponent, items, onAdd, onR
           {items.map((item, index) => (
             <div
               key={index}
-              className="flex items-center justify-between p-3 bg-purple-50 border border-purple-200 rounded-lg group hover:shadow-sm transition-shadow"
+              className="flex items-center justify-between p-3 bg-purple-50 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-700 rounded-lg group hover:shadow-sm transition-shadow"
             >
-              <span className="text-gray-900 flex-1">{item}</span>
+              <span className="text-gray-900 dark:text-white flex-1">{item}</span>
               <button
                 onClick={() => onRemove(index)}
                 className="ml-2 p-1 text-gray-400 hover:text-red-600 transition-colors opacity-0 group-hover:opacity-100"
@@ -1196,7 +1196,7 @@ function SongStyleSection({
                 className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                   formData.genres.includes(genre)
                     ? 'bg-purple-600 text-white'
-                    : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                    : 'bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500 border border-gray-300 dark:border-gray-500'
                 }`}
               >
                 {genre}
@@ -1225,7 +1225,7 @@ function SongStyleSection({
                 className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                   formData.instruments.includes(instrument)
                     ? 'bg-purple-600 text-white'
-                    : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                    : 'bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500 border border-gray-300 dark:border-gray-500'
                 }`}
               >
                 {instrument}
@@ -1257,7 +1257,7 @@ function SongStyleSection({
                 className={`px-6 py-3 rounded-lg font-medium transition-colors ${
                   formData.singer === 'male'
                     ? 'bg-purple-600 text-white'
-                    : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                    : 'bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500 border border-gray-300 dark:border-gray-500'
                 }`}
               >
                 Male Voice
@@ -1270,7 +1270,7 @@ function SongStyleSection({
                 className={`px-6 py-3 rounded-lg font-medium transition-colors ${
                   formData.singer === 'female'
                     ? 'bg-purple-600 text-white'
-                    : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                    : 'bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500 border border-gray-300 dark:border-gray-500'
                 }`}
               >
                 Female Voice
