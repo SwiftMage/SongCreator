@@ -726,6 +726,10 @@ function GeneratingSongPage() {
         stylePrompt += stylePrompt ? `, ${formData.energy} energy` : `${formData.energy} energy`
       }
 
+      if (formData.otherStyle) {
+        stylePrompt += stylePrompt ? `, ${formData.otherStyle}` : `${formData.otherStyle}`
+      }
+
       if (!stylePrompt) {
         stylePrompt = 'pop, modern'
       }

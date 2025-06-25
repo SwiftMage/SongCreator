@@ -24,7 +24,8 @@ import {
   Wand2,
   FileText,
   ShoppingCart,
-  Diamond
+  Diamond,
+  GraduationCap
 } from 'lucide-react'
 
 interface SongFormData {
@@ -33,7 +34,7 @@ interface SongFormData {
   relationship: string
   
   // Step 2: Song Type
-  songType: 'love' | 'friendship' | 'funny' | 'dedication' | 'celebration' | 'birthday' | 'mothers_day' | 'fathers_day' | 'anniversary' | 'wedding' | 'custom' | ''
+  songType: 'love' | 'friendship' | 'funny' | 'dedication' | 'celebration' | 'birthday' | 'mothers_day' | 'fathers_day' | 'anniversary' | 'wedding' | 'graduation' | 'custom' | ''
   
   // Step 3: Lyrics Choice
   lyricsChoice: 'ai' | 'own' | ''
@@ -79,6 +80,7 @@ const songTypes = [
   { id: 'fathers_day', label: "Father's Day Song", icon: Award, description: 'Honor dad with a personalized song' },
   { id: 'anniversary', label: 'Anniversary Song', icon: Gift, description: 'Celebrate your time together' },
   { id: 'wedding', label: 'Wedding Song', icon: Diamond, description: 'Create the perfect song for your special day' },
+  { id: 'graduation', label: 'Graduation Song', icon: GraduationCap, description: 'Celebrate academic achievement and new beginnings' },
   { id: 'custom', label: 'Custom Song', icon: Music, description: 'Create a personalized song without a specific theme' }
 ]
 
@@ -551,7 +553,7 @@ export default function CreateSongPage() {
               <div className="h-6 w-px bg-gray-300" />
               <button
                 onClick={() => router.push('/dashboard')}
-                className="text-gray-600 hover:text-gray-900 flex items-center space-x-2 transition-colors"
+                className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white flex items-center space-x-2 transition-colors"
               >
                 <ArrowLeft className="h-5 w-5" />
                 <span>Back to Dashboard</span>

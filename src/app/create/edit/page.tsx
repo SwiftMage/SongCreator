@@ -25,7 +25,8 @@ import {
   FileText,
   RefreshCw,
   ShoppingCart,
-  Diamond
+  Diamond,
+  GraduationCap
 } from 'lucide-react'
 
 interface SongFormData {
@@ -34,7 +35,7 @@ interface SongFormData {
   relationship: string
   
   // Step 2: Song Type
-  songType: 'love' | 'friendship' | 'funny' | 'dedication' | 'celebration' | 'birthday' | 'mothers_day' | 'fathers_day' | 'anniversary' | 'wedding' | 'custom' | ''
+  songType: 'love' | 'friendship' | 'funny' | 'dedication' | 'celebration' | 'birthday' | 'mothers_day' | 'fathers_day' | 'anniversary' | 'wedding' | 'graduation' | 'custom' | ''
   
   // Step 3: Lyrics Choice
   lyricsChoice: 'ai' | 'own' | ''
@@ -80,6 +81,7 @@ const songTypes = [
   { id: 'fathers_day', label: "Father's Day Song", icon: Award, description: 'Honor dad with a personalized song' },
   { id: 'anniversary', label: 'Anniversary Song', icon: Gift, description: 'Celebrate your time together' },
   { id: 'wedding', label: 'Wedding Song', icon: Diamond, description: 'Create the perfect song for your special day' },
+  { id: 'graduation', label: 'Graduation Song', icon: GraduationCap, description: 'Celebrate academic achievement and new beginnings' },
   { id: 'custom', label: 'Custom Song', icon: Music, description: 'Create a personalized song without a specific theme' }
 ]
 
@@ -424,7 +426,7 @@ function EditSongPage() {
             <div className="flex items-center space-x-4">
               <Link 
                 href="/pricing"
-                className="flex items-center space-x-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 transition-colors cursor-pointer"
+                className="flex items-center space-x-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors cursor-pointer"
               >
                 <ShoppingCart className="h-5 w-5 text-purple-600" />
                 <span className="font-medium">{profile?.credits_remaining || 0} Credits</span>
@@ -445,7 +447,7 @@ function EditSongPage() {
       </header>
 
       {/* Header Info */}
-      <div className="bg-white border-b">
+      <div className="bg-white dark:bg-gray-900 border-b dark:border-gray-700">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center space-x-3">
             <RefreshCw className="h-6 w-6 text-purple-600" />
@@ -460,14 +462,14 @@ function EditSongPage() {
       </div>
 
       {/* Progress Bar */}
-      <div className="bg-white border-b">
+      <div className="bg-white dark:bg-gray-900 border-b dark:border-gray-700">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center space-x-4">
             <div className="flex-1">
               <div className="flex items-center space-x-2 mb-2">
                 <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Step {currentStep} of {getTotalSteps()}</span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
+              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                 <div 
                   className="bg-purple-600 h-2 rounded-full transition-all duration-300"
                   style={{ width: `${(currentStep / getTotalSteps()) * 100}%` }}
@@ -1065,7 +1067,7 @@ function SongStyleSection({
       
       <div className="space-y-6">
         {/* Genre Selection Group */}
-        <div className="border border-gray-200 rounded-lg p-5 bg-gray-50">
+        <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-5 bg-gray-50 dark:bg-gray-700">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Genre</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
             {genres.map((genre) => (
@@ -1075,7 +1077,7 @@ function SongStyleSection({
                 className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                   formData.genres.includes(genre)
                     ? 'bg-purple-600 text-white'
-                    : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                    : 'bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500 border border-gray-300 dark:border-gray-500'
                 }`}
               >
                 {genre}
@@ -1094,7 +1096,7 @@ function SongStyleSection({
         </div>
 
         {/* Instruments Selection Group */}
-        <div className="border border-gray-200 rounded-lg p-5 bg-gray-50">
+        <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-5 bg-gray-50 dark:bg-gray-700">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Instruments</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
             {instruments.map((instrument) => (
@@ -1104,7 +1106,7 @@ function SongStyleSection({
                 className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                   formData.instruments.includes(instrument)
                     ? 'bg-purple-600 text-white'
-                    : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                    : 'bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500 border border-gray-300 dark:border-gray-500'
                 }`}
               >
                 {instrument}
@@ -1123,7 +1125,7 @@ function SongStyleSection({
         </div>
 
         {/* Voice & Energy Group */}
-        <div className="border border-gray-200 rounded-lg p-5 bg-gray-50">
+        <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-5 bg-gray-50 dark:bg-gray-700">
           {/* Singer Selection */}
           <div className="mb-6">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Singer</h3>
@@ -1136,7 +1138,7 @@ function SongStyleSection({
                 className={`px-6 py-3 rounded-lg font-medium transition-colors ${
                   formData.singer === 'male'
                     ? 'bg-purple-600 text-white'
-                    : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                    : 'bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500 border border-gray-300 dark:border-gray-500'
                 }`}
               >
                 Male Voice
@@ -1149,7 +1151,7 @@ function SongStyleSection({
                 className={`px-6 py-3 rounded-lg font-medium transition-colors ${
                   formData.singer === 'female'
                     ? 'bg-purple-600 text-white'
-                    : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                    : 'bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500 border border-gray-300 dark:border-gray-500'
                 }`}
               >
                 Female Voice
@@ -1171,7 +1173,7 @@ function SongStyleSection({
                   className={`px-6 py-3 rounded-lg font-medium transition-colors capitalize ${
                     formData.energy === energy
                       ? 'bg-purple-600 text-white'
-                      : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                      : 'bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500 border border-gray-300 dark:border-gray-500'
                   }`}
                 >
                   {energy}
@@ -1186,7 +1188,7 @@ function SongStyleSection({
             <textarea
               value={formData.otherStyle}
               onChange={(e) => setFormData(prev => ({ ...prev, otherStyle: e.target.value }))}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 dark:text-white bg-white"
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 dark:text-white dark:bg-gray-700 dark:placeholder-gray-400 bg-white"
               placeholder="Any specific style preferences, mood, or additional details..."
               rows={3}
             />
