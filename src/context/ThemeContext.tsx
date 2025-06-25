@@ -11,8 +11,10 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [isDarkMode, setIsDarkMode] = useState(false)
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
     const saved = localStorage.getItem('darkMode')
     if (saved !== null) {
       setIsDarkMode(JSON.parse(saved))
@@ -23,13 +25,18 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   useEffect(() => {
+    if (!mounted) return
+    
+    const root = document.documentElement
     if (isDarkMode) {
-      document.documentElement.classList.add('dark')
+      root.classList.add('dark')
+      root.style.colorScheme = 'dark'
     } else {
-      document.documentElement.classList.remove('dark')
+      root.classList.remove('dark')
+      root.style.colorScheme = 'light'
     }
     localStorage.setItem('darkMode', JSON.stringify(isDarkMode))
-  }, [isDarkMode])
+  }, [isDarkMode, mounted])
 
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode)

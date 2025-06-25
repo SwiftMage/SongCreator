@@ -2,9 +2,21 @@
 
 import { useTheme } from '@/context/ThemeContext'
 import { Moon, Sun } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
 export default function DarkModeToggle() {
   const { isDarkMode, toggleDarkMode } = useTheme()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!mounted) {
+    return (
+      <div className="w-12 h-12 rounded-xl bg-gray-200 dark:bg-gray-800 animate-pulse" />
+    )
+  }
 
   return (
     <button
