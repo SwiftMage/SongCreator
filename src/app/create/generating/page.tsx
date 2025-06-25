@@ -1318,7 +1318,7 @@ Check it out 🔥👇
               
               {isEditingLyrics ? (
                 <div className="space-y-4">
-                  <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                  <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700 rounded-lg p-4">
                     <textarea
                       value={editedLyrics}
                       onChange={(e) => setEditedLyrics(e.target.value)}
@@ -1347,7 +1347,7 @@ Check it out 🔥👇
                   </div>
                 </div>
               ) : (
-                <div className="bg-purple-50 border border-purple-200 rounded-lg p-6">
+                <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700 rounded-lg p-6">
                   <pre className="text-gray-900 dark:text-white whitespace-pre-wrap font-serif leading-relaxed">
                     {generatedLyrics}
                   </pre>
