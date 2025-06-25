@@ -163,7 +163,7 @@ export default function Home() {
       audio.pause()
     }
 
-    const newAudio = new Audio(`/demo-audio/demo-${index + 1}.mp3`) // Use placeholder audio
+    const newAudio = new Audio(demoSongs[index].audioUrl)
     newAudio.volume = 0.7
     
     newAudio.play().then(() => {
@@ -364,7 +364,13 @@ export default function Home() {
                         className="w-full h-32 object-cover rounded-lg"
                       />
                       {currentSongIndex === index && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-lg">
+                        <div 
+                          className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-lg cursor-pointer"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            togglePlayPause()
+                          }}
+                        >
                           {isPlaying ? (
                             <Pause className="h-8 w-8 text-white" />
                           ) : (
