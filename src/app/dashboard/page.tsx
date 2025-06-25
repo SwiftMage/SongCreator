@@ -284,9 +284,9 @@ export default function DashboardPage() {
   console.log('Remaining credits:', remainingCredits)
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-gray-800">
       {/* Header */}
-      <header className="bg-white shadow-sm">
+      <header className="bg-white dark:bg-gray-900 shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <Logo />
@@ -294,7 +294,7 @@ export default function DashboardPage() {
             <nav className="flex items-center space-x-4">
               <Link 
                 href="/pricing"
-                className="flex items-center space-x-2 text-gray-600 hover:text-purple-600 transition-colors cursor-pointer"
+                className="flex items-center space-x-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors cursor-pointer"
               >
                 <ShoppingCart className="h-5 w-5 text-purple-600" />
                 <span className="font-medium">{profile?.credits_remaining || 0} Credits</span>
