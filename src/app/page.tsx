@@ -161,6 +161,7 @@ export default function Home() {
   const playAudio = (index: number) => {
     if (audio) {
       audio.pause()
+      audio.src = '' // Clear the source to fully stop the audio
     }
 
     const newAudio = new Audio(demoSongs[index].audioUrl)
