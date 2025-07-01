@@ -11,7 +11,6 @@ import {
   Settings, 
   LogOut,
   Clock,
-  Download,
   Play,
   Square,
   Edit,
@@ -23,6 +22,7 @@ import {
 import { playAudioWithFallback, getBestAudioUrl } from '@/lib/audio-player'
 import Logo from '@/components/Logo'
 import DarkModeToggle from '@/components/DarkModeToggle'
+import VersionDownloadButton from '@/components/VersionDownloadButton'
 
 interface Song {
   id: string
@@ -476,47 +476,7 @@ export default function DashboardPage() {
                               <Play className="h-5 w-5" />
                             )}
                           </button>
-                          <button
-                            onClick={async () => {
-                              console.log('=== DASHBOARD DOWNLOAD BUTTON CLICKED ===')
-                              try {
-                                console.log('=== DOWNLOAD DEBUG ===')
-                                console.log('Raw song object:', song)
-                                console.log('song.title:', song.title)
-                                console.log('song.song_title:', song.song_title)
-                                console.log('typeof song.title:', typeof song.title)
-                                
-                                const bestUrl = await getBestAudioUrl(song.audio_url, song.backup_audio_url)
-                                if (bestUrl) {
-                                  // Use the original title and clean it for filename
-                                  const cleanTitle = song.title.replace(/[^a-zA-Z0-9\s-]/g, '').replace(/\s+/g, '-')
-                                  const filename = `${cleanTitle}.mp3`
-                                  console.log('Clean title:', cleanTitle)
-                                  console.log('Final filename:', filename)
-                                  
-                                  // Use our API to proxy the download with custom filename
-                                  const downloadUrl = `/api/download-song?url=${encodeURIComponent(bestUrl)}&filename=${encodeURIComponent(filename)}`
-                                  console.log('Using download API:', downloadUrl)
-                                  
-                                  const link = document.createElement('a')
-                                  link.href = downloadUrl
-                                  link.download = filename
-                                  document.body.appendChild(link)
-                                  link.click()
-                                  document.body.removeChild(link)
-                                } else {
-                                  alert('Download not available. The file may be temporarily unavailable.')
-                                }
-                              } catch (error) {
-                                console.error('Error downloading audio:', error)
-                                alert('Unable to download audio. The file may be temporarily unavailable.')
-                              }
-                            }}
-                            className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
-                            title="Download song"
-                          >
-                            <Download className="h-5 w-5" />
-                          </button>
+                          <VersionDownloadButton song={song} />
                         </>
                       )}
                       
@@ -624,47 +584,7 @@ export default function DashboardPage() {
                                 <Play className="h-5 w-5" />
                               )}
                             </button>
-                            <button
-                              onClick={async () => {
-                                console.log('=== DASHBOARD DOWNLOAD BUTTON CLICKED ===')
-                                try {
-                                  console.log('=== DOWNLOAD DEBUG ===')
-                                  console.log('Raw song object:', song)
-                                  console.log('song.title:', song.title)
-                                  console.log('song.song_title:', song.song_title)
-                                  console.log('typeof song.title:', typeof song.title)
-                                  
-                                  const bestUrl = await getBestAudioUrl(song.audio_url, song.backup_audio_url)
-                                  if (bestUrl) {
-                                    // Use the original title and clean it for filename
-                                    const cleanTitle = song.title.replace(/[^a-zA-Z0-9\s-]/g, '').replace(/\s+/g, '-')
-                                    const filename = `${cleanTitle}.mp3`
-                                    console.log('Clean title:', cleanTitle)
-                                    console.log('Final filename:', filename)
-                                    
-                                    // Use our API to proxy the download with custom filename
-                                    const downloadUrl = `/api/download-song?url=${encodeURIComponent(bestUrl)}&filename=${encodeURIComponent(filename)}`
-                                    console.log('Using download API:', downloadUrl)
-                                    
-                                    const link = document.createElement('a')
-                                    link.href = downloadUrl
-                                    link.download = filename
-                                    document.body.appendChild(link)
-                                    link.click()
-                                    document.body.removeChild(link)
-                                  } else {
-                                    alert('Download not available. The file may be temporarily unavailable.')
-                                  }
-                                } catch (error) {
-                                  console.error('Error downloading audio:', error)
-                                  alert('Unable to download audio. The file may be temporarily unavailable.')
-                                }
-                              }}
-                              className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
-                              title="Download song"
-                            >
-                              <Download className="h-5 w-5" />
-                            </button>
+                            <VersionDownloadButton song={song} />
                           </>
                         )}
                         
