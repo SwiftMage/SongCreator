@@ -628,7 +628,7 @@ export default function Home() {
                 </li>
                 <li className="flex items-start gap-3">
                   <Check className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-700 dark:text-gray-300">MP3 and FLAC audio files</span>
+                  <span className="text-gray-700 dark:text-gray-300">High-quality MP3 audio files</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <Check className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
@@ -684,7 +684,7 @@ export default function Home() {
                 </li>
                 <li className="flex items-start gap-3">
                   <Check className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-700 dark:text-gray-300">MP3 and FLAC audio files</span>
+                  <span className="text-gray-700 dark:text-gray-300">High-quality MP3 audio files</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <Sparkles className="h-5 w-5 text-[#ff006e] mt-0.5 flex-shrink-0" />
@@ -737,7 +737,7 @@ export default function Home() {
                 </li>
                 <li className="flex items-start gap-3">
                   <Check className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-700 dark:text-gray-300">MP3 and FLAC audio files</span>
+                  <span className="text-gray-700 dark:text-gray-300">High-quality MP3 audio files</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <Sparkles className="h-5 w-5 text-[#ff006e] mt-0.5 flex-shrink-0" />

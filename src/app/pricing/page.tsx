@@ -80,7 +80,7 @@ export default function PricingPage() {
               </li>
               <li className="flex items-center space-x-2">
                 <Check className="h-5 w-5 text-green-500" />
-                <span>MP3 and FLAC audio files</span>
+                <span>High-quality MP3 audio files</span>
               </li>
               <li className="flex items-center space-x-2">
                 <Check className="h-5 w-5 text-green-500" />
@@ -132,7 +132,7 @@ export default function PricingPage() {
               </li>
               <li className="flex items-center space-x-2">
                 <Check className="h-5 w-5 text-green-500" />
-                <span>MP3 and FLAC audio files</span>
+                <span>High-quality MP3 audio files</span>
               </li>
               <li className="flex items-center space-x-2">
                 <Check className="h-5 w-5 text-green-500" />
@@ -179,7 +179,7 @@ export default function PricingPage() {
               </li>
               <li className="flex items-center space-x-2">
                 <Check className="h-5 w-5 text-green-500" />
-                <span>MP3 and FLAC audio files</span>
+                <span>High-quality MP3 audio files</span>
               </li>
               <li className="flex items-center space-x-2">
                 <Check className="h-5 w-5 text-green-500" />
@@ -252,11 +252,10 @@ export default function PricingPage() {
             
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                What audio formats will I receive?
+                What audio format will I receive?
               </h3>
               <p className="text-gray-600">
-                You get both an MP3 file and a high-quality FLAC (Free Lossless Audio Codec) file 
-                that you can download and share anywhere.
+                You get a high-quality MP3 file that you can download and share anywhere.
               </p>
             </div>
           </div>

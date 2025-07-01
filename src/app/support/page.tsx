@@ -194,7 +194,7 @@ export default function SupportPage() {
                   What audio formats are available?
                 </h3>
                 <p className="text-gray-600 dark:text-gray-400">
-                  We provide songs in both MP3 (standard quality) and FLAC (high quality) formats. Most songs also come with multiple variations, so you can choose the version you like best.
+                  We provide songs in high-quality MP3 format. Most songs also come with multiple variations, so you can choose the version you like best.
                 </p>
               </div>
 

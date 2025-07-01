@@ -86,7 +86,7 @@ export default function VersionDownloadButton({ song, className = '' }: VersionD
       <button
         onClick={() => downloadVersion(versionNumber)}
         className={`p-2 text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900 rounded-lg transition-colors ${className}`}
-        title={`Download Version ${versionNumber} (MP3 + FLAC)`}
+        title={`Download Version ${versionNumber} (MP3)`}
       >
         <Download className="h-5 w-5" />
       </button>
@@ -101,7 +101,7 @@ export default function VersionDownloadButton({ song, className = '' }: VersionD
         <button
           onClick={() => downloadVersion(1)}
           className="p-2 text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900 rounded-l-lg transition-colors border-r border-blue-200 dark:border-blue-700"
-          title="Download Version 1 (MP3 + FLAC)"
+          title="Download Version 1 (MP3)"
         >
           <Download className="h-5 w-5" />
         </button>
@@ -122,23 +122,23 @@ export default function VersionDownloadButton({ song, className = '' }: VersionD
           <button
             onClick={() => downloadVersion(1)}
             className="w-full px-3 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-t-lg transition-colors flex items-center gap-2"
-            title="Download Version 1 (MP3 + FLAC)"
+            title="Download Version 1 (MP3)"
           >
             <Download className="h-4 w-4" />
             <div className="flex flex-col">
               <span className="font-medium">Version 1</span>
-              <span className="text-xs text-gray-500 dark:text-gray-400">MP3 + FLAC</span>
+              <span className="text-xs text-gray-500 dark:text-gray-400">MP3</span>
             </div>
           </button>
           <button
             onClick={() => downloadVersion(2)}
             className="w-full px-3 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-b-lg transition-colors flex items-center gap-2"
-            title="Download Version 2 (MP3 + FLAC)"
+            title="Download Version 2 (MP3)"
           >
             <Download className="h-4 w-4" />
             <div className="flex flex-col">
               <span className="font-medium">Version 2</span>
-              <span className="text-xs text-gray-500 dark:text-gray-400">MP3 + FLAC</span>
+              <span className="text-xs text-gray-500 dark:text-gray-400">MP3</span>
             </div>
           </button>
         </div>

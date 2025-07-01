@@ -1509,13 +1509,6 @@ Check it out 🔥👇
                                 className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
                                 label="Download MP3"
                               />
-                              <DownloadButtonWithFallback
-                                primaryUrl={variation.flacUrl}
-                                backupUrl={backupVariation?.backupUrl}
-                                filename={`${(songData?.title || 'song').replace(/[^a-zA-Z0-9\s-]/g, '').replace(/\s+/g, '-')}-version-${index + 1}.flac`}
-                                className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
-                                label="Download FLAC (High Quality)"
-                              />
                               <span className="text-sm text-gray-500 py-2">
                                 Duration: {Math.floor(variation.duration / 1000 / 60)}:{String(Math.floor((variation.duration / 1000) % 60)).padStart(2, '0')}
                               </span>
@@ -1682,13 +1675,6 @@ Check it out 🔥👇
                               className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
                               label={`Download Version ${index + 1} (MP3)`}
                             />
-                            <DownloadButtonWithFallback
-                              primaryUrl={variation.flacUrl}
-                              backupUrl={backupVariation?.backupUrl}
-                              filename={`${(songData?.title || 'song').replace(/[^a-zA-Z0-9\s-]/g, '').replace(/\s+/g, '-')}-version-${index + 1}.flac`}
-                              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
-                              label={`FLAC ${index + 1}`}
-                            />
                           </div>
                         )
                       })}
@@ -1699,12 +1685,9 @@ Check it out 🔥👇
                         primaryUrl={musicStatus.audioUrl!}
                         backupUrl={musicStatus.backupAudioUrl}
                         filename={`${(songData?.title || 'song').replace(/[^a-zA-Z0-9\s-]/g, '').replace(/\s+/g, '-')}.mp3`}
-                        className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
+                        className="w-full px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
                         label="Download MP3"
                       />
-                      <button className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors">
-                        Download FLAC
-                      </button>
                     </div>
                   )}
                 </div>
