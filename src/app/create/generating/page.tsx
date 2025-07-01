@@ -680,6 +680,28 @@ function GeneratingSongPage() {
       return
     }
 
+    // Check and deduct credits for regeneration (first generation doesn't cost extra credits)
+    if (hasGeneratedMusic && user) {
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('credits_remaining')
+        .eq('id', user.id)
+        .single()
+
+      if (!profileData || profileData.credits_remaining < 1) {
+        alert('You need credits to regenerate music. Please purchase more credits.')
+        return
+      }
+
+      // Deduct credit for regeneration
+      await supabase
+        .from('profiles')
+        .update({
+          credits_remaining: profileData.credits_remaining - 1
+        })
+        .eq('id', user.id)
+    }
+
     // Check for active tasks before starting
     await checkActiveTasks()
     const stuckTasks = activeTasks.filter(task => task.status === 'preparing')
@@ -1366,7 +1388,7 @@ Check it out 🔥👇
                   <button
                     onClick={() => {
                       if (hasGeneratedMusic) {
-                        if (confirm('This will cost 1 credit to regenerate the music. Continue?')) {
+                        if (confirm('This will use 1 credit to modify your song. Continue?')) {
                           generateMusic()
                         }
                       } else {
@@ -1382,7 +1404,7 @@ Check it out 🔥👇
                   <button
                     onClick={() => {
                       if (hasGeneratedMusic) {
-                        if (confirm('This will cost 1 credit to regenerate the test music. Continue?')) {
+                        if (confirm('This will use 1 credit to modify your song. Continue?')) {
                           generateMusicTest()
                         }
                       } else {
@@ -1777,7 +1799,7 @@ Check it out 🔥👇
                     <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">Generate a new version with the same settings</p>
                     <button 
                       onClick={() => {
-                        if (confirm('This will cost 1 credit to regenerate the song with the same settings. Continue?')) {
+                        if (confirm('This will use 1 credit to modify your song. Continue?')) {
                           generateMusic()
                         }
                       }}
@@ -1794,7 +1816,7 @@ Check it out 🔥👇
                     <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">Choose how to handle the lyrics for your song</p>
                     <button 
                       onClick={() => {
-                        if (confirm('This will cost 1 credit to change the lyrics. You will be taken to the lyrics selection page. Continue?')) {
+                        if (confirm('This will use 1 credit to modify your song. Continue?')) {
                           // Navigate to edit page step 3 - "How would you like to handle the lyrics?"
                           const url = new URL(`${window.location.origin}/create/edit`)
                           url.searchParams.set('songId', songId!)

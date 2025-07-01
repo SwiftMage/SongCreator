@@ -1,9 +1,26 @@
+'use client'
+
 import Link from "next/link";
-import { Check, ArrowLeft } from "lucide-react";
+import { Check, ArrowLeft, Loader2 } from "lucide-react";
 import Logo from "@/components/Logo";
 import DarkModeToggle from "@/components/DarkModeToggle";
+import { useState } from "react";
+import { createCheckoutSession } from '@/lib/stripe';
 
 export default function PricingPage() {
+  const [isCheckoutLoading, setIsCheckoutLoading] = useState<'single' | 'bundle3' | 'bundle5' | null>(null);
+
+  const handleCheckout = async (type: 'single' | 'bundle3' | 'bundle5') => {
+    try {
+      setIsCheckoutLoading(type);
+      await createCheckoutSession(type);
+    } catch (error) {
+      console.error('Checkout error:', error);
+      alert('Failed to create checkout session. Please try again.');
+    } finally {
+      setIsCheckoutLoading(null);
+    }
+  };
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-gray-800">
       {/* Header */}
@@ -33,121 +50,155 @@ export default function PricingPage() {
             Choose Your Plan
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-4">
-            Create amazing personalized songs with our AI. Pick the plan that works best for you.
+            Create and refine amazing personalized songs with our flexible credit system.
           </p>
           <div className="bg-purple-100 border border-purple-200 rounded-lg p-4 max-w-xl mx-auto">
             <p className="text-purple-800 font-medium">
-              ✨ Each song comes with 2 unique versions - only 1 credit needed!
+              ✨ 1 credit to generate a new song or modify an existing song!
             </p>
           </div>
         </div>
 
         <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-          {/* Single Song */}
+          {/* Starter Plan */}
           <div className="bg-white rounded-lg shadow-lg p-8 border-2 border-gray-200">
-            <h3 className="text-2xl font-bold text-gray-900 mb-4">Single Song</h3>
-            <div className="text-4xl font-bold text-purple-600 mb-6">$9.99</div>
+            <h3 className="text-2xl font-bold text-gray-900 mb-4">Starter Plan</h3>
+            <div className="text-4xl font-bold text-purple-600 mb-1">$9.99</div>
+            <div className="text-gray-500 mb-6">$3.33 per credit</div>
             <ul className="space-y-3 text-gray-600 mb-8">
               <li className="flex items-center space-x-2">
                 <Check className="h-5 w-5 text-green-500" />
-                <span>1 custom AI-generated song</span>
+                <span className="font-medium text-purple-600">3 credits included</span>
               </li>
               <li className="flex items-center space-x-2">
                 <Check className="h-5 w-5 text-green-500" />
-                <span className="font-medium text-purple-600">2 unique versions per song</span>
+                <span>Generate new songs</span>
               </li>
               <li className="flex items-center space-x-2">
                 <Check className="h-5 w-5 text-green-500" />
-                <span>High-quality audio download</span>
+                <span>Modify existing songs</span>
               </li>
               <li className="flex items-center space-x-2">
                 <Check className="h-5 w-5 text-green-500" />
-                <span>Personalized lyrics</span>
+                <span>MP3 and FLAC audio files</span>
               </li>
               <li className="flex items-center space-x-2">
                 <Check className="h-5 w-5 text-green-500" />
                 <span>Multiple genre options</span>
               </li>
             </ul>
-            <button className="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors">
-              Get Started
+            <button 
+              onClick={() => handleCheckout('single')}
+              disabled={isCheckoutLoading === 'single'}
+              className="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {isCheckoutLoading === 'single' ? (
+                <>
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                'Get Started'
+              )}
             </button>
           </div>
 
-          {/* 3-Song Bundle */}
+          {/* Popular Plan */}
           <div className="bg-white rounded-lg shadow-lg p-8 border-2 border-purple-500 relative">
             <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
               <div className="bg-purple-500 text-white px-4 py-1 rounded-full text-sm font-medium">
                 Most Popular
               </div>
             </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-4">3-Song Bundle</h3>
+            <h3 className="text-2xl font-bold text-gray-900 mb-4">Popular Plan</h3>
             <div className="text-4xl font-bold text-purple-600 mb-1">$24.99</div>
-            <div className="text-gray-500 mb-6">$8.33 per song</div>
+            <div className="text-gray-500 mb-6">$1.67 per credit</div>
             <ul className="space-y-3 text-gray-600 mb-8">
               <li className="flex items-center space-x-2">
                 <Check className="h-5 w-5 text-green-500" />
-                <span>3 custom AI-generated songs</span>
+                <span className="font-medium text-purple-600">15 credits included</span>
               </li>
               <li className="flex items-center space-x-2">
                 <Check className="h-5 w-5 text-green-500" />
-                <span className="font-medium text-purple-600">2 unique versions per song (6 total)</span>
+                <span>Perfect for multiple songs</span>
               </li>
               <li className="flex items-center space-x-2">
                 <Check className="h-5 w-5 text-green-500" />
-                <span>High-quality audio downloads</span>
+                <span>Iterate and refine your songs</span>
               </li>
               <li className="flex items-center space-x-2">
                 <Check className="h-5 w-5 text-green-500" />
-                <span>Personalized lyrics for each</span>
+                <span>All generation features</span>
               </li>
               <li className="flex items-center space-x-2">
                 <Check className="h-5 w-5 text-green-500" />
-                <span>Multiple genre options</span>
+                <span>MP3 and FLAC audio files</span>
               </li>
               <li className="flex items-center space-x-2">
                 <Check className="h-5 w-5 text-green-500" />
-                <span>Save $5.00</span>
+                <span className="font-semibold text-green-600">Save 50% per credit</span>
               </li>
             </ul>
-            <button className="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors">
-              Get Bundle
+            <button 
+              onClick={() => handleCheckout('bundle3')}
+              disabled={isCheckoutLoading === 'bundle3'}
+              className="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {isCheckoutLoading === 'bundle3' ? (
+                <>
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                'Get Bundle'
+              )}
             </button>
           </div>
 
-          {/* 5-Song Bundle */}
+          {/* Pro Plan */}
           <div className="bg-white rounded-lg shadow-lg p-8 border-2 border-gray-200">
-            <h3 className="text-2xl font-bold text-gray-900 mb-4">5-Song Bundle</h3>
+            <h3 className="text-2xl font-bold text-gray-900 mb-4">Pro Plan</h3>
             <div className="text-4xl font-bold text-purple-600 mb-1">$39.99</div>
-            <div className="text-gray-500 mb-6">$8.00 per song</div>
+            <div className="text-gray-500 mb-6">$1.33 per credit</div>
             <ul className="space-y-3 text-gray-600 mb-8">
               <li className="flex items-center space-x-2">
                 <Check className="h-5 w-5 text-green-500" />
-                <span>5 custom AI-generated songs</span>
+                <span className="font-medium text-purple-600">30 credits included</span>
               </li>
               <li className="flex items-center space-x-2">
                 <Check className="h-5 w-5 text-green-500" />
-                <span className="font-medium text-purple-600">2 unique versions per song (10 total)</span>
+                <span>Maximum creative freedom</span>
               </li>
               <li className="flex items-center space-x-2">
                 <Check className="h-5 w-5 text-green-500" />
-                <span>High-quality audio downloads</span>
+                <span>Create entire song collections</span>
               </li>
               <li className="flex items-center space-x-2">
                 <Check className="h-5 w-5 text-green-500" />
-                <span>Personalized lyrics for each</span>
+                <span>Unlimited iterations per song</span>
               </li>
               <li className="flex items-center space-x-2">
                 <Check className="h-5 w-5 text-green-500" />
-                <span>Multiple genre options</span>
+                <span>MP3 and FLAC audio files</span>
               </li>
               <li className="flex items-center space-x-2">
                 <Check className="h-5 w-5 text-green-500" />
-                <span>Save $10.00</span>
+                <span className="font-semibold text-green-600">Best value - Save 60%</span>
               </li>
             </ul>
-            <button className="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors">
-              Get Bundle
+            <button 
+              onClick={() => handleCheckout('bundle5')}
+              disabled={isCheckoutLoading === 'bundle5'}
+              className="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {isCheckoutLoading === 'bundle5' ? (
+                <>
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                'Get Bundle'
+              )}
             </button>
           </div>
         </div>
@@ -161,41 +212,51 @@ export default function PricingPage() {
           <div className="space-y-8">
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                How do credits work?
+              </h3>
+              <p className="text-gray-600">
+                Simple: 1 credit to generate a new song, or 1 credit to modify an existing song. 
+                This gives you maximum flexibility to create and perfect your songs.
+              </p>
+            </div>
+            
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
                 How long does it take to generate a song?
               </h3>
               <p className="text-gray-600">
-                Most songs are generated within 2-5 minutes after you complete the questionnaire. 
+                Song generation usually takes about 1 minute. 
                 You&apos;ll receive an email notification when your song is ready.
               </p>
             </div>
             
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                What audio format will I receive?
+                Can I modify my song after it's created?
               </h3>
               <p className="text-gray-600">
-                Your song will be delivered as a high-quality MP3 file that you can download 
-                and share anywhere.
+                Yes! You can regenerate the music, update the lyrics, or change your song description 
+                and create a new version. Each modification uses 1 credit, giving you complete creative control.
               </p>
             </div>
             
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Can I request changes to my song?
+                Do credits expire?
               </h3>
               <p className="text-gray-600">
-                Each song credit includes one generation. If you&apos;d like to try different 
-                variations, you can create a new song with modified inputs.
+                No! Your credits never expire. Use them whenever you&apos;re ready to 
+                create or refine your songs.
               </p>
             </div>
             
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Do song credits expire?
+                What audio formats will I receive?
               </h3>
               <p className="text-gray-600">
-                No! Your song credits never expire. Use them whenever you&apos;re ready to 
-                create something special.
+                You get both an MP3 file and a high-quality FLAC (Free Lossless Audio Codec) file 
+                that you can download and share anywhere.
               </p>
             </div>
           </div>

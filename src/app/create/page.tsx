@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 import Logo from '@/components/Logo'
 import DarkModeToggle from '@/components/DarkModeToggle'
+import { createCheckoutSession } from '@/lib/stripe'
 import { 
   Music, 
   ArrowLeft, 
@@ -25,7 +26,9 @@ import {
   FileText,
   ShoppingCart,
   Diamond,
-  GraduationCap
+  GraduationCap,
+  CreditCard,
+  Loader2
 } from 'lucide-react'
 
 interface SongFormData {
@@ -103,6 +106,7 @@ export default function CreateSongPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showConfirmation, setShowConfirmation] = useState(false)
+  const [isCheckoutLoading, setIsCheckoutLoading] = useState<'single' | 'bundle3' | null>(null)
   const [formData, setFormData] = useState<SongFormData>({
     subjectName: '',
     relationship: '',
@@ -249,6 +253,34 @@ export default function CreateSongPage() {
       window.removeEventListener('popstate', handlePopState)
     }
   }, [currentStep, formData, router])
+
+  // Restore form data after successful payment
+  useEffect(() => {
+    const savedFormData = sessionStorage.getItem('songFormData')
+    if (savedFormData) {
+      try {
+        const parsedData = JSON.parse(savedFormData)
+        setFormData(parsedData)
+        sessionStorage.removeItem('songFormData')
+      } catch (error) {
+        console.error('Error restoring form data:', error)
+      }
+    }
+  }, [])
+
+  const handleBuyCredits = async (type: 'single' | 'bundle3') => {
+    try {
+      setIsCheckoutLoading(type)
+      // Save form data before redirecting
+      sessionStorage.setItem('songFormData', JSON.stringify(formData))
+      await createCheckoutSession(type)
+    } catch (error) {
+      console.error('Checkout error:', error)
+      alert('Failed to create checkout session. Please try again.')
+    } finally {
+      setIsCheckoutLoading(null)
+    }
+  }
 
   const addItem = (field: keyof SongFormData, value: string) => {
     if (value.trim()) {
@@ -434,8 +466,19 @@ export default function CreateSongPage() {
         .single()
 
       if (!profileData || profileData.credits_remaining < 1) {
-        alert('You need credits to create a song. Please purchase more credits.')
-        router.push('/pricing')
+        const result = confirm('You need credits to create a song. Would you like to purchase more credits now?')
+        if (result) {
+          // Save form data to session storage before redirecting
+          sessionStorage.setItem('songFormData', JSON.stringify(formData))
+          try {
+            setIsCheckoutLoading('single')
+            await createCheckoutSession('single')
+          } catch (error) {
+            console.error('Checkout error:', error)
+            alert('Failed to create checkout session. Please try again.')
+            setIsCheckoutLoading(null)
+          }
+        }
         return
       }
 
@@ -541,13 +584,33 @@ export default function CreateSongPage() {
             <Logo />
             
             <div className="flex items-center space-x-4">
-              <Link 
-                href="/pricing"
-                className="flex items-center space-x-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors cursor-pointer"
-              >
-                <ShoppingCart className="h-5 w-5 text-purple-600" />
-                <span className="font-medium">{profile?.credits_remaining || 0} Credits</span>
-              </Link>
+              {profile?.credits_remaining === 0 ? (
+                <button
+                  onClick={() => handleBuyCredits('single')}
+                  disabled={isCheckoutLoading === 'single'}
+                  className="flex items-center space-x-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isCheckoutLoading === 'single' ? (
+                    <>
+                      <Loader2 className="h-5 w-5 animate-spin text-purple-600" />
+                      <span className="font-medium">Processing...</span>
+                    </>
+                  ) : (
+                    <>
+                      <CreditCard className="h-5 w-5 text-purple-600" />
+                      <span className="font-medium">Buy Credits</span>
+                    </>
+                  )}
+                </button>
+              ) : (
+                <Link 
+                  href="/pricing"
+                  className="flex items-center space-x-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors cursor-pointer"
+                >
+                  <ShoppingCart className="h-5 w-5 text-purple-600" />
+                  <span className="font-medium">{profile?.credits_remaining || 0} Credits</span>
+                </Link>
+              )}
               <div className="h-6 w-px bg-gray-300" />
               <DarkModeToggle />
               <div className="h-6 w-px bg-gray-300" />
@@ -1017,7 +1080,7 @@ export default function CreateSongPage() {
                     <div className="music-note">♪</div>
                   </div>
                 </div>
-                <span>{isSubmitting ? 'Creating...' : 'Create Song (1 credit)'}</span>
+                <span>{isSubmitting ? 'Creating...' : 'Generate Song (1 credit)'}</span>
               </button>
             )}
           </div>
@@ -1032,7 +1095,7 @@ export default function CreateSongPage() {
               Confirm Song Creation
             </h3>
             <p className="text-gray-600 dark:text-gray-300 mb-6">
-              This will use 1 credit to create your personalized song. Are you sure you want to continue?
+              This will use 1 credit to generate your personalized song. Are you sure you want to continue?
             </p>
             <div className="flex space-x-4">
               <button
