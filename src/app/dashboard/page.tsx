@@ -65,6 +65,7 @@ export default function DashboardPage() {
     checkAuth()
   }, [router, supabase])
 
+
   // Debug CSS animations
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -343,33 +344,41 @@ export default function DashboardPage() {
                   {remainingCredits}
                 </p>
                 <p className="text-sm text-purple-600 dark:text-purple-400 mt-1">remaining</p>
-                {/* Temporary button for testing - always show for now */}
-                <button
-                  onClick={async () => {
-                    try {
-                      const response = await fetch('/api/add-test-credits', {
-                        method: 'POST',
-                        headers: {
-                          'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ userId: user.id })
-                      })
-                      const data = await response.json()
-                      if (data.success) {
-                        alert(data.message)
-                        window.location.reload()
-                      } else {
-                        alert(data.error || 'Failed to add test credits')
-                      }
-                    } catch (error) {
-                      console.error('Error adding credits:', error)
-                      alert('Failed to add test credits')
-                    }
-                  }}
-                  className="mt-2 text-xs bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700"
-                >
-                  Add Test Credits
-                </button>
+                {/* Simple test buttons for localhost only */}
+                {typeof window !== 'undefined' && window.location.hostname === 'localhost' && (
+                  <>
+                    <button
+                      onClick={async () => {
+                        const response = await fetch('/api/add-test-credits', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ userId: user.id })
+                        })
+                        const data = await response.json()
+                        alert(data.message || data.error)
+                        if (data.success) window.location.reload()
+                      }}
+                      className="mt-2 w-full text-xs bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700"
+                    >
+                      Add Test Credits
+                    </button>
+                    <button
+                      onClick={async () => {
+                        const response = await fetch('/api/remove-test-credits', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ userId: user.id })
+                        })
+                        const data = await response.json()
+                        alert(data.message || data.error)
+                        if (data.success) window.location.reload()
+                      }}
+                      className="mt-1 w-full text-xs bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"
+                    >
+                      Remove All Credits
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           </div>

@@ -12,16 +12,6 @@ import { createCheckoutSession } from '@/lib/stripe';
 const demoSongs = [
   {
     id: 1,
-    title: "Birthday Surprise",
-    artist: "Song Mint AI",
-    genre: "Pop",
-    occasion: "Birthday",
-    audioUrl: "/demo-songs/birthday-surprise.mp3",
-    image: "https://images.unsplash.com/photo-1464207687429-7505649dae38?w=300&h=300&fit=crop&crop=center",
-    duration: "2:45"
-  },
-  {
-    id: 2,
     title: "Forever Yours",
     artist: "Song Mint AI",
     genre: "Romantic",
@@ -31,7 +21,7 @@ const demoSongs = [
     duration: "3:12"
   },
   {
-    id: 3,
+    id: 2,
     title: "Friend Like You",
     artist: "Song Mint AI",
     genre: "Folk",
@@ -39,6 +29,16 @@ const demoSongs = [
     audioUrl: "/demo-songs/friend-like-you.mp3",
     image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=300&h=300&fit=crop&crop=center",
     duration: "2:58"
+  },
+  {
+    id: 3,
+    title: "Birthday Surprise",
+    artist: "Song Mint AI",
+    genre: "Pop",
+    occasion: "Birthday",
+    audioUrl: "/demo-songs/birthday-surprise.mp3",
+    image: "https://images.unsplash.com/photo-1464207687429-7505649dae38?w=300&h=300&fit=crop&crop=center",
+    duration: "2:45"
   },
   {
     id: 4,
@@ -85,8 +85,8 @@ const demoSongs = [
 export default function Home() {
   const [user, setUser] = useState<{ user_metadata?: { full_name?: string }, email?: string } | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [isCheckoutLoading, setIsCheckoutLoading] = useState<'single' | 'bundle3' | null>(null)
-  const [showDemoPlayer, setShowDemoPlayer] = useState(false)
+  const [isCheckoutLoading, setIsCheckoutLoading] = useState<'single' | 'bundle3' | 'bundle5' | null>(null)
+  const [showDemoPlayer, setShowDemoPlayer] = useState(true)
   const [currentSongIndex, setCurrentSongIndex] = useState(0)
   const [isPlaying, setIsPlaying] = useState(false)
   const [audio, setAudio] = useState<HTMLAudioElement | null>(null)
@@ -102,6 +102,16 @@ export default function Home() {
     }
     checkAuth()
   }, [supabase])
+
+  // Initialize audio for first song when demo player is shown
+  useEffect(() => {
+    if (showDemoPlayer && !audio) {
+      const newAudio = new Audio(demoSongs[0].audioUrl)
+      newAudio.volume = 0.7
+      setAudio(newAudio)
+      setCurrentSongIndex(0)
+    }
+  }, [showDemoPlayer])
 
   // Cleanup audio on unmount
   useEffect(() => {
@@ -144,12 +154,22 @@ export default function Home() {
     setUser(null)
   }
 
-  const openDemoPlayer = () => {
-    setShowDemoPlayer(true)
-    // Start playing the first song automatically
-    setTimeout(() => {
-      playAudio(0)
-    }, 300) // Small delay for animation
+  const toggleDemoPlayerPlayback = () => {
+    if (!audio) {
+      // Initialize audio if not already done
+      const newAudio = new Audio(demoSongs[0].audioUrl)
+      newAudio.volume = 0.7
+      setAudio(newAudio)
+      setCurrentSongIndex(0)
+      newAudio.play().then(() => {
+        setIsPlaying(true)
+      }).catch(() => {
+        setIsPlaying(true) // Visual feedback even if audio fails
+        console.log('Demo audio not available, showing UI only')
+      })
+    } else {
+      togglePlayPause()
+    }
   }
 
   const closeDemoPlayer = () => {
@@ -214,7 +234,7 @@ export default function Home() {
     return `${minutes}:${seconds.toString().padStart(2, '0')}`
   }
 
-  const handleCheckout = async (type: 'single' | 'bundle3') => {
+  const handleCheckout = async (type: 'single' | 'bundle3' | 'bundle5') => {
     try {
       setIsCheckoutLoading(type);
       await createCheckoutSession(type);
@@ -316,11 +336,15 @@ export default function Home() {
               </Link>
               
               <button 
-                onClick={openDemoPlayer}
+                onClick={toggleDemoPlayerPlayback}
                 className="px-8 py-4 text-gray-700 dark:text-gray-300 font-semibold rounded-xl border-2 border-gray-300 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-600 transition-all flex items-center gap-2 group"
               >
-                <Play className="h-5 w-5 text-[#ff006e] group-hover:scale-110 transition-transform" />
-                Listen to Examples
+                {isPlaying ? (
+                  <Pause className="h-5 w-5 text-[#ff006e] group-hover:scale-110 transition-transform" />
+                ) : (
+                  <Play className="h-5 w-5 text-[#ff006e] group-hover:scale-110 transition-transform" />
+                )}
+                {isPlaying ? 'Pause Examples' : 'Listen to Examples'}
               </button>
             </div>
             
