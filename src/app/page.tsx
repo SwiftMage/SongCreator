@@ -606,16 +606,16 @@ export default function Home() {
           </div>
           
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {/* Starter Plan */}
+            {/* Starter Pack */}
             <div className="relative bg-gray-50 dark:bg-gray-800 rounded-2xl p-8 border-2 border-gray-200 dark:border-gray-700 transition-all hover:shadow-xl">
-              <h3 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">Starter Plan</h3>
+              <h3 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">Starter Pack</h3>
               <p className="text-gray-600 dark:text-gray-400 mb-6">Perfect for getting started</p>
               
               <div className="flex items-baseline mb-2">
                 <span className="text-5xl font-bold text-gray-900 dark:text-white">$9</span>
                 <span className="text-2xl font-bold text-gray-500 dark:text-gray-400">.99</span>
               </div>
-              <p className="text-sm text-gray-500 dark:text-gray-500 mb-6">3 credits • $3.33 per credit</p>
+              <p className="text-sm text-gray-500 dark:text-gray-500 mb-6">5 credits • $2.00 per credit</p>
               
               <ul className="space-y-4 mb-8">
                 <li className="flex items-start gap-3">
@@ -652,15 +652,15 @@ export default function Home() {
               </button>
             </div>
             
-            {/* Popular Plan */}
+            {/* Pro Pack */}
             <div className="relative bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-800 dark:to-gray-800 rounded-2xl p-8 border-2 border-gradient transition-all hover:shadow-xl">
               <div className="absolute -top-4 left-1/2 -translate-x-1/2">
                 <span className="bg-gradient-to-r from-[#00f5ff] via-[#ff006e] to-[#8338ec] text-white px-4 py-1.5 rounded-full text-sm font-semibold">
-                  BEST VALUE
+                  MOST POPULAR
                 </span>
               </div>
               
-              <h3 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">Popular Plan</h3>
+              <h3 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">Pro Pack</h3>
               <p className="text-gray-600 dark:text-gray-400 mb-6">Perfect for multiple songs</p>
               
               <div className="flex items-baseline mb-2">
@@ -688,7 +688,7 @@ export default function Home() {
                 </li>
                 <li className="flex items-start gap-3">
                   <Sparkles className="h-5 w-5 text-[#ff006e] mt-0.5 flex-shrink-0" />
-                  <span className="font-semibold text-gray-900 dark:text-white">Save 50% per credit</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">Save 17% per credit</span>
                 </li>
               </ul>
               
@@ -711,9 +711,9 @@ export default function Home() {
               </button>
             </div>
             
-            {/* Pro Plan */}
+            {/* Mega Pack */}
             <div className="relative bg-gray-50 dark:bg-gray-800 rounded-2xl p-8 border-2 border-gray-200 dark:border-gray-700 transition-all hover:shadow-xl">
-              <h3 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">Pro Plan</h3>
+              <h3 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">Mega Pack</h3>
               <p className="text-gray-600 dark:text-gray-400 mb-6">Maximum creative freedom</p>
               
               <div className="flex items-baseline mb-2">
@@ -741,7 +741,7 @@ export default function Home() {
                 </li>
                 <li className="flex items-start gap-3">
                   <Sparkles className="h-5 w-5 text-[#ff006e] mt-0.5 flex-shrink-0" />
-                  <span className="font-semibold text-gray-900 dark:text-white">Save 60% per credit</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">Save 33% per credit</span>
                 </li>
               </ul>
               
@@ -756,7 +756,7 @@ export default function Home() {
                     Processing...
                   </>
                 ) : (
-                  'Get Pro Plan'
+                  'Get Mega Pack'
                 )}
               </button>
             </div>

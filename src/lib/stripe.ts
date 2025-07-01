@@ -6,20 +6,20 @@ export const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHAB
 // Pricing configuration
 export const PRICING = {
   single: {
-    id: 'starter_plan',
-    name: 'Starter Plan',
+    id: 'starter_pack',
+    name: 'Starter Pack',
     price: 999, // $9.99 in cents
-    credits: 3,
+    credits: 5,
   },
   bundle3: {
-    id: 'popular_plan', 
-    name: 'Popular Plan',
+    id: 'pro_pack', 
+    name: 'Pro Pack',
     price: 2499, // $24.99 in cents
     credits: 15,
   },
   bundle5: {
-    id: 'pro_plan',
-    name: 'Pro Plan', 
+    id: 'mega_pack',
+    name: 'Mega Pack', 
     price: 3999, // $39.99 in cents
     credits: 30,
   },

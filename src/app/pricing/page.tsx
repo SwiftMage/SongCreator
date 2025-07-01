@@ -60,15 +60,15 @@ export default function PricingPage() {
         </div>
 
         <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-          {/* Starter Plan */}
+          {/* Starter Pack */}
           <div className="bg-white rounded-lg shadow-lg p-8 border-2 border-gray-200">
-            <h3 className="text-2xl font-bold text-gray-900 mb-4">Starter Plan</h3>
+            <h3 className="text-2xl font-bold text-gray-900 mb-4">Starter Pack</h3>
             <div className="text-4xl font-bold text-purple-600 mb-1">$9.99</div>
-            <div className="text-gray-500 mb-6">$3.33 per credit</div>
+            <div className="text-gray-500 mb-6">$2.00 per credit</div>
             <ul className="space-y-3 text-gray-600 mb-8">
               <li className="flex items-center space-x-2">
                 <Check className="h-5 w-5 text-green-500" />
-                <span className="font-medium text-purple-600">3 credits included</span>
+                <span className="font-medium text-purple-600">5 credits included</span>
               </li>
               <li className="flex items-center space-x-2">
                 <Check className="h-5 w-5 text-green-500" />
@@ -103,14 +103,14 @@ export default function PricingPage() {
             </button>
           </div>
 
-          {/* Popular Plan */}
+          {/* Pro Pack */}
           <div className="bg-white rounded-lg shadow-lg p-8 border-2 border-purple-500 relative">
             <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
               <div className="bg-purple-500 text-white px-4 py-1 rounded-full text-sm font-medium">
                 Most Popular
               </div>
             </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-4">Popular Plan</h3>
+            <h3 className="text-2xl font-bold text-gray-900 mb-4">Pro Pack</h3>
             <div className="text-4xl font-bold text-purple-600 mb-1">$24.99</div>
             <div className="text-gray-500 mb-6">$1.67 per credit</div>
             <ul className="space-y-3 text-gray-600 mb-8">
@@ -136,7 +136,7 @@ export default function PricingPage() {
               </li>
               <li className="flex items-center space-x-2">
                 <Check className="h-5 w-5 text-green-500" />
-                <span className="font-semibold text-green-600">Save 50% per credit</span>
+                <span className="font-semibold text-green-600">Save 17% per credit</span>
               </li>
             </ul>
             <button 
@@ -155,9 +155,9 @@ export default function PricingPage() {
             </button>
           </div>
 
-          {/* Pro Plan */}
+          {/* Mega Pack */}
           <div className="bg-white rounded-lg shadow-lg p-8 border-2 border-gray-200">
-            <h3 className="text-2xl font-bold text-gray-900 mb-4">Pro Plan</h3>
+            <h3 className="text-2xl font-bold text-gray-900 mb-4">Mega Pack</h3>
             <div className="text-4xl font-bold text-purple-600 mb-1">$39.99</div>
             <div className="text-gray-500 mb-6">$1.33 per credit</div>
             <ul className="space-y-3 text-gray-600 mb-8">
@@ -183,7 +183,7 @@ export default function PricingPage() {
               </li>
               <li className="flex items-center space-x-2">
                 <Check className="h-5 w-5 text-green-500" />
-                <span className="font-semibold text-green-600">Best value - Save 60%</span>
+                <span className="font-semibold text-green-600">Best value - Save 33%</span>
               </li>
             </ul>
             <button 
