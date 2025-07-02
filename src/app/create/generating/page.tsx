@@ -760,7 +760,7 @@ function GeneratingSongPage() {
         lyrics: generatedLyrics,
         songId: songId,
         style: stylePrompt,
-        model: (debugMode && customModel.trim()) ? customModel.trim() : 'mureka-v6'
+        ...(debugMode && customModel.trim() ? { model: customModel.trim() } : {})
       }
       
       // Log what we're sending for debugging

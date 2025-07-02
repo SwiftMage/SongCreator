@@ -38,10 +38,14 @@ export async function POST(request: NextRequest) {
     const cleanedLyrics = lyrics.replace(/⸻/g, '---').replace(/[^\x00-\x7F]/g, '')
     
     // Prepare the request payload for Mureka API with supported parameters only
-    const payload: { lyrics: any; prompt: any; model: string } = {
+    const payload: { lyrics: any; prompt: any; model?: string } = {
       lyrics: cleanedLyrics,
-      prompt: style || "pop, upbeat, modern",
-      model: model || "mureka-v6"
+      prompt: style || "pop, upbeat, modern"
+    }
+    
+    // Only add model if explicitly provided
+    if (model) {
+      payload.model = model
     }
 
     console.log('Mureka API Request:', JSON.stringify(payload, null, 2))

@@ -385,17 +385,23 @@ export default function DashboardPage() {
 
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-4">
-            <Link
-              href="/create"
-              className={`flex-1 flex items-center justify-center space-x-2 px-8 py-4 rounded-lg font-semibold transition-colors ${
-                remainingCredits > 0
-                  ? 'bg-purple-600 text-white hover:bg-purple-700'
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              }`}
-            >
-              <Plus className="h-5 w-5" />
-              <span>Create New Song</span>
-            </Link>
+            {remainingCredits > 0 ? (
+              <Link
+                href="/create"
+                className="flex-1 flex items-center justify-center space-x-2 px-8 py-4 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors"
+              >
+                <Plus className="h-5 w-5" />
+                <span>Create New Song</span>
+              </Link>
+            ) : (
+              <div
+                className="flex-1 flex items-center justify-center space-x-2 px-8 py-4 bg-gray-300 text-gray-500 rounded-lg font-semibold cursor-not-allowed"
+                title="You need credits to create a new song"
+              >
+                <Plus className="h-5 w-5" />
+                <span>Create New Song</span>
+              </div>
+            )}
             
             <Link
               href="/pricing"
@@ -419,13 +425,31 @@ export default function DashboardPage() {
                 </div>
               </div>
               <p className="text-gray-500 dark:text-gray-400 mb-4">You haven&apos;t created any songs yet</p>
-              <Link
-                href="/create"
-                className="inline-flex items-center space-x-2 px-8 py-4 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors"
-              >
-                <Plus className="h-5 w-5" />
-                <span>Create Your First Song</span>
-              </Link>
+              {remainingCredits > 0 ? (
+                <Link
+                  href="/create"
+                  className="inline-flex items-center space-x-2 px-8 py-4 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors"
+                >
+                  <Plus className="h-5 w-5" />
+                  <span>Create Your First Song</span>
+                </Link>
+              ) : (
+                <div className="text-center">
+                  <div
+                    className="inline-flex items-center space-x-2 px-8 py-4 bg-gray-300 text-gray-500 rounded-lg font-semibold cursor-not-allowed mb-4"
+                    title="You need credits to create a song"
+                  >
+                    <Plus className="h-5 w-5" />
+                    <span>Create Your First Song</span>
+                  </div>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm">
+                    You need credits to create songs. 
+                    <Link href="/pricing" className="text-purple-600 hover:underline">
+                      Get credits here
+                    </Link>
+                  </p>
+                </div>
+              )}
             </div>
           ) : (
             <div className="space-y-4">
