@@ -574,7 +574,7 @@ function GeneratingSongPage() {
         backup_audio_url: dummyBackupUrl,
         mureka_data: {
           taskId: 'test-task-123',
-          model: (debugMode && customModel.trim()) ? customModel.trim() : 'mureka-v6',
+          model: (debugMode && customModel.trim()) ? customModel.trim() : 'auto',
           audioVariations: [
             {
               index: 0,
@@ -760,7 +760,7 @@ function GeneratingSongPage() {
         lyrics: generatedLyrics,
         songId: songId,
         style: stylePrompt,
-        ...(debugMode && customModel.trim() ? { model: customModel.trim() } : {})
+        model: (debugMode && customModel.trim()) ? customModel.trim() : 'auto'
       }
       
       // Log what we're sending for debugging
@@ -1271,11 +1271,11 @@ Check it out 🔥👇
                       type="text"
                       value={customModel}
                       onChange={(e) => setCustomModel(e.target.value)}
-                      placeholder="e.g., mureka-v6"
+                      placeholder="e.g., mureka-6"
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     />
                     <p className="text-xs text-gray-500 mt-1">
-                      Leave empty to use default model (mureka-v6)
+                      Leave empty to use default model (auto)
                     </p>
                   </div>
                 </div>
