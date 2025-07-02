@@ -13,6 +13,8 @@ export default function PricingPage() {
   const handleCheckout = async (type: 'single' | 'bundle3' | 'bundle5') => {
     try {
       setIsCheckoutLoading(type);
+      // Note: Form data and step are already preserved in sessionStorage from create page
+      // No need to save additional data here - just proceed with checkout
       await createCheckoutSession(type);
     } catch (error) {
       console.error('Checkout error:', error);

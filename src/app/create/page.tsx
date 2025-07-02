@@ -254,14 +254,22 @@ export default function CreateSongPage() {
     }
   }, [currentStep, formData, router])
 
-  // Restore form data after successful payment
+  // Restore form data and current step after successful payment
   useEffect(() => {
     const savedFormData = sessionStorage.getItem('songFormData')
+    const savedCurrentStep = sessionStorage.getItem('songCurrentStep')
+    
     if (savedFormData) {
       try {
         const parsedData = JSON.parse(savedFormData)
         setFormData(parsedData)
-        sessionStorage.removeItem('songFormData')
+        
+        // Restore the step user was on when they ran out of credits
+        if (savedCurrentStep) {
+          setCurrentStep(parseInt(savedCurrentStep))
+        }
+        
+        // Don't remove from sessionStorage yet - wait until song creation succeeds
       } catch (error) {
         console.error('Error restoring form data:', error)
       }
@@ -271,8 +279,9 @@ export default function CreateSongPage() {
   const handleBuyCredits = async (type: 'single' | 'bundle3') => {
     try {
       setIsCheckoutLoading(type)
-      // Save form data before redirecting
+      // Save form data and current step before redirecting
       sessionStorage.setItem('songFormData', JSON.stringify(formData))
+      sessionStorage.setItem('songCurrentStep', currentStep.toString())
       await createCheckoutSession(type)
     } catch (error) {
       console.error('Checkout error:', error)
@@ -468,8 +477,9 @@ export default function CreateSongPage() {
       if (!profileData || profileData.credits_remaining < 1) {
         const result = confirm('You need credits to create a song. Would you like to purchase credits now?')
         if (result) {
-          // Save form data to session storage before redirecting
+          // Save form data and current step to session storage before redirecting
           sessionStorage.setItem('songFormData', JSON.stringify(formData))
+          sessionStorage.setItem('songCurrentStep', currentStep.toString())
           // Redirect to pricing page to let user choose package
           router.push('/pricing')
         }
@@ -512,6 +522,10 @@ export default function CreateSongPage() {
       console.log('Created song with ID:', data.id)
       
       // Redirect based on lyrics choice
+      // Clear saved form data and step since song creation succeeded
+      sessionStorage.removeItem('songFormData')
+      sessionStorage.removeItem('songCurrentStep')
+      
       if (formData.lyricsChoice === 'own') {
         // For user lyrics, go directly to music generation
         router.push(`/create/generating?songId=${data.id}`)
