@@ -87,7 +87,7 @@ const songTypes = [
 
 const genres = [
   'Pop', 'Rock', 'Country', 'Hip-Hop', 'R&B', 'Folk', 'Indie Rock', 'Alternative', 
-  'Blues', 'Jazz', 'Electronic', 'Dance', 'Techno', 'Reggae', 'Punk', 'Metal',
+  'Blues', 'Jazz', 'Indie Folk', 'Dance', 'Techno', 'Reggae', 'Punk', 'Metal',
   'Classical', 'Acoustic', 'Singer-Songwriter', 'Soft Rock', 'Latin', 'Rap', "80's Rock", "90's Rock"
 ]
 
