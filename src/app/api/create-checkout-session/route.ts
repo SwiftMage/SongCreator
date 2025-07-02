@@ -35,6 +35,7 @@ export async function POST(request: Request) {
         },
       ],
       mode: 'payment',
+      customer_creation: 'if_required', // Don't auto-create customers, which disables save option by default
       success_url: `${process.env.NEXT_PUBLIC_APP_URL}/payment-success?session_id={CHECKOUT_SESSION_ID}&credits=${credits}`,
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/pricing`,
       customer_email: user.email,
