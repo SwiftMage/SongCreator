@@ -14,6 +14,7 @@ function PaymentSuccessContent() {
   const [isProcessing, setIsProcessing] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [credits, setCredits] = useState<number>(0);
+  const [hasSavedSongData, setHasSavedSongData] = useState(false);
   const supabase = createClient();
 
   useEffect(() => {
@@ -64,6 +65,10 @@ function PaymentSuccessContent() {
           setIsProcessing(false);
           return;
         }
+
+        // Check if there's saved song form data
+        const savedFormData = sessionStorage.getItem('songFormData');
+        setHasSavedSongData(!!savedFormData);
 
         // Success!
         setIsProcessing(false);
@@ -137,7 +142,10 @@ function PaymentSuccessContent() {
                   {credits} Credit{credits > 1 ? 's' : ''} Added!
                 </p>
                 <p className="text-gray-600 dark:text-gray-400">
-                  Your credits have been added to your account and are ready to use.
+                  {hasSavedSongData 
+                    ? 'Your credits have been added and your song details have been saved. Continue where you left off!'
+                    : 'Your credits have been added to your account and are ready to use.'
+                  }
                 </p>
               </div>
 
@@ -149,7 +157,7 @@ function PaymentSuccessContent() {
                   <span className="absolute inset-0 bg-gradient-to-r from-[#00f5ff] via-[#ff006e] to-[#8338ec] transition-transform group-hover:scale-110" />
                   <span className="relative flex items-center justify-center gap-2">
                     <Music className="h-5 w-5" />
-                    Create Your First Song
+                    {hasSavedSongData ? 'Continue Creating Your Song' : 'Create Your First Song'}
                   </span>
                 </Link>
                 

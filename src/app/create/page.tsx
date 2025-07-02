@@ -466,18 +466,12 @@ export default function CreateSongPage() {
         .single()
 
       if (!profileData || profileData.credits_remaining < 1) {
-        const result = confirm('You need credits to create a song. Would you like to purchase more credits now?')
+        const result = confirm('You need credits to create a song. Would you like to purchase credits now?')
         if (result) {
           // Save form data to session storage before redirecting
           sessionStorage.setItem('songFormData', JSON.stringify(formData))
-          try {
-            setIsCheckoutLoading('single')
-            await createCheckoutSession('single')
-          } catch (error) {
-            console.error('Checkout error:', error)
-            alert('Failed to create checkout session. Please try again.')
-            setIsCheckoutLoading(null)
-          }
+          // Redirect to pricing page to let user choose package
+          router.push('/pricing')
         }
         return
       }
