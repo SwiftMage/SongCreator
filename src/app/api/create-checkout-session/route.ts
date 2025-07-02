@@ -35,9 +35,6 @@ export async function POST(request: Request) {
         },
       ],
       mode: 'payment',
-      payment_intent_data: {
-        setup_future_usage: null, // Don't save payment method by default
-      },
       success_url: `${process.env.NEXT_PUBLIC_APP_URL}/payment-success?session_id={CHECKOUT_SESSION_ID}&credits=${credits}`,
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/pricing`,
       customer_email: user.email,
