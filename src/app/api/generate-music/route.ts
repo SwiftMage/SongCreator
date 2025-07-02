@@ -27,15 +27,19 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('Generating music for song:', songId)
-    console.log('Lyrics:', lyrics)
+    console.log('Lyrics length:', lyrics?.length)
     console.log('Style:', style)
-    console.log('Custom model:', model)
+    console.log('Custom model received:', model)
+    console.log('Model to use:', model || "mureka-v6")
     console.log('API Key exists:', !!process.env.MUREKA_API_KEY)
     console.log('API Key length:', process.env.MUREKA_API_KEY?.length)
 
+    // Clean lyrics of potentially problematic characters
+    const cleanedLyrics = lyrics.replace(/⸻/g, '---').replace(/[^\x00-\x7F]/g, '')
+    
     // Prepare the request payload for Mureka API with supported parameters only
     const payload: { lyrics: any; prompt: any; model: string } = {
-      lyrics: lyrics,
+      lyrics: cleanedLyrics,
       prompt: style || "pop, upbeat, modern",
       model: model || "mureka-v6"
     }
