@@ -40,27 +40,26 @@ function PaymentSuccessContent() {
           return;
         }
 
-        // Update user credits
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('credits_remaining')
-          .eq('id', user.id)
-          .single();
+        // Update user credits using secure API endpoint
+        const creditResponse = await fetch('/api/add-credits', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userId: user.id,
+            credits: creditsToAdd,
+            reason: 'Payment processed',
+            paymentContext: {
+              sessionId: sessionId,
+              amount: creditsToAdd
+            }
+          })
+        });
 
-        if (profileError) {
-          setError('Failed to retrieve profile');
-          setIsProcessing(false);
-          return;
-        }
+        const creditResult = await creditResponse.json();
 
-        const newCredits = (profile.credits_remaining || 0) + creditsToAdd;
-
-        const { error: updateError } = await supabase
-          .from('profiles')
-          .update({ credits_remaining: newCredits })
-          .eq('id', user.id);
-
-        if (updateError) {
+        if (!creditResponse.ok || !creditResult.success) {
           setError('Failed to update credits');
           setIsProcessing(false);
           return;

@@ -1,7 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { rateLimiters, getClientIdentifier, applyRateLimit } from '@/lib/rate-limiter'
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting - identify by songId/IP for music generation
+    const identifier = getClientIdentifier(request)
+    const rateLimitResponse = await applyRateLimit(request, rateLimiters.musicGeneration, identifier)
+    if (rateLimitResponse) {
+      return rateLimitResponse
+    }
+
     // Check for maintenance mode
     if (process.env.MAINTENANCE_MODE === 'true') {
       return NextResponse.json(
@@ -52,10 +60,7 @@ export async function POST(request: NextRequest) {
       'Content-Type': 'application/json',
     }
     
-    console.log('Request headers (auth masked):', {
-      'Authorization': `Bearer ${process.env.MUREKA_API_KEY?.substring(0, 5)}...`,
-      'Content-Type': 'application/json',
-    })
+    console.log('Request headers prepared for Mureka API')
     
     let murekaResponse: Response | undefined
     let retryCount = 0

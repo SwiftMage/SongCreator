@@ -20,6 +20,7 @@ import {
   Trash2
 } from 'lucide-react'
 import { playAudioWithFallback, getBestAudioUrl } from '@/lib/audio-player'
+import { useSecureAPI } from '@/lib/use-csrf'
 import Logo from '@/components/Logo'
 import DarkModeToggle from '@/components/DarkModeToggle'
 import VersionDownloadButton from '@/components/VersionDownloadButton'
@@ -48,6 +49,7 @@ export default function DashboardPage() {
   const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(null)
   const router = useRouter()
   const supabase = createClient()
+  const { secureRequest } = useSecureAPI()
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -129,24 +131,12 @@ export default function DashboardPage() {
     
     if (profileError) {
       console.error('Error fetching profile:', profileError)
-      // Create profile if it doesn't exist
+      // Profile should be created automatically by the database trigger
+      // If it doesn't exist, the user might need to re-authenticate
       if (profileError.code === 'PGRST116') {
-        const { data: newProfile, error: createError } = await supabase
-          .from('profiles')
-          .insert({
-            id: userId,
-            full_name: user?.user_metadata?.full_name || null,
-            subscription_status: 'free',
-            credits_remaining: 1
-          })
-          .select()
-          .single()
-        
-        if (createError) {
-          console.error('Error creating profile:', createError)
-        } else {
-          setProfile(newProfile)
-        }
+        console.warn('Profile not found - this should be created automatically. User may need to re-authenticate.')
+        // Optionally redirect to re-authenticate
+        // router.push('/auth?message=profile_missing')
       }
     } else if (profileData) {
       setProfile(profileData)
@@ -237,12 +227,9 @@ export default function DashboardPage() {
       console.log('Song ID:', songId)
       console.log('User ID:', user.id)
       
-      // Use API route to delete with admin privileges
-      const response = await fetch('/api/delete-song', {
+      // Use secure API route to delete with CSRF protection
+      const response = await secureRequest('/api/delete-song', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({ 
           songId, 
           userId: user.id 

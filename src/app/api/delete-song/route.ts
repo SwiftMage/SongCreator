@@ -1,8 +1,16 @@
 import { createServerAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
+import { validateCSRFToken, getCSRFTokenFromRequest } from '@/lib/csrf'
+import { sanitizeError, logSecureError } from '@/lib/error-handler'
 
 export async function POST(request: NextRequest) {
   try {
+    // CSRF Protection
+    const csrfToken = getCSRFTokenFromRequest(request)
+    if (!csrfToken || !validateCSRFToken(csrfToken)) {
+      return NextResponse.json({ error: 'Invalid or missing CSRF token' }, { status: 403 })
+    }
+    
     const { songId, userId } = await request.json()
     
     if (!songId || !userId) {
@@ -27,8 +35,8 @@ export async function POST(request: NextRequest) {
     console.log('Delete error:', error)
     
     if (error) {
-      console.error('Error deleting song:', error)
-      return NextResponse.json({ error: 'Failed to delete song', details: error }, { status: 500 })
+      logSecureError('Song deletion failed', error, { songId, userId })
+      return NextResponse.json({ error: sanitizeError(error, 'Failed to delete song') }, { status: 500 })
     }
     
     if (!data || data.length === 0) {
@@ -44,10 +52,9 @@ export async function POST(request: NextRequest) {
     })
     
   } catch (error) {
-    console.error('Error in delete-song API:', error)
+    logSecureError('Delete song API error', error)
     return NextResponse.json({ 
-      error: 'Internal server error', 
-      details: error instanceof Error ? error.message : 'Unknown error' 
+      error: sanitizeError(error, 'Internal server error')
     }, { status: 500 })
   }
 }

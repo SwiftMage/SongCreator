@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
 import { createServerComponentClient } from '@/lib/supabase/server'
+import DOMPurify from 'dompurify'
+import { JSDOM } from 'jsdom'
+import { rateLimiters, getClientIdentifier, applyRateLimit } from '@/lib/rate-limiter'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -8,6 +11,13 @@ export async function POST(req: NextRequest) {
   try {
     const supabase = await createServerComponentClient()
     const { data: { user } } = await supabase.auth.getUser()
+
+    // Rate limiting for email sending
+    const identifier = getClientIdentifier(req, user?.id)
+    const rateLimitResponse = await applyRateLimit(req, rateLimiters.email, identifier)
+    if (rateLimitResponse) {
+      return rateLimitResponse
+    }
 
     const { subject, message } = await req.json()
 
@@ -21,13 +31,21 @@ export async function POST(req: NextRequest) {
     const userEmail = user?.email || 'Not provided'
     const userId = user?.id || 'Anonymous'
 
+    // Sanitize user inputs
+    const window = new JSDOM('').window
+    const purify = DOMPurify(window)
+    
+    const sanitizedSubject = purify.sanitize(subject)
+    const sanitizedMessage = purify.sanitize(message.replace(/\n/g, '<br>'))
+    const sanitizedUserEmail = purify.sanitize(userEmail)
+    
     const emailContent = `
       <h2>New Support Request</h2>
-      <p><strong>From:</strong> ${userEmail}</p>
+      <p><strong>From:</strong> ${sanitizedUserEmail}</p>
       <p><strong>User ID:</strong> ${userId}</p>
-      <p><strong>Subject:</strong> ${subject}</p>
+      <p><strong>Subject:</strong> ${sanitizedSubject}</p>
       <h3>Message:</h3>
-      <p>${message.replace(/\n/g, '<br>')}</p>
+      <p>${sanitizedMessage}</p>
     `
 
     const { data, error } = await resend.emails.send({

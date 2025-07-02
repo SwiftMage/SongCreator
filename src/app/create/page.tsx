@@ -511,13 +511,22 @@ export default function CreateSongPage() {
 
       if (error) throw error
 
-      // Deduct credit
-      await supabase
-        .from('profiles')
-        .update({
-          credits_remaining: profileData.credits_remaining - 1
+      // Deduct credit using secure API endpoint
+      const creditResponse = await fetch('/api/deduct-credit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          songId: data.id,
+          reason: 'Song creation'
         })
-        .eq('id', user.id)
+      })
+
+      if (!creditResponse.ok) {
+        throw new Error('Failed to deduct credit')
+      }
 
       console.log('Created song with ID:', data.id)
       

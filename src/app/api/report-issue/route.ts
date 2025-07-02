@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerComponentClient } from '@/lib/supabase/server'
 import { Resend } from 'resend'
+import DOMPurify from 'dompurify'
+import { JSDOM } from 'jsdom'
+import { sanitizeError, logSecureError } from '@/lib/error-handler'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -92,7 +95,11 @@ export async function POST(request: NextRequest) {
       </ul>
       
       <h3>Issue Description:</h3>
-      <p>${issueDescription.replace(/\n/g, '<br>')}</p>
+      <p>${(() => {
+        const window = new JSDOM('').window
+        const purify = DOMPurify(window)
+        return purify.sanitize(issueDescription.replace(/\n/g, '<br>'))
+      })()}</p>
       
       <h3>Song Data:</h3>
       <details>
@@ -133,10 +140,9 @@ export async function POST(request: NextRequest) {
     })
 
     if (emailError) {
-      console.error('Error sending email:', emailError)
-      console.error('Email error details:', JSON.stringify(emailError, null, 2))
+      logSecureError('Email sending failed', emailError, { userId: user.id, songId })
       return NextResponse.json(
-        { error: `Failed to send report: ${emailError.message || 'Unknown error'}` },
+        { error: sanitizeError(emailError, 'Failed to send report') },
         { status: 500 }
       )
     }
@@ -147,9 +153,9 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error processing issue report:', error)
+    logSecureError('Issue report processing failed', error)
     return NextResponse.json(
-      { error: 'Failed to process issue report' },
+      { error: sanitizeError(error, 'Failed to process issue report') },
       { status: 500 }
     )
   }

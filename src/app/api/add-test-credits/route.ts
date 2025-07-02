@@ -1,8 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { secureCreditManager, secureDatabase, getClientIP } from '@/lib/secure-database'
+import { sanitizeError, logSecureError } from '@/lib/error-handler'
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting check
+    const clientIP = getClientIP(request)
+    const isAllowed = await secureDatabase.checkRateLimit(null, clientIP, 'admin_operations')
+    
+    if (!isAllowed) {
+      await secureDatabase.logSecurityEvent(
+        null,
+        'RATE_LIMIT_EXCEEDED',
+        'MEDIUM',
+        'Rate limit exceeded for admin credit operation',
+        { endpoint: 'add-test-credits', ip: clientIP }
+      )
+      return NextResponse.json(
+        { error: 'Rate limit exceeded. Please try again later.' },
+        { status: 429 }
+      )
+    }
+
     const { userId } = await request.json()
     
     if (!userId) {
@@ -12,51 +31,44 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Create Supabase client with service role key for admin operations
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    // Validate UUID format
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+    if (!uuidRegex.test(userId)) {
+      return NextResponse.json(
+        { error: 'Invalid user ID format' },
+        { status: 400 }
+      )
+    }
+
+    // Use secure credit manager
+    const result = await secureCreditManager.addCredits(userId, 10, 'Test credits added via API')
+
+    if (!result.success) {
+      return NextResponse.json(
+        { error: result.error },
+        { status: 400 }
+      )
+    }
+
+    // Log successful operation
+    await secureDatabase.logSecurityEvent(
+      userId,
+      'DATA_EXPORT_LARGE', // Using closest available enum value
+      'LOW',
+      'Test credits added successfully',
+      { credits_added: 10, new_balance: result.newBalance }
     )
-
-    // Add 10 credits for testing
-    const creditsToAdd = 10
-    
-    // Get current credits
-    const { data: profile, error: fetchError } = await supabase
-      .from('profiles')
-      .select('credits_remaining')
-      .eq('id', userId)
-      .single()
-
-    if (fetchError) {
-      console.error('Error fetching profile:', fetchError)
-      throw fetchError
-    }
-
-    const currentCredits = profile?.credits_remaining || 0
-    const newCredits = currentCredits + creditsToAdd
-
-    // Update credits
-    const { error: updateError } = await supabase
-      .from('profiles')
-      .update({ credits_remaining: newCredits })
-      .eq('id', userId)
-
-    if (updateError) {
-      console.error('Error updating credits:', updateError)
-      throw updateError
-    }
 
     return NextResponse.json({
       success: true,
-      message: `Added ${creditsToAdd} test credits. You now have ${newCredits} credits.`,
-      newCredits
+      message: `Added 10 test credits. You now have ${result.newBalance} credits.`,
+      newCredits: result.newBalance
     })
 
   } catch (error) {
-    console.error('Error adding test credits:', error)
+    logSecureError('Failed to add test credits', error)
     return NextResponse.json(
-      { error: 'Failed to add test credits' },
+      { error: sanitizeError(error, 'Failed to add test credits') },
       { status: 500 }
     )
   }
