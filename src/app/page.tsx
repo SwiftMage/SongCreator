@@ -17,7 +17,7 @@ const demoSongs = [
     genre: "Romantic",
     occasion: "Anniversary",
     audioUrl: "/demo-songs/forever-yours.mp3",
-    image: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=300&h=300&fit=crop&crop=center",
+    image: "/images/forever-yours.jpg",
     duration: "3:12"
   },
   {
@@ -27,7 +27,7 @@ const demoSongs = [
     genre: "Folk",
     occasion: "Friendship",
     audioUrl: "/demo-songs/friend-like-you.mp3",
-    image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=300&h=300&fit=crop&crop=center",
+    image: "/images/friend-like-you.jpg",
     duration: "2:58"
   },
   {
@@ -37,7 +37,7 @@ const demoSongs = [
     genre: "Pop",
     occasion: "Birthday",
     audioUrl: "/demo-songs/birthday-surprise.mp3",
-    image: "https://images.unsplash.com/photo-1464207687429-7505649dae38?w=300&h=300&fit=crop&crop=center",
+    image: "/images/birthday-surprise.jpg",
     duration: "2:45"
   },
   {
@@ -47,7 +47,7 @@ const demoSongs = [
     genre: "Upbeat",
     occasion: "Celebration",
     audioUrl: "/demo-songs/graduation-day.mp3",
-    image: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=300&h=300&fit=crop&crop=center",
+    image: "/images/graduation-day.jpg",
     duration: "3:24"
   },
   {
@@ -57,7 +57,7 @@ const demoSongs = [
     genre: "Country",
     occasion: "Mother's Day",
     audioUrl: "/demo-songs/moms-love.mp3",
-    image: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=300&h=300&fit=crop&crop=center",
+    image: "/images/moms-love.jpg",
     duration: "2:36"
   },
   {
@@ -67,7 +67,7 @@ const demoSongs = [
     genre: "Classical",
     occasion: "Wedding",
     audioUrl: "/demo-songs/wedding-waltz.mp3",
-    image: "https://images.unsplash.com/photo-1469371670807-013ccf25f16a?w=300&h=300&fit=crop&crop=center",
+    image: "/images/wedding-waltz.jpg",
     duration: "4:15"
   },
   {
@@ -77,7 +77,7 @@ const demoSongs = [
     genre: "Rock",
     occasion: "Father's Day",
     audioUrl: "/demo-songs/my-hero-dad.mp3",
-    image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=300&h=300&fit=crop&crop=center",
+    image: "/images/my-hero-dad.jpg",
     duration: "3:08"
   }
 ]
@@ -639,7 +639,7 @@ export default function Home() {
                 <span className="text-5xl font-bold text-gray-900 dark:text-white">$9</span>
                 <span className="text-2xl font-bold text-gray-500 dark:text-gray-400">.99</span>
               </div>
-              <p className="text-sm text-gray-500 dark:text-gray-500 mb-6">5 credits • $2.00 per credit</p>
+              <p className="text-sm text-gray-500 dark:text-gray-500 mb-6">5 credits</p>
               
               <ul className="space-y-4 mb-8">
                 <li className="flex items-start gap-3">
@@ -691,7 +691,7 @@ export default function Home() {
                 <span className="text-5xl font-bold bg-gradient-to-r from-[#00f5ff] via-[#ff006e] to-[#8338ec] bg-clip-text text-transparent">$24</span>
                 <span className="text-2xl font-bold text-gray-500 dark:text-gray-400">.99</span>
               </div>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">15 credits • $1.67 per credit</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">15 credits</p>
               
               <ul className="space-y-4 mb-8">
                 <li className="flex items-start gap-3">
@@ -712,7 +712,7 @@ export default function Home() {
                 </li>
                 <li className="flex items-start gap-3">
                   <Sparkles className="h-5 w-5 text-[#ff006e] mt-0.5 flex-shrink-0" />
-                  <span className="font-semibold text-gray-900 dark:text-white">Save 17% per credit</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">Save 17%</span>
                 </li>
               </ul>
               
@@ -744,7 +744,7 @@ export default function Home() {
                 <span className="text-5xl font-bold text-gray-900 dark:text-white">$39</span>
                 <span className="text-2xl font-bold text-gray-500 dark:text-gray-400">.99</span>
               </div>
-              <p className="text-sm text-gray-500 dark:text-gray-500 mb-6">30 credits • $1.33 per credit</p>
+              <p className="text-sm text-gray-500 dark:text-gray-500 mb-6">30 credits</p>
               
               <ul className="space-y-4 mb-8">
                 <li className="flex items-start gap-3">
@@ -765,7 +765,7 @@ export default function Home() {
                 </li>
                 <li className="flex items-start gap-3">
                   <Sparkles className="h-5 w-5 text-[#ff006e] mt-0.5 flex-shrink-0" />
-                  <span className="font-semibold text-gray-900 dark:text-white">Save 33% per credit</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">Save 33%</span>
                 </li>
               </ul>
               
