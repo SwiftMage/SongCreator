@@ -34,14 +34,10 @@ export async function POST(request: NextRequest) {
     console.log('API Key length:', process.env.MUREKA_API_KEY?.length)
 
     // Prepare the request payload for Mureka API with supported parameters only
-    const payload: { lyrics: any; prompt: any; model?: string } = {
+    const payload: { lyrics: any; prompt: any; model: string } = {
       lyrics: lyrics,
-      prompt: style || "pop, upbeat, modern"
-    }
-    
-    // Only add model if explicitly provided (to avoid potential issues with default)
-    if (model) {
-      payload.model = model
+      prompt: style || "pop, upbeat, modern",
+      model: model || "mureka-v6"
     }
 
     console.log('Mureka API Request:', JSON.stringify(payload, null, 2))
