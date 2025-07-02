@@ -520,6 +520,14 @@ function GeneratingSongPage() {
       stylePrompt += stylePrompt ? `, ${formData.energy} energy` : `${formData.energy} energy`
     }
     
+    if (formData.instruments?.length > 0) {
+      stylePrompt += stylePrompt ? `, ${formData.instruments.join(', ')}` : formData.instruments.join(', ')
+    }
+    
+    if (formData.customInstruments?.length > 0) {
+      stylePrompt += stylePrompt ? `, ${formData.customInstruments.join(', ')}` : formData.customInstruments.join(', ')
+    }
+    
     if (formData.otherStyle) {
       stylePrompt += stylePrompt ? `, ${formData.otherStyle}` : `${formData.otherStyle}`
     }
@@ -810,6 +818,14 @@ function GeneratingSongPage() {
       
       if (formData.energy) {
         stylePrompt += stylePrompt ? `, ${formData.energy} energy` : `${formData.energy} energy`
+      }
+      
+      if (formData.instruments?.length > 0) {
+        stylePrompt += stylePrompt ? `, ${formData.instruments.join(', ')}` : formData.instruments.join(', ')
+      }
+      
+      if (formData.customInstruments?.length > 0) {
+        stylePrompt += stylePrompt ? `, ${formData.customInstruments.join(', ')}` : formData.customInstruments.join(', ')
       }
 
       if (formData.otherStyle) {
