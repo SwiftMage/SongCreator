@@ -347,7 +347,7 @@ function GeneratingSongPage() {
         setGenerationStatus({
           status: 'completed',
           progress: 100,
-          message: 'Your song is ready!'
+          message: 'Your lyrics are ready!'
         })
         return
       }
@@ -402,7 +402,7 @@ function GeneratingSongPage() {
       setGenerationStatus({
         status: 'completed',
         progress: 100,
-        message: 'Your song is ready!'
+        message: 'Your lyrics are ready!'
       })
 
     } catch (error) {
@@ -574,7 +574,7 @@ function GeneratingSongPage() {
         backup_audio_url: dummyBackupUrl,
         mureka_data: {
           taskId: 'test-task-123',
-          model: debugMode && customModel ? customModel : 'test-model',
+          model: (debugMode && customModel.trim()) ? customModel.trim() : 'mureka-v3',
           audioVariations: [
             {
               index: 0,
@@ -760,7 +760,7 @@ function GeneratingSongPage() {
         lyrics: generatedLyrics,
         songId: songId,
         style: stylePrompt,
-        ...(debugMode && customModel.trim() ? { model: customModel.trim() } : {})
+        model: (debugMode && customModel.trim()) ? customModel.trim() : 'mureka-v3'
       }
       
       // Log what we're sending for debugging
@@ -1167,11 +1167,11 @@ Check it out 🔥👇
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-              {generationStatus.status === 'completed' ? 'Your Song is Ready!' : 'Generating Your Song'}
+              {generationStatus.status === 'completed' ? 'Your Lyrics Are Ready!' : 'Generating Your Song'}
             </h1>
             <p className="text-gray-600 dark:text-gray-400">
               {generationStatus.status === 'completed' 
-                ? 'Your personalized song has been created successfully!' 
+                ? 'Review your personalized lyrics below, then generate the music when ready!' 
                 : 'Please wait while we create your personalized song...'}
             </p>
           </div>
@@ -1384,23 +1384,35 @@ Check it out 🔥👇
               )}
               
               {generationStatus.status === 'completed' && !isEditingLyrics && (
-                <div className="mt-6 flex space-x-4 flex-wrap">
-                  <button
-                    onClick={() => {
-                      if (hasGeneratedMusic) {
-                        if (confirm('This will use 1 credit to modify your song. Continue?')) {
+                <>
+                  {/* Next Step Section */}
+                  <div className="mt-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-6">
+                    <h4 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2">
+                      🎵 Ready for the next step?
+                    </h4>
+                    <p className="text-blue-800 dark:text-blue-200 mb-4">
+                      Your lyrics look great! Now let's turn them into an actual song with music. This usually takes about 1 minute.
+                    </p>
+                    <button
+                      onClick={() => {
+                        if (hasGeneratedMusic) {
+                          if (confirm('This will use 1 credit to modify your song. Continue?')) {
+                            generateMusic()
+                          }
+                        } else {
                           generateMusic()
                         }
-                      } else {
-                        generateMusic()
-                      }
-                    }}
-                    disabled={musicStatus.status === 'generating'}
-                    className="px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 disabled:bg-gray-300 disabled:text-gray-500 transition-colors"
-                  >
-                    <Volume2 className="h-5 w-5 inline mr-2" />
-                    {musicStatus.status === 'generating' ? 'Generating Music...' : hasGeneratedMusic ? 'Regenerate Music (1 credit)' : 'Generate Music'}
-                  </button>
+                      }}
+                      disabled={musicStatus.status === 'generating'}
+                      className="px-8 py-4 bg-purple-600 text-white rounded-lg font-bold text-lg hover:bg-purple-700 disabled:bg-gray-300 disabled:text-gray-500 transition-colors flex items-center space-x-3"
+                    >
+                      <Volume2 className="h-6 w-6" />
+                      <span>{musicStatus.status === 'generating' ? 'Generating Music...' : hasGeneratedMusic ? 'Regenerate Music (1 credit)' : 'Generate Music Now'}</span>
+                    </button>
+                  </div>
+                  
+                  {/* Additional Options */}
+                  <div className="mt-6 flex space-x-4 flex-wrap">
                   <button
                     onClick={() => {
                       if (hasGeneratedMusic) {
@@ -1433,6 +1445,7 @@ Check it out 🔥👇
                     Copy Lyrics
                   </button>
                 </div>
+                </>
               )}
             </div>
           )}
