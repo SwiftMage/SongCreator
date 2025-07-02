@@ -498,6 +498,70 @@ function GeneratingSongPage() {
     }, 1000)
   }
 
+  const previewMurekaRequest = () => {
+    if (!generatedLyrics || !songData) {
+      alert('No lyrics available for preview')
+      return
+    }
+
+    // Generate style prompt from song data
+    const formData = songData.questionnaire_data
+    let stylePrompt = ''
+    
+    if (formData.genres?.length > 0) {
+      stylePrompt += formData.genres.join(', ')
+    }
+    
+    if (formData.singer) {
+      stylePrompt += stylePrompt ? `, ${formData.singer} vocal` : `${formData.singer} vocal`
+    }
+    
+    if (formData.energy) {
+      stylePrompt += stylePrompt ? `, ${formData.energy} energy` : `${formData.energy} energy`
+    }
+    
+    if (formData.otherStyle) {
+      stylePrompt += stylePrompt ? `, ${formData.otherStyle}` : `${formData.otherStyle}`
+    }
+
+    if (!stylePrompt) {
+      stylePrompt = 'pop, modern'
+    }
+
+    // Clean lyrics of potentially problematic characters (matching backend logic)
+    const cleanedLyrics = generatedLyrics.replace(/⸻/g, '---').replace(/[^\x00-\x7F]/g, '')
+
+    const previewRequest = {
+      lyrics: cleanedLyrics,
+      prompt: stylePrompt,
+      model: (debugMode && customModel.trim()) ? customModel.trim() : 'auto'
+    }
+
+    // Show the preview in a modal or alert
+    const previewText = `Mureka API Request Preview:\n\n${JSON.stringify(previewRequest, null, 2)}\n\nNote: This is what will be sent to Mureka's API. The 'songId' is not sent to Mureka.`
+    
+    // Create a modal to show the preview
+    const modal = document.createElement('div')
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4'
+    modal.onclick = (e) => {
+      if (e.target === modal) {
+        document.body.removeChild(modal)
+      }
+    }
+    
+    const content = document.createElement('div')
+    content.className = 'bg-white dark:bg-gray-800 rounded-lg p-6 max-w-3xl w-full max-h-[80vh] overflow-auto'
+    content.innerHTML = `
+      <h3 class="text-lg font-bold mb-4 text-gray-900 dark:text-white">Mureka API Request Preview</h3>
+      <pre class="bg-gray-100 dark:bg-gray-900 p-4 rounded-lg overflow-x-auto text-sm font-mono text-gray-900 dark:text-gray-100">${JSON.stringify(previewRequest, null, 2)}</pre>
+      <p class="mt-4 text-sm text-gray-600 dark:text-gray-400">Note: This is what will be sent to Mureka's API. The 'songId' is not sent to Mureka.</p>
+      <button onclick="this.closest('.fixed').remove()" class="mt-4 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">Close</button>
+    `
+    
+    modal.appendChild(content)
+    document.body.appendChild(modal)
+  }
+
   const generateMusicTest = async () => {
     console.log('=== TEST GENERATE MUSIC CLICKED ===')
     console.log('Debug Mode:', debugMode)
@@ -1256,6 +1320,14 @@ Check it out 🔥👇
                   >
                     🛑 Stop All Requests
                   </button>
+                  {generatedLyrics && (
+                    <button
+                      onClick={previewMurekaRequest}
+                      className="w-full px-4 py-3 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition-colors"
+                    >
+                      👁️ Preview Mureka API Request
+                    </button>
+                  )}
                 </div>
               </div>
 
