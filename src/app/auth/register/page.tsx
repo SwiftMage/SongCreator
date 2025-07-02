@@ -40,6 +40,10 @@ export default function RegisterPage() {
     }
 
     try {
+      console.log('=== ATTEMPTING SIGNUP ===')
+      console.log('Email:', email)
+      console.log('Password length:', password.length)
+      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -50,18 +54,54 @@ export default function RegisterPage() {
         }
       })
 
+      console.log('SignUp response:', JSON.stringify({ data, error }, null, 2))
+
       if (error) {
+        console.log('Error detected:', error.message)
+        
+        // Handle rate limiting
+        if (error.message.includes('For security purposes, you can only request this after')) {
+          setError('You recently attempted to sign up with this email. Please wait a minute before trying again, or try signing in if you already have an account.')
+          return
+        }
+        
+        // Handle other specific errors
+        if (error.message.includes('User already registered') || 
+            error.message.includes('already registered') ||
+            error.message.includes('already exists')) {
+          setError('An account with this email already exists. Please try signing in instead.')
+          return
+        }
+        
         setError(error.message)
         return
       }
 
       if (data.user) {
-        setSuccess('Check your email for a verification link!')
+        console.log('User returned:', {
+          id: data.user.id,
+          email: data.user.email,
+          created_at: data.user.created_at,
+          email_confirmed_at: data.user.email_confirmed_at,
+          hasSession: !!data.session,
+          confirmation_sent_at: data.user.confirmation_sent_at
+        })
+        
+        // Check if confirmation email was sent
+        if (data.user.confirmation_sent_at) {
+          setSuccess('Check your email for a verification link!')
+        } else {
+          setSuccess('Account created! Please check your email for a verification link.')
+        }
+        
         // Clear form
         setFullName('')
         setEmail('')
         setPassword('')
         setConfirmPassword('')
+      } else {
+        console.log('Warning: No user returned from signup')
+        setError('Registration failed. Please try again.')
       }
     } catch {
       setError('An unexpected error occurred')

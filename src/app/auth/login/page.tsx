@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase'
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react'
 import Logo from '@/components/Logo'
 import DarkModeToggle from '@/components/DarkModeToggle'
+import DevResetLink from '@/components/DevResetLink'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -14,6 +15,11 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
+  const [showForgotPassword, setShowForgotPassword] = useState(false)
+  const [resetEmail, setResetEmail] = useState('')
+  const [showDevResetLink, setShowDevResetLink] = useState(false)
+  const [devResetLink, setDevResetLink] = useState('')
   const router = useRouter()
   const supabase = createClient()
 
@@ -36,6 +42,66 @@ export default function LoginPage() {
       if (data.user) {
         router.push('/dashboard')
       }
+    } catch {
+      setError('An unexpected error occurred')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
+    setError('')
+    setSuccess('')
+
+    try {
+      console.log('=== PASSWORD RESET REQUEST ===')
+      console.log('Email:', resetEmail)
+      console.log('Redirect URL:', `${window.location.origin}/auth/reset-password`)
+      
+      const { data, error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+        redirectTo: `${window.location.origin}/auth/reset-password`
+      })
+
+      console.log('Reset response:', { data, error })
+
+      if (error) {
+        console.error('Password reset error:', error)
+        
+        // In development, if email fails, show manual reset link
+        if (process.env.NODE_ENV === 'development' && error.message.includes('Error sending')) {
+          console.log('Email failed, generating manual reset link...')
+          
+          try {
+            // Generate a proper recovery link via API
+            const response = await fetch('/api/dev-reset-link', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email: resetEmail })
+            })
+            
+            if (response.ok) {
+              const { recoveryUrl } = await response.json()
+              setDevResetLink(recoveryUrl)
+              setShowDevResetLink(true)
+              setShowForgotPassword(false)
+              setError('')
+              return
+            }
+          } catch (err) {
+            console.error('Failed to generate dev reset link:', err)
+          }
+        }
+        
+        setError(error.message)
+        return
+      }
+
+      console.log('Password reset email sent successfully')
+      setSuccess('Password reset email sent! Check your inbox for further instructions.')
+      setResetEmail('')
+      setShowForgotPassword(false)
     } catch {
       setError('An unexpected error occurred')
     } finally {
@@ -83,13 +149,19 @@ export default function LoginPage() {
               </div>
             </div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Welcome back</h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-2">Sign in to create your custom songs</p>
           </div>
 
           {/* Error Message */}
           {error && (
             <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3 mb-6">
               <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
+            </div>
+          )}
+
+          {/* Success Message */}
+          {success && (
+            <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3 mb-6">
+              <p className="text-green-600 dark:text-green-400 text-sm">{success}</p>
             </div>
           )}
 
@@ -138,6 +210,21 @@ export default function LoginPage() {
               </div>
             </div>
 
+            {/* Forgot Password Link */}
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowForgotPassword(true)
+                  setError('')
+                  setSuccess('')
+                }}
+                className="text-sm text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300"
+              >
+                Forgot your password?
+              </button>
+            </div>
+
             <button
               type="submit"
               disabled={isLoading}
@@ -146,6 +233,68 @@ export default function LoginPage() {
               {isLoading ? 'Signing in...' : 'Sign in'}
             </button>
           </form>
+
+          {/* Forgot Password Form */}
+          {showForgotPassword && (
+            <div className="mt-6 p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 animate-slideDown">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white">Reset Password</h3>
+                <button
+                  onClick={() => {
+                    setShowForgotPassword(false)
+                    setResetEmail('')
+                    setError('')
+                    setSuccess('')
+                  }}
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                >
+                  ✕
+                </button>
+              </div>
+              
+              <form onSubmit={handleForgotPassword} className="space-y-4">
+                <div>
+                  <label htmlFor="resetEmail" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Email address
+                  </label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
+                    <input
+                      id="resetEmail"
+                      type="email"
+                      value={resetEmail}
+                      onChange={(e) => setResetEmail(e.target.value)}
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 dark:text-white dark:bg-gray-700 placeholder-gray-500 dark:placeholder-gray-400"
+                      placeholder="Enter your email"
+                      required
+                    />
+                  </div>
+                </div>
+                
+                <div className="flex space-x-3">
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="flex-1 bg-purple-600 text-white py-2 rounded-lg font-medium hover:bg-purple-700 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {isLoading ? 'Sending...' : 'Send Reset Email'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowForgotPassword(false)
+                      setResetEmail('')
+                      setError('')
+                      setSuccess('')
+                    }}
+                    className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
 
           {/* Divider */}
           <div className="my-6 flex items-center">
@@ -190,6 +339,17 @@ export default function LoginPage() {
           </p>
         </div>
       </div>
+      
+      {/* Development Reset Link Modal */}
+      {showDevResetLink && (
+        <DevResetLink
+          resetLink={devResetLink}
+          onClose={() => {
+            setShowDevResetLink(false)
+            setDevResetLink('')
+          }}
+        />
+      )}
     </div>
   )
 }

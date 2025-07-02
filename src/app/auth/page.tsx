@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import Logo from '@/components/Logo'
 import DarkModeToggle from '@/components/DarkModeToggle'
+import DevResetLink from '@/components/DevResetLink'
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react'
 
 export default function AuthPage() {
@@ -18,6 +19,10 @@ export default function AuthPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  const [showForgotPassword, setShowForgotPassword] = useState(false)
+  const [resetEmail, setResetEmail] = useState('')
+  const [showDevResetLink, setShowDevResetLink] = useState(false)
+  const [devResetLink, setDevResetLink] = useState('')
   const router = useRouter()
   const supabase = createClient()
 
@@ -42,22 +47,74 @@ export default function AuthPage() {
       }
 
       try {
+        console.log('Attempting signup...')
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
         })
 
+        console.log('SignUp response:', JSON.stringify({ data, error }, null, 2))
+
         if (error) {
+          console.log('Error detected:', error.message)
+          
+          // Handle rate limiting
+          if (error.message.includes('For security purposes, you can only request this after')) {
+            setError('You recently attempted to sign up with this email. Please wait a minute before trying again, or try signing in if you already have an account.')
+            return
+          }
+          
+          // Handle other specific errors
+          if (error.message.includes('User already registered') || 
+              error.message.includes('already registered') ||
+              error.message.includes('already exists')) {
+            setError('An account with this email already exists. Please try signing in instead.')
+            return
+          }
+          
           setError(error.message)
           return
         }
 
         if (data.user) {
-          setSuccess('Check your email for a verification link!')
+          console.log('User returned:', {
+            id: data.user.id,
+            email: data.user.email,
+            created_at: data.user.created_at,
+            email_confirmed_at: data.user.email_confirmed_at,
+            hasSession: !!data.session,
+            confirmation_sent_at: data.user.confirmation_sent_at
+          })
+          
+          // Simple duplicate check: if user exists but no session and not confirmed
+          // and was created more than 1 minute ago, it's likely a duplicate
+          if (!data.session && !data.user.email_confirmed_at && data.user.created_at) {
+            const userCreatedTime = new Date(data.user.created_at).getTime()
+            const now = Date.now()
+            const timeDiff = now - userCreatedTime
+            
+            console.log('Time since user creation:', timeDiff, 'ms')
+            
+            if (timeDiff > 60000) { // 1 minute
+              setError('An account with this email already exists but is not verified. Please check your email for the verification link or try signing in.')
+              return
+            }
+          }
+          
+          // Check if confirmation email was sent
+          if (data.user.confirmation_sent_at) {
+            setSuccess('Check your email for a verification link!')
+          } else {
+            setSuccess('Account created! Please check your email for a verification link.')
+          }
+          
           // Clear form
           setEmail('')
           setPassword('')
           setConfirmPassword('')
+        } else {
+          console.log('Warning: No user returned from signup')
+          setError('Registration failed. Please try again.')
         }
       } catch {
         setError('An unexpected error occurred')
@@ -85,6 +142,66 @@ export default function AuthPage() {
       } finally {
         setIsLoading(false)
       }
+    }
+  }
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
+    setError('')
+    setSuccess('')
+
+    try {
+      console.log('=== PASSWORD RESET REQUEST ===')
+      console.log('Email:', resetEmail)
+      console.log('Redirect URL:', `${window.location.origin}/auth/reset-password`)
+      
+      const { data, error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+        redirectTo: `${window.location.origin}/auth/reset-password`
+      })
+
+      console.log('Reset response:', { data, error })
+
+      if (error) {
+        console.error('Password reset error:', error)
+        
+        // In development, if email fails, show manual reset link
+        if (process.env.NODE_ENV === 'development' && error.message.includes('Error sending')) {
+          console.log('Email failed, generating manual reset link...')
+          
+          try {
+            // Generate a proper recovery link via API
+            const response = await fetch('/api/dev-reset-link', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email: resetEmail })
+            })
+            
+            if (response.ok) {
+              const { recoveryUrl } = await response.json()
+              setDevResetLink(recoveryUrl)
+              setShowDevResetLink(true)
+              setShowForgotPassword(false)
+              setError('')
+              return
+            }
+          } catch (err) {
+            console.error('Failed to generate dev reset link:', err)
+          }
+        }
+        
+        setError(error.message)
+        return
+      }
+
+      console.log('Password reset email sent successfully')
+      setSuccess('Password reset email sent! Check your inbox for further instructions.')
+      setResetEmail('')
+      setShowForgotPassword(false)
+    } catch {
+      setError('An unexpected error occurred')
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -135,9 +252,6 @@ export default function AuthPage() {
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
               {mode === 'signup' ? 'Create your account' : 'Welcome back'}
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-2">
-              {mode === 'signup' ? 'Start creating custom songs today' : 'Sign in to create your custom songs'}
-            </p>
           </div>
 
           {/* Error Message */}
@@ -227,6 +341,23 @@ export default function AuthPage() {
               </div>
             )}
 
+            {/* Forgot Password Link - only show in signin mode */}
+            {mode === 'signin' && (
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowForgotPassword(true)
+                    setError('')
+                    setSuccess('')
+                  }}
+                  className="text-sm text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300"
+                >
+                  Forgot your password?
+                </button>
+              </div>
+            )}
+
             <button
               type="submit"
               disabled={isLoading}
@@ -235,6 +366,68 @@ export default function AuthPage() {
               {isLoading ? (mode === 'signup' ? 'Creating account...' : 'Signing in...') : (mode === 'signup' ? 'Create account' : 'Sign in')}
             </button>
           </form>
+
+          {/* Forgot Password Form */}
+          {showForgotPassword && (
+            <div className="mt-6 p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 animate-slideDown">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white">Reset Password</h3>
+                <button
+                  onClick={() => {
+                    setShowForgotPassword(false)
+                    setResetEmail('')
+                    setError('')
+                    setSuccess('')
+                  }}
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                >
+                  ✕
+                </button>
+              </div>
+              
+              <form onSubmit={handleForgotPassword} className="space-y-4">
+                <div>
+                  <label htmlFor="resetEmail" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Email address
+                  </label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
+                    <input
+                      id="resetEmail"
+                      type="email"
+                      value={resetEmail}
+                      onChange={(e) => setResetEmail(e.target.value)}
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 dark:text-white dark:bg-gray-700 placeholder-gray-500 dark:placeholder-gray-400"
+                      placeholder="Enter your email"
+                      required
+                    />
+                  </div>
+                </div>
+                
+                <div className="flex space-x-3">
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="flex-1 bg-purple-600 text-white py-2 rounded-lg font-medium hover:bg-purple-700 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {isLoading ? 'Sending...' : 'Send Reset Email'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowForgotPassword(false)
+                      setResetEmail('')
+                      setError('')
+                      setSuccess('')
+                    }}
+                    className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
 
           {/* Divider */}
           <div className="my-6 flex items-center">
@@ -283,6 +476,17 @@ export default function AuthPage() {
           </p>
         </div>
       </div>
+      
+      {/* Development Reset Link Modal */}
+      {showDevResetLink && (
+        <DevResetLink
+          resetLink={devResetLink}
+          onClose={() => {
+            setShowDevResetLink(false)
+            setDevResetLink('')
+          }}
+        />
+      )}
     </div>
   )
 }
