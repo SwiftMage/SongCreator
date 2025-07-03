@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
+import { ensureUserProfile } from '@/lib/profile-utils'
 import Logo from '@/components/Logo'
 import DarkModeToggle from '@/components/DarkModeToggle'
 import DevResetLink from '@/components/DevResetLink'
@@ -24,7 +25,17 @@ export default function AuthPage() {
   const [showDevResetLink, setShowDevResetLink] = useState(false)
   const [devResetLink, setDevResetLink] = useState('')
   const router = useRouter()
+  const searchParams = useSearchParams()
   const supabase = createClient()
+
+  // Check for URL messages on component mount
+  useEffect(() => {
+    const message = searchParams.get('message')
+    if (message === 'profile_setup_required') {
+      setError('Your profile setup is incomplete. Please log in again to complete the setup process.')
+      setMode('signin') // Switch to signin mode
+    }
+  }, [searchParams])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -135,6 +146,15 @@ export default function AuthPage() {
         }
 
         if (data.user) {
+          // Ensure user has a profile before redirecting
+          const profileResult = await ensureUserProfile(data.user)
+          
+          if (!profileResult.success) {
+            setError(`Profile setup failed: ${profileResult.error}. Please try again or contact support.`)
+            return
+          }
+
+          console.log('User signed in successfully with profile:', profileResult.profile?.id)
           router.push('/dashboard')
         }
       } catch {

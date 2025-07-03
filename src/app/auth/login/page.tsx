@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
+import { ensureUserProfile } from '@/lib/profile-utils'
 import { Mail, Lock, Eye, EyeOff, X } from 'lucide-react'
 import Logo from '@/components/Logo'
 import DarkModeToggle from '@/components/DarkModeToggle'
@@ -40,6 +41,15 @@ export default function LoginPage() {
       }
 
       if (data.user) {
+        // Ensure user has a profile before redirecting
+        const profileResult = await ensureUserProfile(data.user)
+        
+        if (!profileResult.success) {
+          setError(`Profile setup failed: ${profileResult.error}. Please try again or contact support.`)
+          return
+        }
+
+        console.log('User logged in successfully with profile:', profileResult.profile?.id)
         router.push('/dashboard')
       }
     } catch {

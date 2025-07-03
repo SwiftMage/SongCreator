@@ -28,42 +28,19 @@ export async function POST(request: Request) {
     }
 
     // Get user profile to check for existing subscription
-    let { data: profile, error: profileError } = await supabase
+    const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('stripe_customer_id, stripe_subscription_id, email, credits_remaining')
+      .select('stripe_customer_id, stripe_subscription_id, email')
       .eq('id', user.id)
       .single();
 
-    // If profile doesn't exist, try to create it automatically
-    if (profileError && profileError.code === 'PGRST116') {
-      console.log('Profile not found, creating automatically for user:', user.id);
-      
-      try {
-        const { data: newProfile, error: createError } = await supabase
-          .from('profiles')
-          .insert({
-            id: user.id,
-            full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
-            email: user.email,
-            subscription_status: 'free',
-            credits_remaining: 0
-          })
-          .select('stripe_customer_id, stripe_subscription_id, email, credits_remaining')
-          .single();
-
-        if (createError) {
-          console.error('Failed to create user profile:', createError);
-          return NextResponse.json({ error: 'Failed to create user profile' }, { status: 500 });
-        }
-
-        profile = newProfile;
-        console.log('Successfully created profile for user:', user.id);
-      } catch (createErr) {
-        console.error('Error creating profile:', createErr);
-        return NextResponse.json({ error: 'Failed to create user profile' }, { status: 500 });
-      }
-    } else if (profileError) {
+    if (profileError) {
       console.error('Failed to get user profile:', profileError);
+      if (profileError.code === 'PGRST116') {
+        return NextResponse.json({ 
+          error: 'User profile not found. Please log out and log back in to complete your profile setup.' 
+        }, { status: 404 });
+      }
       return NextResponse.json({ error: 'User profile error' }, { status: 500 });
     }
 
