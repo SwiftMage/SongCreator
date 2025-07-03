@@ -123,11 +123,32 @@ export default function DashboardPage() {
     if (profileError) {
       console.error('Error fetching profile:', profileError)
       // Profile should be created automatically by the database trigger
-      // If it doesn't exist, the user might need to re-authenticate
+      // If it doesn't exist, try to create it automatically
       if (profileError.code === 'PGRST116') {
-        console.warn('Profile not found - this should be created automatically. User may need to re-authenticate.')
-        // Optionally redirect to re-authenticate
-        // router.push('/auth?message=profile_missing')
+        console.warn('Profile not found - creating automatically for user:', userId)
+        
+        try {
+          const { data: newProfile, error: createError } = await supabase
+            .from('profiles')
+            .insert({
+              id: userId,
+              full_name: user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User',
+              email: user?.email,
+              subscription_status: 'free',
+              credits_remaining: 0
+            })
+            .select('*')
+            .single()
+
+          if (createError) {
+            console.error('Failed to create user profile:', createError)
+          } else {
+            console.log('Successfully created profile for user:', userId)
+            setProfile(newProfile)
+          }
+        } catch (createErr) {
+          console.error('Error creating profile:', createErr)
+        }
       }
     } else if (profileData) {
       setProfile(profileData)
