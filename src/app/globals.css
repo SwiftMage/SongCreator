@@ -47,9 +47,25 @@
   }
 }
 
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* Animation class for slide down effect */
 .animate-slideDown {
   animation: slideDown 0.6s ease-out forwards;
+}
+
+/* Animation class for fade in effect */
+.animate-fadeIn {
+  animation: fadeIn 0.5s ease-out forwards;
 }
 
 :root {
@@ -85,8 +101,23 @@ body {
   }
 }
 
+@keyframes fade-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
 .animate-fade-in {
   animation: fade-in 0.3s ease-out;
+}
+
+.animate-fade-out {
+  animation: fade-out 0.3s ease-out forwards;
 }
 
 /* Loading pulse animation */

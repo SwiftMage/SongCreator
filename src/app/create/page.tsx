@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase'
 import Logo from '@/components/Logo'
 import DarkModeToggle from '@/components/DarkModeToggle'
 import { createCheckoutSession } from '@/lib/stripe'
+import { getOccasionPreset, hasOccasionPreset } from '@/config/occasionPresets'
 import { 
   Music, 
   ArrowLeft, 
@@ -28,7 +29,9 @@ import {
   Diamond,
   GraduationCap,
   CreditCard,
-  Loader2
+  Loader2,
+  RotateCcw,
+  Info
 } from 'lucide-react'
 
 interface SongFormData {
@@ -107,6 +110,10 @@ export default function CreateSongPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showConfirmation, setShowConfirmation] = useState(false)
   const [isCheckoutLoading, setIsCheckoutLoading] = useState<'single' | 'bundle3' | null>(null)
+  const [showPresetNotification, setShowPresetNotification] = useState(false)
+  const [isNotificationFading, setIsNotificationFading] = useState(false)
+  const [appliedPresetFor, setAppliedPresetFor] = useState<string | null>(null)
+  const [notificationTimeout, setNotificationTimeout] = useState<NodeJS.Timeout | null>(null)
   const [formData, setFormData] = useState<SongFormData>({
     subjectName: '',
     relationship: '',
@@ -254,6 +261,15 @@ export default function CreateSongPage() {
     }
   }, [currentStep, formData, router])
 
+  // Cleanup notification timeout when component unmounts
+  useEffect(() => {
+    return () => {
+      if (notificationTimeout) {
+        clearTimeout(notificationTimeout)
+      }
+    }
+  }, [notificationTimeout])
+
   // Restore form data and current step after successful payment
   useEffect(() => {
     const savedFormData = sessionStorage.getItem('songFormData')
@@ -330,6 +346,70 @@ export default function CreateSongPage() {
       ...prev,
       [field]: prev[field].filter((_, i) => i !== index)
     }))
+  }
+
+  const dismissNotification = () => {
+    // Clear any existing timeout
+    if (notificationTimeout) {
+      clearTimeout(notificationTimeout)
+      setNotificationTimeout(null)
+    }
+    
+    setIsNotificationFading(true)
+    setTimeout(() => {
+      setShowPresetNotification(false)
+      setIsNotificationFading(false)
+    }, 300) // Wait for fade-out animation to complete
+  }
+
+  const applyOccasionPreset = (songType: string) => {
+    const preset = getOccasionPreset(songType)
+    if (preset && hasOccasionPreset(songType)) {
+      // Clear any existing timeout
+      if (notificationTimeout) {
+        clearTimeout(notificationTimeout)
+      }
+      
+      setFormData(prev => ({
+        ...prev,
+        genres: preset.genres,
+        instruments: preset.instruments,
+        singer: preset.singer,
+        energy: preset.energy,
+        customGenres: [], // Clear custom selections when applying preset
+        customInstruments: []
+      }))
+      setAppliedPresetFor(songType)
+      setShowPresetNotification(true)
+      setIsNotificationFading(false)
+      
+      // Hide notification after 7 seconds (longer for better UX)
+      const timeout = setTimeout(() => dismissNotification(), 7000)
+      setNotificationTimeout(timeout)
+    }
+  }
+
+  const resetToRecommended = () => {
+    if (formData.songType && hasOccasionPreset(formData.songType)) {
+      applyOccasionPreset(formData.songType)
+    }
+  }
+
+  const clearAllSelections = () => {
+    setFormData(prev => ({
+      ...prev,
+      genres: [],
+      instruments: [],
+      customGenres: [],
+      customInstruments: [],
+      singer: '',
+      energy: '',
+      otherStyle: ''
+    }))
+    setAppliedPresetFor(null)
+    if (showPresetNotification) {
+      dismissNotification()
+    }
   }
 
   const getOccasionPrompt = (songType: string) => {
@@ -713,7 +793,13 @@ export default function CreateSongPage() {
                   return (
                     <button
                       key={type.id}
-                      onClick={() => setFormData(prev => ({ ...prev, songType: type.id as any }))}
+                      onClick={() => {
+                        setFormData(prev => ({ ...prev, songType: type.id as any }))
+                        // Apply preset only if moving to the style step or if user is already past song type selection
+                        if (currentStep >= 4 || (currentStep === 2 && formData.songType !== type.id)) {
+                          applyOccasionPreset(type.id)
+                        }
+                      }}
                       className={`p-6 rounded-lg border-2 transition-all text-left ${
                         formData.songType === type.id
                           ? 'border-purple-600 bg-purple-50 dark:bg-purple-900/30 dark:border-purple-400'
@@ -1040,15 +1126,45 @@ export default function CreateSongPage() {
 
           {/* Song Style Step (for both own lyrics and AI lyrics) */}
           {((currentStep === 4 && formData.lyricsChoice === 'own') || currentStep === 5) && (
-            <SongStyleSection 
-              formData={formData}
-              setFormData={setFormData}
-              genres={genres}
-              instruments={instruments}
-              toggleStyleItem={toggleStyleItem}
-              addCustomItem={addCustomItem}
-              removeCustomItem={removeCustomItem}
-            />
+            <div data-song-style-section>
+              {/* Preset notification */}
+              {showPresetNotification && hasOccasionPreset(formData.songType) && (
+                <div className={`mb-4 bg-purple-50 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-700 rounded-lg p-4 flex items-start space-x-3 ${
+                  isNotificationFading ? 'animate-fade-out' : 'animate-fade-in'
+                }`}>
+                  <Info className="h-5 w-5 text-purple-600 dark:text-purple-400 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm text-purple-800 dark:text-purple-200">
+                      We've preselected some settings that work great for {songTypes.find(t => t.id === formData.songType)?.label || 'this type of song'}. 
+                      Feel free to customize them or use the "Reset to Recommended" button to restore our suggestions.
+                    </p>
+                  </div>
+                  <button
+                    onClick={dismissNotification}
+                    className="text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-200 transition-colors"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
+              
+              <SongStyleSection 
+                formData={formData}
+                setFormData={setFormData}
+                genres={genres}
+                instruments={instruments}
+                toggleStyleItem={toggleStyleItem}
+                addCustomItem={addCustomItem}
+                removeCustomItem={removeCustomItem}
+                resetToRecommended={resetToRecommended}
+                clearAllSelections={clearAllSelections}
+                hasOccasionPreset={hasOccasionPreset}
+              />
+              
+              {/* Hidden buttons for the component to trigger */}
+              <button data-reset-button className="hidden" onClick={resetToRecommended} />
+              <button data-clear-button className="hidden" onClick={clearAllSelections} />
+            </div>
           )}
 
           {/* Navigation */}
@@ -1065,13 +1181,21 @@ export default function CreateSongPage() {
             {currentStep < getTotalSteps() ? (
               <button
                 onClick={() => {
+                  let nextStep = currentStep + 1
+                  
                   // Skip steps based on lyrics choice
                   if (currentStep === 3 && formData.lyricsChoice === 'own') {
-                    setCurrentStep(4) // Go directly to style for own lyrics
+                    nextStep = 4 // Go directly to style for own lyrics
                   } else if (currentStep === 3 && formData.lyricsChoice === 'ai') {
-                    setCurrentStep(4) // Go to detailed info for AI lyrics
-                  } else {
-                    setCurrentStep(prev => prev + 1)
+                    nextStep = 4 // Go to detailed info for AI lyrics
+                  }
+                  
+                  setCurrentStep(nextStep)
+                  
+                  // Apply presets when reaching style step for the first time
+                  const isReachingStyleStep = (nextStep === 4 && formData.lyricsChoice === 'own') || nextStep === 5
+                  if (isReachingStyleStep && formData.songType && appliedPresetFor !== formData.songType) {
+                    applyOccasionPreset(formData.songType)
                   }
                 }}
                 disabled={!canProceed()}
@@ -1230,6 +1354,9 @@ interface SongStyleSectionProps {
   toggleStyleItem: (field: 'genres' | 'instruments', item: string) => void
   addCustomItem: (field: 'customGenres' | 'customInstruments', value: string) => void
   removeCustomItem: (field: 'customGenres' | 'customInstruments', index: number) => void
+  resetToRecommended?: () => void
+  clearAllSelections?: () => void
+  hasOccasionPreset?: (songType: string) => boolean
 }
 
 function CustomStyleSection({ title, items, onAdd, onRemove, placeholder }: CustomStyleSectionProps) {
@@ -1305,28 +1432,64 @@ function SongStyleSection({
 }: SongStyleSectionProps) {
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 animate-fade-in">
-      <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-        Choose your song style
-      </h2>
+      <div className="flex items-start justify-between mb-6">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+          Choose your song style
+        </h2>
+        {hasOccasionPreset(formData.songType) && (
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => {
+                const parent = document.querySelector('[data-song-style-section]')
+                const resetBtn = parent?.querySelector('[data-reset-button]') as HTMLButtonElement
+                if (resetBtn) resetBtn.click()
+              }}
+              className="flex items-center space-x-2 px-4 py-2 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-lg hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors text-sm font-medium"
+            >
+              <RotateCcw className="h-4 w-4" />
+              <span>Reset to Recommended</span>
+            </button>
+            <button
+              onClick={() => {
+                const parent = document.querySelector('[data-song-style-section]')
+                const clearBtn = parent?.querySelector('[data-clear-button]') as HTMLButtonElement
+                if (clearBtn) clearBtn.click()
+              }}
+              className="flex items-center space-x-2 px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm font-medium"
+            >
+              <X className="h-4 w-4" />
+              <span>Clear All</span>
+            </button>
+          </div>
+        )}
+      </div>
       
       <div className="space-y-6">
         {/* Genre Selection Group */}
         <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-5 bg-gray-50 dark:bg-gray-700">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Genre</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-            {genres.map((genre) => (
-              <button
-                key={genre}
-                onClick={() => toggleStyleItem('genres', genre)}
-                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  formData.genres.includes(genre)
-                    ? 'bg-purple-600 text-white'
-                    : 'bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500 border border-gray-300 dark:border-gray-500'
-                }`}
-              >
-                {genre}
-              </button>
-            ))}
+            {genres.map((genre) => {
+              const preset = getOccasionPreset(formData.songType)
+              const isRecommended = preset && preset.genres.includes(genre)
+              
+              return (
+                <button
+                  key={genre}
+                  onClick={() => toggleStyleItem('genres', genre)}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors relative ${
+                    formData.genres.includes(genre)
+                      ? 'bg-purple-600 text-white'
+                      : 'bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500 border border-gray-300 dark:border-gray-500'
+                  }`}
+                >
+                  {genre}
+                  {isRecommended && (
+                    <span className="absolute -top-1 -right-1 w-2 h-2 bg-purple-400 rounded-full" title="Recommended for this occasion" />
+                  )}
+                </button>
+              )
+            })}
           </div>
           
           {/* Custom Genres */}
@@ -1343,19 +1506,27 @@ function SongStyleSection({
         <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-5 bg-gray-50 dark:bg-gray-700">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Instruments</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-            {instruments.map((instrument) => (
-              <button
-                key={instrument}
-                onClick={() => toggleStyleItem('instruments', instrument)}
-                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  formData.instruments.includes(instrument)
-                    ? 'bg-purple-600 text-white'
-                    : 'bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500 border border-gray-300 dark:border-gray-500'
-                }`}
-              >
-                {instrument}
-              </button>
-            ))}
+            {instruments.map((instrument) => {
+              const preset = getOccasionPreset(formData.songType)
+              const isRecommended = preset && preset.instruments.includes(instrument)
+              
+              return (
+                <button
+                  key={instrument}
+                  onClick={() => toggleStyleItem('instruments', instrument)}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors relative ${
+                    formData.instruments.includes(instrument)
+                      ? 'bg-purple-600 text-white'
+                      : 'bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500 border border-gray-300 dark:border-gray-500'
+                  }`}
+                >
+                  {instrument}
+                  {isRecommended && (
+                    <span className="absolute -top-1 -right-1 w-2 h-2 bg-purple-400 rounded-full" title="Recommended for this occasion" />
+                  )}
+                </button>
+              )
+            })}
           </div>
           
           {/* Custom Instruments */}
@@ -1407,22 +1578,30 @@ function SongStyleSection({
           <div className="mb-6">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Energy Level</h3>
             <div className="flex gap-4">
-              {['low', 'medium', 'high'].map((energy) => (
-                <button
-                  key={energy}
-                  onClick={() => setFormData(prev => ({ 
-                    ...prev, 
-                    energy: prev.energy === energy ? '' : energy as any 
-                  }))}
-                  className={`px-6 py-3 rounded-lg font-medium transition-colors capitalize ${
-                    formData.energy === energy
-                      ? 'bg-purple-600 text-white'
-                      : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
-                  }`}
-                >
-                  {energy}
-                </button>
-              ))}
+              {['low', 'medium', 'high'].map((energy) => {
+                const preset = getOccasionPreset(formData.songType)
+                const isRecommended = preset && preset.energy === energy
+                
+                return (
+                  <button
+                    key={energy}
+                    onClick={() => setFormData(prev => ({ 
+                      ...prev, 
+                      energy: prev.energy === energy ? '' : energy as any 
+                    }))}
+                    className={`px-6 py-3 rounded-lg font-medium transition-colors capitalize relative ${
+                      formData.energy === energy
+                        ? 'bg-purple-600 text-white'
+                        : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                    }`}
+                  >
+                    {energy}
+                    {isRecommended && (
+                      <span className="absolute -top-1 -right-1 w-2 h-2 bg-purple-400 rounded-full" title="Recommended for this occasion" />
+                    )}
+                  </button>
+                )
+              })}
             </div>
           </div>
 
