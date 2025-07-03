@@ -364,6 +364,17 @@ export default function DashboardPage() {
                     >
                       Remove All Credits
                     </button>
+                    <button
+                      onClick={async () => {
+                        const response = await fetch('/api/debug-profile')
+                        const data = await response.json()
+                        console.log('Debug Profile Data:', data)
+                        alert(`Debug data logged to console. Check browser dev tools.`)
+                      }}
+                      className="mt-1 w-full text-xs bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
+                    >
+                      Debug Profile
+                    </button>
                   </>
                 )}
               </div>
