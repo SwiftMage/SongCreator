@@ -8,7 +8,8 @@ import Logo from '@/components/Logo'
 import DarkModeToggle from '@/components/DarkModeToggle'
 import { createCheckoutSession } from '@/lib/stripe'
 import { getOccasionPreset, hasOccasionPreset } from '@/config/occasionPresets'
-import type { User, Profile, SongFormData, SongData } from '@/types'
+import type { Profile, SongData } from '@/types'
+import type { User } from '@supabase/supabase-js'
 import { 
   Music, 
   ArrowLeft, 
@@ -35,7 +36,7 @@ import {
   Info
 } from 'lucide-react'
 
-interface SongFormData {
+interface CreateSongFormData {
   // Step 1: Basic Info
   subjectName: string
   relationship: string
@@ -115,7 +116,7 @@ export default function CreateSongPage() {
   const [isNotificationFading, setIsNotificationFading] = useState(false)
   const [appliedPresetFor, setAppliedPresetFor] = useState<string | null>(null)
   const [notificationTimeout, setNotificationTimeout] = useState<NodeJS.Timeout | null>(null)
-  const [formData, setFormData] = useState<SongFormData>({
+  const [formData, setFormData] = useState<CreateSongFormData>({
     subjectName: '',
     relationship: '',
     songType: '',
@@ -161,7 +162,7 @@ export default function CreateSongPage() {
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', user.id)
+        .eq('id', user!.id)
         .single()
       
       if (profileError) {
@@ -308,7 +309,7 @@ export default function CreateSongPage() {
     }
   }
 
-  const addItem = (field: keyof SongFormData, value: string) => {
+  const addItem = (field: keyof CreateSongFormData, value: string) => {
     if (value.trim()) {
       setFormData(prev => ({
         ...prev,
@@ -317,7 +318,7 @@ export default function CreateSongPage() {
     }
   }
 
-  const removeItem = (field: keyof SongFormData, index: number) => {
+  const removeItem = (field: keyof CreateSongFormData, index: number) => {
     setFormData(prev => ({
       ...prev,
       [field]: (prev[field] as string[]).filter((_, i) => i !== index)
@@ -450,7 +451,7 @@ export default function CreateSongPage() {
     }
   }
 
-  const generateAIPrompt = (data: SongFormData) => {
+  const generateAIPrompt = (data: CreateSongFormData) => {
     let prompt = `Please generate lyrics for a ${data.songType} song`
     
     // Add song style details
@@ -559,7 +560,7 @@ export default function CreateSongPage() {
       const { data: profileData } = await supabase
         .from('profiles')
         .select('credits_remaining')
-        .eq('id', user.id)
+        .eq('id', user!.id)
         .single()
 
       if (!profileData || profileData.credits_remaining < 1) {
@@ -574,11 +575,35 @@ export default function CreateSongPage() {
         return
       }
 
+      // Convert CreateSongFormData to SongFormData format
+      const convertedFormData = {
+        songType: formData.songType,
+        subjectName: formData.subjectName,
+        subjectRelationship: formData.relationship,
+        occasionName: formData.occasionDetails,
+        lyricsChoice: formData.lyricsChoice === 'ai' ? 'ai-generated' as const : 
+                     formData.lyricsChoice === 'own' ? 'my-own' as const : 'partial-help' as const,
+        customLyrics: formData.ownLyrics,
+        genres: formData.genres,
+        instruments: formData.instruments,
+        energy: formData.energy,
+        singer: formData.singer,
+        customInstruments: formData.customInstruments,
+        specificDetails: [
+          ...formData.positiveAttributes,
+          ...formData.insideJokes,
+          ...formData.specialPlaces,
+          ...formData.specialMoments,
+          ...formData.uniqueCharacteristics,
+          ...formData.otherPeople
+        ].filter(item => item.trim() !== '')
+      }
+
       const songData: SongData = {
-        user_id: user.id,
+        user_id: user!.id,
         title: `${formData.songType.charAt(0).toUpperCase() + formData.songType.slice(1)} Song for ${formData.subjectName}`,
         status: 'pending', // Always start as pending until music is generated
-        questionnaire_data: formData
+        questionnaire_data: convertedFormData
       }
 
       // If user provided their own lyrics, store them directly
@@ -587,7 +612,6 @@ export default function CreateSongPage() {
       } else {
         // For AI lyrics, generate the prompt
         const aiPrompt = generateAIPrompt(formData)
-        songData.questionnaire_data.aiPrompt = aiPrompt
         console.log('Generated AI Prompt:', aiPrompt)
       }
       
@@ -606,7 +630,7 @@ export default function CreateSongPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          userId: user.id,
+          userId: user!.id,
           songId: data.id,
           reason: 'Song creation'
         })
@@ -684,47 +708,50 @@ export default function CreateSongPage() {
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-gray-800">
       {/* Header */}
       <header className="bg-white dark:bg-gray-900 shadow-sm">
-        <div className="container mx-auto px-4 py-4">
+        <div className="container mx-auto px-4 py-3 sm:py-4">
           <div className="flex items-center justify-between">
             <Logo />
             
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 sm:space-x-4">
               {profile?.credits_remaining === 0 ? (
                 <button
                   onClick={() => handleBuyCredits('single')}
                   disabled={isCheckoutLoading === 'single'}
-                  className="flex items-center space-x-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center space-x-1 sm:space-x-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] px-2 rounded-lg text-sm sm:text-base"
                 >
                   {isCheckoutLoading === 'single' ? (
                     <>
-                      <Loader2 className="h-5 w-5 animate-spin text-purple-600" />
-                      <span className="font-medium">Processing...</span>
+                      <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin text-purple-600" />
+                      <span className="font-medium hidden sm:inline">Processing...</span>
+                      <span className="font-medium sm:hidden">...</span>
                     </>
                   ) : (
                     <>
-                      <CreditCard className="h-5 w-5 text-purple-600" />
-                      <span className="font-medium">Buy Credits</span>
+                      <CreditCard className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600" />
+                      <span className="font-medium hidden sm:inline">Buy Credits</span>
+                      <span className="font-medium sm:hidden">Buy</span>
                     </>
                   )}
                 </button>
               ) : (
                 <Link 
                   href="/pricing"
-                  className="flex items-center space-x-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors cursor-pointer"
+                  className="flex items-center space-x-1 sm:space-x-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors cursor-pointer min-h-[44px] px-2 rounded-lg text-sm sm:text-base"
                 >
-                  <ShoppingCart className="h-5 w-5 text-purple-600" />
+                  <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600" />
                   <span className="font-medium">{profile?.credits_remaining || 0} Credits</span>
                 </Link>
               )}
-              <div className="h-6 w-px bg-gray-300" />
+              <div className="h-6 w-px bg-gray-300 hidden sm:block" />
               <DarkModeToggle />
-              <div className="h-6 w-px bg-gray-300" />
+              <div className="h-6 w-px bg-gray-300 hidden sm:block" />
               <button
                 onClick={() => router.push('/dashboard')}
-                className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white flex items-center space-x-2 transition-colors"
+                className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white flex items-center space-x-1 sm:space-x-2 transition-colors min-h-[44px] px-2 rounded-lg text-sm sm:text-base"
               >
-                <ArrowLeft className="h-5 w-5" />
-                <span>Back to Dashboard</span>
+                <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
+                <span className="hidden sm:inline">Back to Dashboard</span>
+                <span className="sm:hidden">Back</span>
               </button>
             </div>
           </div>
@@ -733,11 +760,12 @@ export default function CreateSongPage() {
 
       {/* Progress Bar */}
       <div className="bg-white dark:bg-gray-900 border-b dark:border-gray-800">
-        <div className="container mx-auto px-4 py-4">
+        <div className="container mx-auto px-4 py-3 sm:py-4">
           <div className="flex items-center space-x-4">
             <div className="flex-1">
-              <div className="flex items-center space-x-2 mb-2">
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Step {currentStep} of {getTotalSteps()}</span>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">Step {currentStep} of {getTotalSteps()}</span>
+                <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-500">{Math.round((currentStep / getTotalSteps()) * 100)}%</span>
               </div>
               <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                 <div 
@@ -751,16 +779,16 @@ export default function CreateSongPage() {
       </div>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-4 sm:py-6 md:py-8">
         <div className="max-w-2xl mx-auto">
           {/* Step 1: Basic Info */}
           {currentStep === 1 && (
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 animate-fade-in">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Tell us about your song</h2>
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 sm:p-6 animate-fade-in">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-6">Tell us about your song</h2>
               
-              <div className="space-y-6">
+              <div className="space-y-4 sm:space-y-6">
                 <div>
-                  <label htmlFor="subjectName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-300 mb-2">
+                  <label htmlFor="subjectName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Who is this song about?
                   </label>
                   <input
@@ -768,7 +796,7 @@ export default function CreateSongPage() {
                     type="text"
                     value={formData.subjectName}
                     onChange={(e) => setFormData(prev => ({ ...prev, subjectName: e.target.value }))}
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 dark:text-white dark:bg-gray-700 dark:placeholder-gray-400"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 dark:text-white dark:bg-gray-700 dark:placeholder-gray-400 min-h-[48px] text-base"
                     placeholder="Enter their name"
                   />
                 </div>
@@ -782,7 +810,7 @@ export default function CreateSongPage() {
                     type="text"
                     value={formData.relationship}
                     onChange={(e) => setFormData(prev => ({ ...prev, relationship: e.target.value }))}
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 dark:text-white dark:bg-gray-700 dark:placeholder-gray-400"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 dark:text-white dark:bg-gray-700 dark:placeholder-gray-400 min-h-[48px] text-base"
                     placeholder="e.g., girlfriend, best friend, sister, mom"
                   />
                 </div>
@@ -792,10 +820,10 @@ export default function CreateSongPage() {
 
           {/* Step 2: Song Type */}
           {currentStep === 2 && (
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 animate-fade-in">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">What type of song would you like?</h2>
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 sm:p-6 animate-fade-in">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-6">What type of song would you like?</h2>
               
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                 {songTypes.map((type) => {
                   const IconComponent = type.icon
                   return (
@@ -808,23 +836,23 @@ export default function CreateSongPage() {
                           applyOccasionPreset(type.id)
                         }
                       }}
-                      className={`p-6 rounded-lg border-2 transition-all text-left ${
+                      className={`p-4 sm:p-6 rounded-lg border-2 transition-all text-left touch-manipulation min-h-[80px] ${
                         formData.songType === type.id
                           ? 'border-purple-600 bg-purple-50 dark:bg-purple-900/30 dark:border-purple-400'
                           : 'border-gray-200 dark:border-gray-600 hover:border-purple-300 dark:hover:border-purple-500 hover:bg-purple-25 dark:hover:bg-purple-900/20'
                       }`}
                     >
-                      <div className="flex items-center space-x-3 mb-2">
-                        <IconComponent className={`h-6 w-6 ${
+                      <div className="flex items-center space-x-2 sm:space-x-3 mb-2">
+                        <IconComponent className={`h-5 w-5 sm:h-6 sm:w-6 flex-shrink-0 ${
                           formData.songType === type.id ? 'text-purple-600 dark:text-purple-400' : 'text-gray-600 dark:text-gray-400'
                         }`} />
-                        <h3 className={`text-lg font-semibold ${
+                        <h3 className={`text-base sm:text-lg font-semibold line-clamp-2 ${
                           formData.songType === type.id ? 'text-purple-900 dark:text-purple-300' : 'text-gray-900 dark:text-white'
                         }`}>
                           {type.label}
                         </h3>
                       </div>
-                      <p className={`text-sm ${
+                      <p className={`text-xs sm:text-sm line-clamp-3 ${
                         formData.songType === type.id ? 'text-purple-700 dark:text-purple-300' : 'text-gray-600 dark:text-gray-300'
                       }`}>
                         {type.description}
@@ -838,29 +866,29 @@ export default function CreateSongPage() {
 
           {/* Step 3: Lyrics Choice */}
           {currentStep === 3 && (
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 animate-fade-in">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">How would you like to create your lyrics?</h2>
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 sm:p-6 animate-fade-in">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-6">How would you like to create your lyrics?</h2>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 gap-4 sm:gap-6">
                 <button
                   onClick={() => setFormData(prev => ({ ...prev, lyricsChoice: 'ai' }))}
-                  className={`p-8 rounded-lg border-2 transition-all text-left ${
+                  className={`p-4 sm:p-6 lg:p-8 rounded-lg border-2 transition-all text-left touch-manipulation min-h-[120px] ${
                     formData.lyricsChoice === 'ai'
                       ? 'border-purple-600 bg-purple-50 dark:bg-purple-900/30 dark:border-purple-400'
                       : 'border-gray-200 dark:border-gray-600 hover:border-purple-300 dark:hover:border-purple-500 hover:bg-purple-25 dark:hover:bg-purple-900/20'
                   }`}
                 >
-                  <div className="flex items-center space-x-4 mb-4">
-                    <Wand2 className={`h-8 w-8 ${
+                  <div className="flex items-center space-x-3 sm:space-x-4 mb-3 sm:mb-4">
+                    <Wand2 className={`h-6 w-6 sm:h-8 sm:w-8 flex-shrink-0 ${
                       formData.lyricsChoice === 'ai' ? 'text-purple-600 dark:text-purple-400' : 'text-gray-600 dark:text-gray-400'
                     }`} />
-                    <h3 className={`text-xl font-semibold ${
+                    <h3 className={`text-lg sm:text-xl font-semibold ${
                       formData.lyricsChoice === 'ai' ? 'text-purple-900 dark:text-purple-300' : 'text-gray-900 dark:text-white'
                     }`}>
                       Help me create lyrics
                     </h3>
                   </div>
-                  <p className={`text-sm ${
+                  <p className={`text-xs sm:text-sm leading-relaxed ${
                     formData.lyricsChoice === 'ai' ? 'text-purple-700 dark:text-purple-300' : 'text-gray-600 dark:text-gray-300'
                   }`}>
                     I&apos;ll help you create personalized lyrics by asking about your relationship, memories, and what makes them special. Our AI will craft heartfelt lyrics just for you.
@@ -869,23 +897,23 @@ export default function CreateSongPage() {
 
                 <button
                   onClick={() => setFormData(prev => ({ ...prev, lyricsChoice: 'own' }))}
-                  className={`p-8 rounded-lg border-2 transition-all text-left ${
+                  className={`p-4 sm:p-6 lg:p-8 rounded-lg border-2 transition-all text-left touch-manipulation min-h-[120px] ${
                     formData.lyricsChoice === 'own'
                       ? 'border-purple-600 bg-purple-50 dark:bg-purple-900/30 dark:border-purple-400'
                       : 'border-gray-200 dark:border-gray-600 hover:border-purple-300 dark:hover:border-purple-500 hover:bg-purple-25 dark:hover:bg-purple-900/20'
                   }`}
                 >
-                  <div className="flex items-center space-x-4 mb-4">
-                    <FileText className={`h-8 w-8 ${
+                  <div className="flex items-center space-x-3 sm:space-x-4 mb-3 sm:mb-4">
+                    <FileText className={`h-6 w-6 sm:h-8 sm:w-8 flex-shrink-0 ${
                       formData.lyricsChoice === 'own' ? 'text-purple-600 dark:text-purple-400' : 'text-gray-600 dark:text-gray-400'
                     }`} />
-                    <h3 className={`text-xl font-semibold ${
+                    <h3 className={`text-lg sm:text-xl font-semibold ${
                       formData.lyricsChoice === 'own' ? 'text-purple-900 dark:text-purple-300' : 'text-gray-900 dark:text-white'
                     }`}>
                       I have my own lyrics
                     </h3>
                   </div>
-                  <p className={`text-sm ${
+                  <p className={`text-xs sm:text-sm leading-relaxed ${
                     formData.lyricsChoice === 'own' ? 'text-purple-700 dark:text-purple-300' : 'text-gray-600 dark:text-gray-300'
                   }`}>
                     I&apos;ve already written lyrics and want to turn them into a professional song. Just provide your lyrics and we&apos;ll create the music for you.
@@ -1176,13 +1204,13 @@ export default function CreateSongPage() {
           )}
 
           {/* Navigation */}
-          <div className="flex justify-between mt-8">
+          <div className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-0 mt-6 sm:mt-8">
             <button
               onClick={() => setCurrentStep(prev => Math.max(1, prev - 1))}
               disabled={currentStep === 1}
-              className="flex items-center space-x-2 px-6 py-3 text-gray-600 bg-gray-100 rounded-lg font-semibold hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="flex items-center justify-center space-x-2 px-4 sm:px-6 py-3 text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 rounded-lg font-semibold hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors min-h-[48px] text-sm sm:text-base touch-manipulation order-2 sm:order-1"
             >
-              <ArrowLeft className="h-5 w-5" />
+              <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
               <span>Back</span>
             </button>
 
@@ -1207,10 +1235,10 @@ export default function CreateSongPage() {
                   }
                 }}
                 disabled={!canProceed()}
-                className="flex items-center space-x-2 px-8 py-4 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="flex items-center justify-center space-x-2 px-6 sm:px-8 py-3 sm:py-4 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors min-h-[48px] text-sm sm:text-base touch-manipulation order-1 sm:order-2"
               >
                 <span>Next</span>
-                <ArrowRight className="h-5 w-5" />
+                <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" />
               </button>
             ) : (
               <button
@@ -1222,14 +1250,15 @@ export default function CreateSongPage() {
                   }
                 }}
                 disabled={isSubmitting || !canProceed()}
-                className="flex items-center space-x-2 px-8 py-4 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-md hover:shadow-lg"
+                className="flex items-center justify-center space-x-2 px-6 sm:px-8 py-3 sm:py-4 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-md hover:shadow-lg min-h-[48px] text-sm sm:text-base touch-manipulation order-1 sm:order-2"
               >
                 <div className="songmint-icon-only">
                   <div className="logo-icon">
                     <div className="music-note">♪</div>
                   </div>
                 </div>
-                <span>{isSubmitting ? 'Creating...' : 'Generate Song (1 credit)'}</span>
+                <span className="hidden sm:inline">{isSubmitting ? 'Creating...' : 'Generate Song (1 credit)'}</span>
+                <span className="sm:hidden">{isSubmitting ? 'Creating...' : 'Generate (1 credit)'}</span>
               </button>
             )}
           </div>
@@ -1238,18 +1267,18 @@ export default function CreateSongPage() {
 
       {/* Confirmation Dialog */}
       {showConfirmation && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-4 sm:p-6 max-w-md w-full">
+            <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">
               Confirm Song Creation
             </h3>
-            <p className="text-gray-600 dark:text-gray-300 mb-6">
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 mb-4 sm:mb-6">
               This will use 1 credit to generate your personalized song. Are you sure you want to continue?
             </p>
-            <div className="flex space-x-4">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
               <button
                 onClick={() => setShowConfirmation(false)}
-                className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors min-h-[48px] text-sm sm:text-base touch-manipulation order-2 sm:order-1"
               >
                 Cancel
               </button>
@@ -1258,7 +1287,7 @@ export default function CreateSongPage() {
                   setShowConfirmation(false)
                   handleSubmit()
                 }}
-                className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                className="flex-1 px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors min-h-[48px] text-sm sm:text-base touch-manipulation order-1 sm:order-2"
               >
                 Create Song
               </button>
@@ -1355,8 +1384,8 @@ interface CustomStyleSectionProps {
 }
 
 interface SongStyleSectionProps {
-  formData: SongFormData
-  setFormData: React.Dispatch<React.SetStateAction<SongFormData>>
+  formData: CreateSongFormData
+  setFormData: React.Dispatch<React.SetStateAction<CreateSongFormData>>
   genres: string[]
   instruments: string[]
   toggleStyleItem: (field: 'genres' | 'instruments', item: string) => void

@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 import { SimpleErrorBoundary } from '@/components/ErrorBoundary'
-import type { User, Profile, Song } from '@/types'
+import type { Profile, Song } from '@/types'
+import type { User } from '@supabase/supabase-js'
 import { 
   Music, 
   Plus, 
@@ -52,7 +53,7 @@ export default function DashboardPage() {
       }
       
       setUser(user)
-      await fetchUserData(user.id)
+      await fetchUserData(user!.id)
     }
 
     checkAuth()
@@ -182,14 +183,6 @@ export default function DashboardPage() {
 
       const audio = new Audio(bestUrl)
       
-      // Cleanup previous audio instance if exists
-      if (currentAudio) {
-        currentAudio.pause()
-        currentAudio.src = ''
-        currentAudio.removeEventListener('ended', handleAudioEnd)
-        currentAudio.removeEventListener('error', handleAudioError)
-      }
-      
       // Create event handler functions for proper cleanup
       const handleAudioEnd = () => {
         setPlayingSongId(null)
@@ -201,6 +194,14 @@ export default function DashboardPage() {
         setPlayingSongId(null)
         setCurrentAudio(null)
         alert('Unable to play audio. The file may be temporarily unavailable.')
+      }
+      
+      // Cleanup previous audio instance if exists
+      if (currentAudio) {
+        currentAudio.pause()
+        currentAudio.src = ''
+        currentAudio.removeEventListener('ended', handleAudioEnd)
+        currentAudio.removeEventListener('error', handleAudioError)
       }
 
       // Set up event listeners
@@ -230,14 +231,14 @@ export default function DashboardPage() {
     try {
       console.log('=== DELETING SONG ===')
       console.log('Song ID:', songId)
-      console.log('User ID:', user.id)
+      console.log('User ID:', user!.id)
       
       // Use secure API route to delete with CSRF protection
       const response = await secureRequest('/api/delete-song', {
         method: 'POST',
         body: JSON.stringify({ 
           songId, 
-          userId: user.id 
+          userId: user!.id 
         })
       })
       
@@ -281,18 +282,18 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-gray-800">
       {/* Header */}
       <header className="bg-white dark:bg-gray-900 shadow-sm">
-        <div className="container mx-auto px-4 py-4">
+        <div className="container mx-auto px-4 py-3 sm:py-4">
           <div className="flex items-center justify-between">
             <Logo />
             
-            <nav className="flex items-center space-x-4">
-              <div className="flex items-center space-x-4">
+            <nav className="flex items-center space-x-2 sm:space-x-4">
+              <div className="flex items-center space-x-2 sm:space-x-4">
                 <Link 
                   href="/pricing"
-                  className="flex items-center space-x-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors cursor-pointer"
+                  className="flex items-center space-x-1 sm:space-x-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors cursor-pointer min-h-[44px] px-2 rounded-lg"
                 >
-                  <ShoppingCart className="h-5 w-5 text-purple-600" />
-                  <span className="font-medium">{profile?.credits_remaining || 0} Credits</span>
+                  <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600" />
+                  <span className="font-medium text-sm sm:text-base">{profile?.credits_remaining || 0} Credits</span>
                 </Link>
                 
                 {/* Subscription Status */}
@@ -309,29 +310,30 @@ export default function DashboardPage() {
                         console.error('Error opening customer portal:', error);
                       }
                     }}
-                    className="flex items-center space-x-1 text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-2 py-1 rounded-full hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors"
+                    className="flex items-center space-x-1 text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-2 py-1 rounded-full hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors min-h-[32px]"
                   >
                     <Settings className="h-3 w-3" />
-                    <span className="capitalize">{profile.subscription_status}</span>
+                    <span className="capitalize hidden sm:inline">{profile.subscription_status}</span>
+                    <span className="capitalize sm:hidden">{profile.subscription_status.charAt(0).toUpperCase()}</span>
                   </button>
                 )}
               </div>
-              <div className="h-6 w-px bg-gray-300" />
+              <div className="h-6 w-px bg-gray-300 hidden sm:block" />
               <DarkModeToggle />
-              <div className="h-6 w-px bg-gray-300" />
+              <div className="h-6 w-px bg-gray-300 hidden sm:block" />
               <Link 
                 href="/dashboard/account"
-                className="text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 flex items-center space-x-2 transition-colors"
+                className="text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 flex items-center space-x-1 sm:space-x-2 transition-colors min-h-[44px] px-2 rounded-lg text-sm sm:text-base"
               >
-                <Settings className="h-5 w-5" />
-                <span>Account</span>
+                <Settings className="h-4 w-4 sm:h-5 sm:w-5" />
+                <span className="hidden sm:inline">Account</span>
               </Link>
               <button
                 onClick={handleLogout}
-                className="text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 flex items-center space-x-2 transition-colors"
+                className="text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 flex items-center space-x-1 sm:space-x-2 transition-colors min-h-[44px] px-2 rounded-lg text-sm sm:text-base"
               >
-                <LogOut className="h-5 w-5" />
-                <span>Logout</span>
+                <LogOut className="h-4 w-4 sm:h-5 sm:w-5" />
+                <span className="hidden sm:inline">Logout</span>
               </button>
             </nav>
           </div>
@@ -339,26 +341,26 @@ export default function DashboardPage() {
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-6 sm:py-8">
         {/* Welcome & Credits Section */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 sm:p-6 mb-6 sm:mb-8">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 sm:mb-6 gap-4">
+            <div className="flex-1">
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-2">
                 Welcome back, {user?.user_metadata?.full_name || 'Song Creator'}!
               </h1>
-              <p className="text-gray-600 dark:text-gray-300">
+              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
                 Create beautiful AI-generated songs for any occasion
               </p>
             </div>
             
-            <div className="text-center">
-              <div className="bg-purple-100 dark:bg-purple-900/30 rounded-lg p-4">
-                <p className="text-sm text-purple-600 dark:text-purple-400 mb-1">Song Credits</p>
-                <p className="text-3xl font-bold text-purple-900 dark:text-purple-300">
+            <div className="text-center flex-shrink-0">
+              <div className="bg-purple-100 dark:bg-purple-900/30 rounded-lg p-3 sm:p-4">
+                <p className="text-xs sm:text-sm text-purple-600 dark:text-purple-400 mb-1">Song Credits</p>
+                <p className="text-2xl sm:text-3xl font-bold text-purple-900 dark:text-purple-300">
                   {remainingCredits}
                 </p>
-                <p className="text-sm text-purple-600 dark:text-purple-400 mt-1">remaining</p>
+                <p className="text-xs sm:text-sm text-purple-600 dark:text-purple-400 mt-1">remaining</p>
                 {/* Simple test buttons for localhost only */}
                 {typeof window !== 'undefined' && window.location.hostname === 'localhost' && (
                   <>
@@ -367,7 +369,7 @@ export default function DashboardPage() {
                         const response = await fetch('/api/add-test-credits', {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ userId: user.id })
+                          body: JSON.stringify({ userId: user!.id })
                         })
                         const data = await response.json()
                         alert(data.message || data.error)
@@ -382,7 +384,7 @@ export default function DashboardPage() {
                         const response = await fetch('/api/remove-test-credits', {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ userId: user.id })
+                          body: JSON.stringify({ userId: user!.id })
                         })
                         const data = await response.json()
                         alert(data.message || data.error)
@@ -414,14 +416,14 @@ export default function DashboardPage() {
             {remainingCredits > 0 ? (
               <Link
                 href="/create"
-                className="flex-1 flex items-center justify-center space-x-2 px-6 py-4 sm:px-8 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors min-h-[44px] touch-manipulation"
+                className="flex-1 flex items-center justify-center space-x-2 px-6 py-3 sm:py-4 sm:px-8 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors min-h-[48px] touch-manipulation"
               >
                 <Plus className="h-5 w-5 flex-shrink-0" />
                 <span className="text-sm sm:text-base">Create New Song</span>
               </Link>
             ) : (
               <div
-                className="flex-1 flex items-center justify-center space-x-2 px-6 py-4 sm:px-8 bg-gray-300 text-gray-500 rounded-lg font-semibold cursor-not-allowed min-h-[44px]"
+                className="flex-1 flex items-center justify-center space-x-2 px-6 py-3 sm:py-4 sm:px-8 bg-gray-300 text-gray-500 rounded-lg font-semibold cursor-not-allowed min-h-[48px]"
                 title="You need credits to create a new song"
               >
                 <Plus className="h-5 w-5 flex-shrink-0" />
@@ -431,7 +433,7 @@ export default function DashboardPage() {
             
             <Link
               href="/pricing"
-              className="flex-1 flex items-center justify-center space-x-2 px-6 py-4 sm:px-8 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors min-h-[44px] touch-manipulation"
+              className="flex-1 flex items-center justify-center space-x-2 px-6 py-3 sm:py-4 sm:px-8 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors min-h-[48px] touch-manipulation"
             >
               <ShoppingCart className="h-5 w-5 flex-shrink-0" />
               <span className="text-sm sm:text-base">Buy More Credits</span>
@@ -440,8 +442,8 @@ export default function DashboardPage() {
         </div>
 
         {/* Songs List */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Your Songs</h2>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 sm:p-6">
+          <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-6">Your Songs</h2>
           
           {songs.length === 0 ? (
             <div className="text-center py-12">
@@ -495,7 +497,7 @@ export default function DashboardPage() {
                               <div className="music-note">♪</div>
                             </div>
                           </div>
-                          <span>{song.questionnaire_data?.genre || 'No genre'}</span>
+                          <span>{song.questionnaire_data?.genres?.[0] || 'No genre'}</span>
                         </span>
                         <span className="flex items-center space-x-1">
                           <Clock className="h-4 w-4" />
@@ -552,7 +554,7 @@ export default function DashboardPage() {
                               if (error) throw error
                               
                               // Refresh the songs list
-                              await fetchUserData(user.id)
+                              await fetchUserData(user!.id)
                               alert('Song status reset to processing. You can now generate music for this song.')
                             } catch (error) {
                               console.error('Error resetting song status:', error)
@@ -615,7 +617,7 @@ export default function DashboardPage() {
                               <div className="music-note">♪</div>
                             </div>
                           </div>
-                          <span className="truncate">{song.questionnaire_data?.genre || 'No genre'}</span>
+                          <span className="truncate">{song.questionnaire_data?.genres?.[0] || 'No genre'}</span>
                         </span>
                         <span className="flex items-center space-x-1">
                           <Clock className="h-4 w-4" />
@@ -663,7 +665,7 @@ export default function DashboardPage() {
                                 if (error) throw error
                                 
                                 // Refresh the songs list
-                                await fetchUserData(user.id)
+                                await fetchUserData(user!.id)
                                 alert('Song status reset to processing. You can now generate music for this song.')
                               } catch (error) {
                                 console.error('Error resetting song status:', error)
@@ -742,7 +744,7 @@ export default function DashboardPage() {
                         <div>
                           <span className="text-gray-600">About:</span>
                           <span className="ml-2 text-gray-900">
-                            {selectedSong.questionnaire_data.subjectName} ({selectedSong.questionnaire_data.relationship})
+                            {selectedSong.questionnaire_data.subjectName} ({selectedSong.questionnaire_data.subjectRelationship})
                           </span>
                         </div>
                         <div>
@@ -755,7 +757,7 @@ export default function DashboardPage() {
                           <div className="col-span-2">
                             <span className="text-gray-600">Genres:</span>
                             <span className="ml-2 text-gray-900">
-                              {[...selectedSong.questionnaire_data.genres, ...(selectedSong.questionnaire_data.customGenres || [])].join(', ')}
+                              {selectedSong.questionnaire_data.genres.join(', ')}
                             </span>
                           </div>
                         )}

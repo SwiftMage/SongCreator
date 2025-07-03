@@ -274,22 +274,23 @@ export default function Home() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors duration-300">
       {/* Navigation */}
       <nav className="sticky top-0 z-50 backdrop-blur-lg bg-white/80 dark:bg-gray-950/80 border-b border-gray-200 dark:border-gray-800">
-        <div className="container mx-auto px-4 py-4">
+        <div className="container mx-auto px-4 py-3 sm:py-4">
           <div className="flex items-center justify-between">
             <Logo />
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 sm:space-x-4">
               <DarkModeToggle />
               {isLoading ? (
                 <div className="h-10 w-24 bg-gray-200 dark:bg-gray-800 rounded-lg animate-pulse" />
             ) : user ? (
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2 sm:space-x-4">
                   <Link 
                     href="/dashboard"
-                    className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+                    className="px-3 py-2 sm:px-4 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-sm sm:text-base min-h-[44px] flex items-center"
                   >
-                    Dashboard
+                    <span className="hidden sm:inline">Dashboard</span>
+                    <User className="h-5 w-5 sm:hidden" />
                   </Link>
-                  <div className="flex items-center space-x-2 px-3 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 rounded-lg">
+                  <div className="hidden sm:flex items-center space-x-2 px-3 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 rounded-lg">
                     <User className="h-4 w-4" />
                     <span className="font-medium">
                       {user.user_metadata?.full_name || user.email?.split('@')[0] || 'User'}
@@ -297,23 +298,23 @@ export default function Home() {
                   </div>
                   <button
                     onClick={handleLogout}
-                    className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center space-x-1"
+                    className="px-3 py-2 sm:px-4 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center space-x-1 text-sm sm:text-base min-h-[44px]"
                   >
                     <LogOut className="h-4 w-4" />
-                    <span>Logout</span>
+                    <span className="hidden sm:inline">Logout</span>
                   </button>
               </div>
             ) : (
                 <>
                   <Link 
                     href="/auth"
-                    className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+                    className="px-3 py-2 sm:px-4 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-sm sm:text-base min-h-[44px] flex items-center"
                   >
                     Login
                   </Link>
                   <Link 
                     href="/auth"
-                    className="relative px-6 py-2.5 text-white font-medium rounded-lg overflow-hidden group"
+                    className="relative px-4 py-2.5 sm:px-6 text-white font-medium rounded-lg overflow-hidden group text-sm sm:text-base min-h-[44px] flex items-center"
                   >
                     <span className="absolute inset-0 bg-gradient-to-r from-[#00f5ff] via-[#ff006e] to-[#8338ec] transition-transform group-hover:scale-110" />
                     <span className="relative">Get Started</span>
@@ -328,14 +329,14 @@ export default function Home() {
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-purple-50/50 via-pink-50/30 to-blue-50/50 dark:from-purple-950/20 dark:via-pink-950/10 dark:to-blue-950/20" />
-        <div className="container mx-auto px-4 py-24 relative">
+        <div className="container mx-auto px-4 py-16 sm:py-20 md:py-24 relative">
           <div className="max-w-4xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#00f5ff]/10 to-[#ff006e]/10 dark:from-[#00f5ff]/20 dark:to-[#ff006e]/20 rounded-full mb-8">
-              <Sparkles className="h-4 w-4 text-[#ff006e]" />
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">AI-Powered Music Creation</span>
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-gradient-to-r from-[#00f5ff]/10 to-[#ff006e]/10 dark:from-[#00f5ff]/20 dark:to-[#ff006e]/20 rounded-full mb-6 sm:mb-8">
+              <Sparkles className="h-3 w-3 sm:h-4 sm:w-4 text-[#ff006e]" />
+              <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">AI-Powered Music Creation</span>
             </div>
             
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-4 sm:mb-6 leading-tight">
               <span className="text-gray-900 dark:text-white">Create </span>
               <span className="bg-gradient-to-r from-[#00f5ff] via-[#ff006e] to-[#8338ec] bg-clip-text text-transparent">
                 Custom Songs
@@ -343,46 +344,47 @@ export default function Home() {
               <span className="text-gray-900 dark:text-white"> with AI</span>
             </h1>
             
-            <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-400 mb-10 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-600 dark:text-gray-400 mb-8 sm:mb-10 max-w-3xl mx-auto leading-relaxed px-4 sm:px-0">
               Turn your memories into music. Generate personalized songs for birthdays, 
               anniversaries, weddings, and any special moment.
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center px-4 sm:px-0">
               <Link 
                 href="/create"
-                className="relative px-8 py-4 text-white font-semibold rounded-xl overflow-hidden group transform transition-all hover:scale-105"
+                className="relative w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 text-white font-semibold rounded-xl overflow-hidden group transform transition-all hover:scale-105 text-center min-h-[48px] flex items-center justify-center"
               >
                 <span className="absolute inset-0 bg-gradient-to-r from-[#00f5ff] via-[#ff006e] to-[#8338ec] transition-transform group-hover:scale-110" />
-                <span className="relative flex items-center gap-2">
-                  Create Your Song Now <ArrowRight className="h-5 w-5" />
+                <span className="relative flex items-center gap-2 text-sm sm:text-base">
+                  Create Your Song Now <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" />
                 </span>
               </Link>
               
               <button 
                 onClick={toggleDemoPlayerPlayback}
-                className="px-8 py-4 text-gray-700 dark:text-gray-300 font-semibold rounded-xl border-2 border-gray-300 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-600 transition-all flex items-center gap-2 group"
+                className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 text-gray-700 dark:text-gray-300 font-semibold rounded-xl border-2 border-gray-300 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-600 transition-all flex items-center justify-center gap-2 group min-h-[48px] text-sm sm:text-base"
               >
                 {isPlaying ? (
-                  <Pause className="h-5 w-5 text-[#ff006e] group-hover:scale-110 transition-transform" />
+                  <Pause className="h-4 w-4 sm:h-5 sm:w-5 text-[#ff006e] group-hover:scale-110 transition-transform" />
                 ) : (
-                  <Play className="h-5 w-5 text-[#ff006e] group-hover:scale-110 transition-transform" />
+                  <Play className="h-4 w-4 sm:h-5 sm:w-5 text-[#ff006e] group-hover:scale-110 transition-transform" />
                 )}
-                {isPlaying ? 'Pause Examples' : 'Listen to Examples'}
+                <span className="hidden sm:inline">{isPlaying ? 'Pause Examples' : 'Listen to Examples'}</span>
+                <span className="sm:hidden">{isPlaying ? 'Pause' : 'Listen'}</span>
               </button>
             </div>
             
-            <div className="mt-12 flex flex-wrap justify-center gap-8 text-sm text-gray-600 dark:text-gray-400">
+            <div className="mt-8 sm:mt-12 flex flex-wrap justify-center gap-4 sm:gap-8 text-xs sm:text-sm text-gray-600 dark:text-gray-400 px-4 sm:px-0">
               <div className="flex items-center gap-2">
-                <Check className="h-4 w-4 text-green-500" />
+                <Check className="h-3 w-3 sm:h-4 sm:w-4 text-green-500 flex-shrink-0" />
                 <span>No musical skills required</span>
               </div>
               <div className="flex items-center gap-2">
-                <Check className="h-4 w-4 text-green-500" />
+                <Check className="h-3 w-3 sm:h-4 sm:w-4 text-green-500 flex-shrink-0" />
                 <span>Ready in minutes</span>
               </div>
               <div className="flex items-center gap-2">
-                <Check className="h-4 w-4 text-green-500" />
+                <Check className="h-3 w-3 sm:h-4 sm:w-4 text-green-500 flex-shrink-0" />
                 <span>100% unique songs</span>
               </div>
             </div>
@@ -392,41 +394,41 @@ export default function Home() {
 
       {/* Demo Player - Slide Down */}
       <div className={`overflow-hidden transition-all duration-500 ease-in-out ${
-        showDemoPlayer ? 'max-h-[600px] opacity-100' : 'max-h-0 opacity-0'
+        showDemoPlayer ? 'max-h-[800px] sm:max-h-[600px] opacity-100' : 'max-h-0 opacity-0'
       }`}>
         <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-lg">
-          <div className="container mx-auto px-4 py-6">
+          <div className="container mx-auto px-4 py-4 sm:py-6">
             {/* Close Button */}
             <div className="flex justify-end mb-2">
               <button
                 onClick={closeDemoPlayer}
-                className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+                className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 min-h-[44px] min-w-[44px] flex items-center justify-center"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
             {/* Song Cards Scrollable Row */}
-            <div className="mb-6">
-              <div className="flex space-x-4 overflow-x-auto pb-2 scrollbar-hide">
+            <div className="mb-4 sm:mb-6">
+              <div className="flex space-x-3 sm:space-x-4 overflow-x-auto pb-2 scrollbar-hide">
                 {demoSongs.map((song, index) => (
                   <div
                     key={song.id}
                     onClick={() => playAudio(index)}
-                    className={`flex-shrink-0 w-48 p-3 rounded-lg cursor-pointer transition-all ${
+                    className={`flex-shrink-0 w-40 sm:w-48 p-2 sm:p-3 rounded-lg cursor-pointer transition-all min-h-[120px] sm:min-h-auto ${
                       currentSongIndex === index
                         ? 'bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 border-2 border-purple-300 dark:border-purple-700'
                         : 'bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 border-2 border-transparent'
                     }`}
                   >
                     {/* Song Image */}
-                    <div className="relative mb-3">
+                    <div className="relative mb-2 sm:mb-3">
                       <Image
                         src={song.image}
                         alt={song.title}
                         width={192}
                         height={128}
-                        className="w-full h-32 object-cover rounded-lg"
+                        className="w-full h-24 sm:h-32 object-cover rounded-lg"
                         loading="lazy"
                         placeholder="blur"
                         blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
@@ -440,20 +442,20 @@ export default function Home() {
                           }}
                         >
                           {isPlaying ? (
-                            <Pause className="h-8 w-8 text-white" />
+                            <Pause className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
                           ) : (
-                            <Play className="h-8 w-8 text-white" />
+                            <Play className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
                           )}
                         </div>
                       )}
                     </div>
                     
                     {/* Song Info */}
-                    <div className="text-sm">
-                      <h4 className="font-semibold text-gray-900 dark:text-white truncate">
+                    <div className="text-xs sm:text-sm">
+                      <h4 className="font-semibold text-gray-900 dark:text-white truncate text-xs sm:text-sm">
                         {song.title}
                       </h4>
-                      <p className="text-gray-600 dark:text-gray-400 truncate">
+                      <p className="text-gray-600 dark:text-gray-400 truncate text-xs">
                         {song.occasion} • {song.genre}
                       </p>
                       <p className="text-gray-500 dark:text-gray-500 text-xs">
@@ -466,61 +468,61 @@ export default function Home() {
             </div>
 
             {/* Player Controls */}
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
-              <div className="flex items-center justify-between mb-3">
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-3 sm:p-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3 gap-3">
                 {/* Current Song Info */}
-                <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-3 flex-1 min-w-0">
                   <Image
                     src={demoSongs[currentSongIndex].image}
                     alt={demoSongs[currentSongIndex].title}
                     width={48}
                     height={48}
-                    className="w-12 h-12 object-cover rounded-lg"
+                    className="w-10 h-10 sm:w-12 sm:h-12 object-cover rounded-lg flex-shrink-0"
                     loading="lazy"
                   />
-                  <div>
-                    <h4 className="font-semibold text-gray-900 dark:text-white">
+                  <div className="min-w-0 flex-1">
+                    <h4 className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base truncate">
                       {demoSongs[currentSongIndex].title}
                     </h4>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">
                       {demoSongs[currentSongIndex].artist}
                     </p>
                   </div>
                 </div>
 
                 {/* Control Buttons */}
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center justify-center space-x-2 sm:space-x-2">
                   <button
                     onClick={playPreviousSong}
-                    className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-white dark:hover:bg-gray-700"
+                    className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-white dark:hover:bg-gray-700 min-h-[44px] min-w-[44px] flex items-center justify-center"
                   >
-                    <SkipBack className="h-5 w-5" />
+                    <SkipBack className="h-4 w-4 sm:h-5 sm:w-5" />
                   </button>
                   
                   <button
                     onClick={togglePlayPause}
-                    className="p-3 bg-gradient-to-r from-[#00f5ff] via-[#ff006e] to-[#8338ec] text-white rounded-full hover:scale-105 transition-transform shadow-lg"
+                    className="p-3 bg-gradient-to-r from-[#00f5ff] via-[#ff006e] to-[#8338ec] text-white rounded-full hover:scale-105 transition-transform shadow-lg min-h-[48px] min-w-[48px] flex items-center justify-center"
                   >
                     {isPlaying ? (
-                      <Pause className="h-6 w-6" />
+                      <Pause className="h-5 w-5 sm:h-6 sm:w-6" />
                     ) : (
-                      <Play className="h-6 w-6" />
+                      <Play className="h-5 w-5 sm:h-6 sm:w-6" />
                     )}
                   </button>
                   
                   <button
                     onClick={playNextSong}
-                    className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-white dark:hover:bg-gray-700"
+                    className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-white dark:hover:bg-gray-700 min-h-[44px] min-w-[44px] flex items-center justify-center"
                   >
-                    <SkipForward className="h-5 w-5" />
+                    <SkipForward className="h-4 w-4 sm:h-5 sm:w-5" />
                   </button>
                 </div>
               </div>
 
               {/* Progress Bar */}
-              <div className="flex items-center space-x-3 text-sm text-gray-600 dark:text-gray-400">
-                <span>{formatTime(currentTime)}</span>
-                <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+              <div className="flex items-center space-x-2 sm:space-x-3 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                <span className="tabular-nums">{formatTime(currentTime)}</span>
+                <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2 touch-manipulation">
                   <div
                     className="bg-gradient-to-r from-[#00f5ff] via-[#ff006e] to-[#8338ec] h-2 rounded-full transition-all duration-300"
                     style={{
@@ -528,7 +530,7 @@ export default function Home() {
                     }}
                   />
                 </div>
-                <span>{formatTime(duration)}</span>
+                <span className="tabular-nums">{formatTime(duration)}</span>
               </div>
             </div>
           </div>
@@ -536,52 +538,52 @@ export default function Home() {
       </div>
 
       {/* Features Section */}
-      <section className="py-24 bg-white dark:bg-gray-900">
+      <section className="py-16 sm:py-20 md:py-24 bg-white dark:bg-gray-900">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
+          <div className="text-center mb-12 sm:mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-4">
               Perfect for Every Occasion
             </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg md:text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
               Create memorable songs that capture the essence of your special moments
             </p>
           </div>
           
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="group relative bg-gray-50 dark:bg-gray-800 rounded-2xl p-8 transition-all hover:shadow-xl hover:-translate-y-1">
+          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8">
+            <div className="group relative bg-gray-50 dark:bg-gray-800 rounded-2xl p-6 sm:p-8 transition-all hover:shadow-xl hover:-translate-y-1">
               <div className="absolute inset-0 bg-gradient-to-br from-[#ff006e]/10 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
               <div className="relative">
-                <div className="w-14 h-14 bg-gradient-to-br from-[#ff006e] to-[#ff006e]/70 rounded-xl flex items-center justify-center mb-6">
-                  <Heart className="h-7 w-7 text-white" />
+                <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-[#ff006e] to-[#ff006e]/70 rounded-xl flex items-center justify-center mb-4 sm:mb-6">
+                  <Heart className="h-6 w-6 sm:h-7 sm:w-7 text-white" />
                 </div>
-                <h3 className="text-2xl font-bold mb-3 text-gray-900 dark:text-white">Romantic Moments</h3>
-                <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+                <h3 className="text-xl sm:text-2xl font-bold mb-3 text-gray-900 dark:text-white">Romantic Moments</h3>
+                <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 leading-relaxed">
                   Anniversaries, proposals, Valentine's Day, or just because you love them.
                 </p>
               </div>
             </div>
             
-            <div className="group relative bg-gray-50 dark:bg-gray-800 rounded-2xl p-8 transition-all hover:shadow-xl hover:-translate-y-1">
+            <div className="group relative bg-gray-50 dark:bg-gray-800 rounded-2xl p-6 sm:p-8 transition-all hover:shadow-xl hover:-translate-y-1">
               <div className="absolute inset-0 bg-gradient-to-br from-[#00f5ff]/10 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
               <div className="relative">
-                <div className="w-14 h-14 bg-gradient-to-br from-[#00f5ff] to-[#00f5ff]/70 rounded-xl flex items-center justify-center mb-6">
-                  <Gift className="h-7 w-7 text-white" />
+                <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-[#00f5ff] to-[#00f5ff]/70 rounded-xl flex items-center justify-center mb-4 sm:mb-6">
+                  <Gift className="h-6 w-6 sm:h-7 sm:w-7 text-white" />
                 </div>
-                <h3 className="text-2xl font-bold mb-3 text-gray-900 dark:text-white">Special Celebrations</h3>
-                <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+                <h3 className="text-xl sm:text-2xl font-bold mb-3 text-gray-900 dark:text-white">Special Celebrations</h3>
+                <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 leading-relaxed">
                   Birthdays, graduations, promotions, or any milestone worth celebrating.
                 </p>
               </div>
             </div>
             
-            <div className="group relative bg-gray-50 dark:bg-gray-800 rounded-2xl p-8 transition-all hover:shadow-xl hover:-translate-y-1">
+            <div className="group relative bg-gray-50 dark:bg-gray-800 rounded-2xl p-6 sm:p-8 transition-all hover:shadow-xl hover:-translate-y-1 sm:col-span-2 md:col-span-1">
               <div className="absolute inset-0 bg-gradient-to-br from-[#8338ec]/10 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
               <div className="relative">
-                <div className="w-14 h-14 bg-gradient-to-br from-[#8338ec] to-[#8338ec]/70 rounded-xl flex items-center justify-center mb-6">
-                  <Users className="h-7 w-7 text-white" />
+                <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-[#8338ec] to-[#8338ec]/70 rounded-xl flex items-center justify-center mb-4 sm:mb-6">
+                  <Users className="h-6 w-6 sm:h-7 sm:w-7 text-white" />
                 </div>
-                <h3 className="text-2xl font-bold mb-3 text-gray-900 dark:text-white">Family & Friends</h3>
-                <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+                <h3 className="text-xl sm:text-2xl font-bold mb-3 text-gray-900 dark:text-white">Family & Friends</h3>
+                <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 leading-relaxed">
                   Create memories with personalized songs for the people who matter most.
                 </p>
               </div>

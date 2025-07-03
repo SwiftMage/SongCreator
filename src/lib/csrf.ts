@@ -3,8 +3,11 @@ import { NextRequest } from 'next/server'
 
 const CSRF_SECRET = process.env.CSRF_SECRET
 
-if (!CSRF_SECRET) {
-  throw new Error('CSRF_SECRET environment variable is required for security. Please set it in your .env file.')
+function ensureCSRFSecret(): string {
+  if (!CSRF_SECRET) {
+    throw new Error('CSRF_SECRET environment variable is required for security. Please set it in your .env file.')
+  }
+  return CSRF_SECRET
 }
 
 export function generateCSRFToken(): string {
@@ -12,7 +15,7 @@ export function generateCSRFToken(): string {
   const nonce = randomBytes(16).toString('hex')
   const token = `${timestamp}.${nonce}`
   const signature = createHash('sha256')
-    .update(`${token}.${CSRF_SECRET}`)
+    .update(`${token}.${ensureCSRFSecret()}`)
     .digest('hex')
   
   return `${token}.${signature}`
@@ -27,7 +30,7 @@ export function validateCSRFToken(token: string): boolean {
     
     const [timestamp, nonce, signature] = parts
     const expectedSignature = createHash('sha256')
-      .update(`${timestamp}.${nonce}.${CSRF_SECRET}`)
+      .update(`${timestamp}.${nonce}.${ensureCSRFSecret()}`)
       .digest('hex')
     
     // Constant-time comparison

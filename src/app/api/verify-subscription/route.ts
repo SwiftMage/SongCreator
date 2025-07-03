@@ -3,7 +3,7 @@ import Stripe from 'stripe';
 import { createServerComponentClient } from '@/lib/supabase/server';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-11-20.acacia',
+  apiVersion: '2025-05-28.basil',
 });
 
 const PLAN_DETAILS: Record<string, { name: string; credits: number }> = {
@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
         planName: planDetails.name,
         creditsPerMonth: planDetails.credits,
         amount: (subscription.items.data[0].price.unit_amount! / 100).toFixed(2),
-        nextBilling: new Date(subscription.current_period_end * 1000).toLocaleDateString(),
+        nextBilling: new Date((subscription as any).current_period_end * 1000).toLocaleDateString(),
         status: subscription.status
       }
     });

@@ -293,3 +293,87 @@ body {
     color: white;
     font-weight: bold;
 }
+
+/* Mobile-optimized utility classes */
+.touch-manipulation {
+  touch-action: manipulation;
+}
+
+.line-clamp-1 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+}
+
+.line-clamp-2 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.line-clamp-3 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+/* Ensure modals and overlays work well on mobile */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  padding: 1rem;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 28rem;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.dark .modal-content {
+  background: #1f2937;
+}
+
+/* Mobile-first button styles */
+.btn-mobile {
+  min-height: 44px;
+  padding: 0.75rem 1rem;
+  touch-action: manipulation;
+  user-select: none;
+}
+
+@media (min-width: 640px) {
+  .btn-mobile {
+    min-height: 48px;
+    padding: 0.875rem 1.5rem;
+  }
+}
+
+/* Smooth transitions for mobile interactions */
+.mobile-transition {
+  transition: all 0.2s ease-in-out;
+}
+
+/* Text that's readable on mobile */
+.mobile-text {
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+@media (min-width: 640px) {
+  .mobile-text {
+    font-size: 1rem;
+  }
+}

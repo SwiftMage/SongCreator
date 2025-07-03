@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase'
 import { Resend } from 'resend'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-11-20.acacia'
+  apiVersion: '2025-05-28.basil'
 })
 
 const resend = new Resend(process.env.RESEND_API_KEY)
@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
         const invoice = event.data.object as Stripe.Invoice
         
         // Only process subscription invoices (not one-time payments)
-        if (invoice.subscription && invoice.billing_reason === 'subscription_cycle') {
+        if ((invoice as any).subscription && (invoice as any).billing_reason === 'subscription_cycle') {
           await handleSubscriptionPayment(invoice, supabase)
         }
         break
@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
 async function handleSubscriptionPayment(invoice: Stripe.Invoice, supabase: any) {
   try {
     // Get subscription details
-    const subscription = await stripe.subscriptions.retrieve(invoice.subscription as string)
+    const subscription = await stripe.subscriptions.retrieve((invoice as any).subscription as string)
     const customer = await stripe.customers.retrieve(subscription.customer as string) as Stripe.Customer
     
     if (!customer.email) {
@@ -153,8 +153,8 @@ async function handleSubscriptionPayment(invoice: Stripe.Invoice, supabase: any)
         credits_added: creditsToAdd,
         stripe_invoice_id: invoice.id,
         stripe_subscription_id: subscription.id,
-        billing_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-        billing_period_end: new Date(subscription.current_period_end * 1000).toISOString()
+        billing_period_start: new Date((subscription as any).current_period_start * 1000).toISOString(),
+        billing_period_end: new Date((subscription as any).current_period_end * 1000).toISOString()
       })
 
     if (billingError) {
@@ -198,7 +198,7 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription, supa
         subscription_plan_id: productId,
         subscription_status: getSubscriptionTier(productId),
         billing_cycle_anchor: new Date(subscription.billing_cycle_anchor * 1000).toISOString(),
-        next_billing_date: new Date(subscription.current_period_end * 1000).toISOString()
+        next_billing_date: new Date((subscription as any).current_period_end * 1000).toISOString()
       })
       .eq('stripe_customer_id', subscription.customer)
 
@@ -244,7 +244,7 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription, supa
       .update({
         subscription_plan_id: productId,
         subscription_status: subscriptionStatus,
-        next_billing_date: subscription.status === 'active' ? new Date(subscription.current_period_end * 1000).toISOString() : null
+        next_billing_date: subscription.status === 'active' ? new Date((subscription as any).current_period_end * 1000).toISOString() : null
       })
       .eq('stripe_subscription_id', subscription.id)
 

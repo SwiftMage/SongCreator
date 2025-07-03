@@ -61,7 +61,7 @@ export function FormInput({
         
         <input
           {...props}
-          onChange={onChange ? (e) => onChange(e.target.value) : props.onChange}
+          onChange={onChange ? (e) => onChange(e.target.value) : undefined}
           className={inputClasses}
         />
         
@@ -155,7 +155,7 @@ export function FormTextarea({
       <div className="relative">
         <textarea
           {...props}
-          onChange={onChange ? (e) => onChange(e.target.value) : props.onChange}
+          onChange={onChange ? (e) => onChange(e.target.value) : undefined}
           className={textareaClasses}
         />
         
