@@ -89,7 +89,8 @@ export default function PricingPage() {
         {/* Pricing Section with Background */}
         <div className="relative">
           {/* Background gradient */}
-          <div className="absolute inset-0 bg-gradient-to-b from-purple-50/50 to-transparent dark:from-purple-900/10 dark:to-transparent rounded-3xl -z-10" />
+          <div className="absolute inset-0 bg-gradient-to-b from-purple-50/80 via-purple-25/30 to-transparent dark:from-purple-900/20 dark:via-purple-900/10 dark:to-transparent rounded-3xl -z-10" />
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent dark:via-transparent rounded-3xl -z-10" />
           
           {/* Pricing Toggle Component */}
           <PricingToggle 

@@ -1128,20 +1128,20 @@ export default function CreateSongPage() {
           {((currentStep === 4 && formData.lyricsChoice === 'own') || currentStep === 5) && (
             <div data-song-style-section>
               {/* Preset notification */}
-              {showPresetNotification && hasOccasionPreset(formData.songType) && (
-                <div className={`mb-4 bg-purple-50 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-700 rounded-lg p-4 flex items-start space-x-3 ${
+              {(showPresetNotification || isNotificationFading) && hasOccasionPreset(formData.songType) && (
+                <div className={`mb-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700/50 rounded-lg p-4 flex items-start space-x-3 ${
                   isNotificationFading ? 'animate-fade-out' : 'animate-fade-in'
                 }`}>
-                  <Info className="h-5 w-5 text-purple-600 dark:text-purple-400 flex-shrink-0 mt-0.5" />
+                  <Info className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
                   <div className="flex-1">
-                    <p className="text-sm text-purple-800 dark:text-purple-200">
+                    <p className="text-sm text-blue-800 dark:text-blue-100">
                       We've preselected some settings that work great for {songTypes.find(t => t.id === formData.songType)?.label || 'this type of song'}. 
                       Feel free to customize them or use the "Reset to Recommended" button to restore our suggestions.
                     </p>
                   </div>
                   <button
                     onClick={dismissNotification}
-                    className="text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-200 transition-colors"
+                    className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200 transition-colors"
                   >
                     <X className="h-4 w-4" />
                   </button>
@@ -1592,7 +1592,7 @@ function SongStyleSection({
                     className={`px-6 py-3 rounded-lg font-medium transition-colors capitalize relative ${
                       formData.energy === energy
                         ? 'bg-purple-600 text-white'
-                        : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                        : 'bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500 border border-gray-300 dark:border-gray-500'
                     }`}
                   >
                     {energy}

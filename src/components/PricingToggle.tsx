@@ -126,13 +126,13 @@ export default function PricingToggle({ onCheckout, isCheckoutLoading }: Pricing
     <div className="w-full">
       {/* Toggle */}
       <div className="flex justify-center mb-12">
-        <div className="bg-gray-100 dark:bg-gray-800 p-1 rounded-xl inline-flex">
+        <div className="bg-gray-100 dark:bg-gray-800 p-1 rounded-xl inline-flex shadow-sm border border-gray-200 dark:border-gray-700">
           <button
             onClick={() => setActiveTab('onetime')}
             className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
               activeTab === 'onetime'
-                ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
-                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-md border border-gray-200 dark:border-gray-600'
+                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-700/50'
             }`}
           >
             💳 One-Time Purchase
@@ -141,8 +141,8 @@ export default function PricingToggle({ onCheckout, isCheckoutLoading }: Pricing
             onClick={() => setActiveTab('monthly')}
             className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
               activeTab === 'monthly'
-                ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
-                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-md border border-gray-200 dark:border-gray-600'
+                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-700/50'
             }`}
           >
             🔁 Monthly Subscription
@@ -157,8 +157,8 @@ export default function PricingToggle({ onCheckout, isCheckoutLoading }: Pricing
             key={plan.id}
             className={`relative bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 transition-all duration-300 hover:shadow-xl animate-fadeIn ${
               plan.popular
-                ? 'border-2 border-purple-500 dark:border-purple-400 scale-105'
-                : 'border border-gray-200 dark:border-gray-700'
+                ? 'border-2 border-purple-500 dark:border-purple-400 scale-105 ring-2 ring-purple-100 dark:ring-purple-900/50'
+                : 'border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
             }`}
             style={{
               animationDelay: `${index * 100}ms`,
@@ -203,8 +203,8 @@ export default function PricingToggle({ onCheckout, isCheckoutLoading }: Pricing
               disabled={isCheckoutLoading === plan.id}
               className={`w-full py-4 px-6 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 ${
                 plan.popular
-                  ? 'bg-purple-600 hover:bg-purple-700 text-white shadow-md hover:shadow-lg'
-                  : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-900 dark:text-white'
+                  ? 'bg-purple-600 hover:bg-purple-700 text-white shadow-md hover:shadow-lg transform hover:scale-105'
+                  : 'bg-purple-50 dark:bg-gray-700 hover:bg-purple-100 dark:hover:bg-gray-600 text-purple-700 dark:text-white border border-purple-200 dark:border-gray-600 hover:border-purple-300 dark:hover:border-gray-500'
               } disabled:opacity-50 disabled:cursor-not-allowed`}
             >
               {isCheckoutLoading === plan.id ? (
