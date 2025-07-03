@@ -144,7 +144,7 @@ export default function AccountPage() {
               <DarkModeToggle />
               <Link 
                 href="/dashboard"
-                className="text-gray-600 hover:text-gray-900 flex items-center space-x-2 transition-colors"
+                className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white flex items-center space-x-2 transition-colors"
               >
                 <ArrowLeft className="h-5 w-5" />
                 <span>Back to Dashboard</span>
@@ -157,28 +157,28 @@ export default function AccountPage() {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-3xl font-bold text-gray-900 mb-8">Account Settings</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">Account Settings</h1>
 
           {/* Message */}
           {message.text && (
             <div className={`mb-6 p-4 rounded-lg ${
-              message.type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 
-              'bg-red-50 text-red-800 border border-red-200'
+              message.type === 'success' ? 'bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-300 border border-green-200 dark:border-green-700' : 
+              'bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300 border border-red-200 dark:border-red-700'
             }`}>
               {message.text}
             </div>
           )}
 
           {/* Tabs */}
-          <div className="bg-white rounded-lg shadow-md overflow-hidden">
-            <div className="border-b border-gray-200">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+            <div className="border-b border-gray-200 dark:border-gray-700">
               <nav className="-mb-px flex">
                 <button
                   onClick={() => setActiveTab('profile')}
                   className={`py-4 px-8 text-sm font-medium border-b-2 transition-colors ${
                     activeTab === 'profile'
-                      ? 'border-purple-600 text-purple-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                      ? 'border-purple-600 text-purple-600 dark:text-purple-400'
+                      : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
                   }`}
                 >
                   <User className="inline-block h-4 w-4 mr-2" />
@@ -188,8 +188,8 @@ export default function AccountPage() {
                   onClick={() => setActiveTab('password')}
                   className={`py-4 px-8 text-sm font-medium border-b-2 transition-colors ${
                     activeTab === 'password'
-                      ? 'border-purple-600 text-purple-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                      ? 'border-purple-600 text-purple-600 dark:text-purple-400'
+                      : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
                   }`}
                 >
                   <Lock className="inline-block h-4 w-4 mr-2" />
@@ -199,8 +199,8 @@ export default function AccountPage() {
                   onClick={() => setActiveTab('billing')}
                   className={`py-4 px-8 text-sm font-medium border-b-2 transition-colors ${
                     activeTab === 'billing'
-                      ? 'border-purple-600 text-purple-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                      ? 'border-purple-600 text-purple-600 dark:text-purple-400'
+                      : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
                   }`}
                 >
                   <CreditCard className="inline-block h-4 w-4 mr-2" />

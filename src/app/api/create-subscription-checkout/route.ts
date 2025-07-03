@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createServerComponentClient } from '@/lib/supabase/server';
-import { ensureUserProfile } from '@/lib/profile-utils';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2024-11-20.acacia',
@@ -29,38 +28,19 @@ export async function POST(request: Request) {
     }
 
     // Get user profile to check for existing subscription
-    let { data: profile, error: profileError } = await supabase
+    const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('stripe_customer_id, stripe_subscription_id')
       .eq('id', user.id)
       .single();
 
-    // If profile doesn't exist, create it
-    if (profileError?.code === 'PGRST116') {
-      console.log('Profile not found for user', user.id, 'creating profile');
-      
-      const { data: newProfile, error: createError } = await supabase
-        .from('profiles')
-        .insert({
-          id: user.id,
-          full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
-          subscription_status: 'free',
-          credits_remaining: 0
-        })
-        .select('stripe_customer_id, stripe_subscription_id')
-        .single();
-
-      if (createError) {
-        console.error('Failed to create profile:', createError);
-        return NextResponse.json({ 
-          error: 'Failed to create user profile. Please try again.' 
-        }, { status: 500 });
-      }
-
-      profile = newProfile;
-      console.log('Successfully created profile for user:', user.id);
-    } else if (profileError) {
+    if (profileError) {
       console.error('Failed to get user profile:', profileError);
+      if (profileError.code === 'PGRST116') {
+        return NextResponse.json({ 
+          error: 'User profile not found. Please log out and log back in to complete your profile setup.' 
+        }, { status: 404 });
+      }
       return NextResponse.json({ error: 'User profile error' }, { status: 500 });
     }
 
