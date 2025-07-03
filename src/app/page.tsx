@@ -261,7 +261,9 @@ export default function Home() {
       }
     } catch (error) {
       console.error('Checkout error:', error);
-      alert('Failed to create checkout session. Please try again.');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      console.error('Full error details:', errorMessage);
+      alert(`Failed to create checkout session: ${errorMessage}. Please try again.`);
     } finally {
       setIsCheckoutLoading(null);
     }

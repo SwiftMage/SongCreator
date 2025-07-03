@@ -7,21 +7,21 @@ export const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHAB
 export const PRICING = {
   single: {
     id: 'starter_pack',
-    name: 'Starter Pack',
-    price: 999, // $9.99 in cents
-    credits: 5,
+    name: 'Starter',
+    price: 900, // $9.00 in cents
+    credits: 3,
   },
   bundle3: {
-    id: 'pro_pack', 
-    name: 'Pro Pack',
-    price: 2499, // $24.99 in cents
-    credits: 15,
+    id: 'creator_pack', 
+    name: 'Creator',
+    price: 1900, // $19.00 in cents
+    credits: 10,
   },
   bundle5: {
-    id: 'mega_pack',
-    name: 'Mega Pack', 
-    price: 3999, // $39.99 in cents
-    credits: 30,
+    id: 'pro_pack',
+    name: 'Pro', 
+    price: 2900, // $29.00 in cents
+    credits: 20,
   },
 };
 
@@ -63,6 +63,8 @@ export async function createCheckoutSession(bundleType: 'single' | 'bundle3' | '
 // Create subscription checkout session
 export async function createSubscriptionCheckout(planId: 'lite' | 'plus' | 'pro-monthly') {
   try {
+    console.log('Creating subscription checkout for plan:', planId);
+    
     const response = await fetch('/api/create-subscription-checkout', {
       method: 'POST',
       headers: {
@@ -73,15 +75,26 @@ export async function createSubscriptionCheckout(planId: 'lite' | 'plus' | 'pro-
       }),
     });
 
+    console.log('Subscription checkout response status:', response.status);
+    console.log('Subscription checkout response headers:', response.headers);
+
     if (!response.ok) {
       const errorData = await response.json();
-      console.error('Subscription checkout error:', errorData);
+      console.error('Subscription checkout error response:', {
+        status: response.status,
+        statusText: response.statusText,
+        errorData: errorData
+      });
       throw new Error(errorData.details || errorData.error || 'Failed to create subscription checkout');
     }
 
-    const { url, redirectToPortal } = await response.json();
+    const responseData = await response.json();
+    console.log('Subscription checkout success response:', responseData);
+    
+    const { url, redirectToPortal } = responseData;
     
     if (url) {
+      console.log('Redirecting to:', url);
       // Redirect to Stripe Checkout or Customer Portal
       window.location.href = url;
     }
@@ -89,6 +102,10 @@ export async function createSubscriptionCheckout(planId: 'lite' | 'plus' | 'pro-
     return { redirectToPortal };
   } catch (error) {
     console.error('Error creating subscription checkout:', error);
+    if (error instanceof Error) {
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+    }
     throw error;
   }
 }
