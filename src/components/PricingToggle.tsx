@@ -182,7 +182,7 @@ export default function PricingToggle({ onCheckout, isCheckoutLoading }: Pricing
             {/* Badge */}
             {plan.badge && (
               <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                <div className={`${plan.badgeColor} text-white px-4 py-1.5 rounded-full text-sm font-semibold shadow-lg`}>
+                <div className="bg-gradient-to-r from-[#00f5ff] via-[#ff006e] to-[#8338ec] text-white px-4 py-1.5 rounded-full text-sm font-semibold shadow-lg">
                   {plan.badge}
                 </div>
               </div>
@@ -216,20 +216,25 @@ export default function PricingToggle({ onCheckout, isCheckoutLoading }: Pricing
             <button
               onClick={() => onCheckout(plan.id)}
               disabled={isCheckoutLoading === plan.id}
-              className={`w-full py-4 px-6 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 transform hover:scale-105 ${
+              className={`w-full py-4 px-6 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed ${
                 plan.popular
-                  ? 'bg-purple-600 hover:bg-purple-700 text-white shadow-md hover:shadow-lg'
+                  ? 'relative text-white overflow-hidden group'
                   : 'bg-purple-600 hover:bg-purple-700 text-white shadow-md hover:shadow-lg group-hover:bg-purple-700'
-              } disabled:opacity-50 disabled:cursor-not-allowed`}
+              }`}
             >
-              {isCheckoutLoading === plan.id ? (
-                <>
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                  Processing...
-                </>
-              ) : (
-                plan.buttonText
+              {plan.popular && (
+                <span className="absolute inset-0 bg-gradient-to-r from-[#00f5ff] via-[#ff006e] to-[#8338ec] transition-transform group-hover:scale-110" />
               )}
+              <span className={plan.popular ? "relative" : ""}>
+                {isCheckoutLoading === plan.id ? (
+                  <>
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  plan.buttonText
+                )}
+              </span>
             </button>
           </div>
         ))}

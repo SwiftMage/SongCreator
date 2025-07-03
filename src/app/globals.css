@@ -102,22 +102,28 @@ body {
 }
 
 @keyframes fade-out {
-  from {
+  0% {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scaleY(1);
+    max-height: 200px;
   }
-  to {
+  50% {
+    opacity: 0.5;
+    transform: translateY(-5px) scaleY(0.95);
+  }
+  100% {
     opacity: 0;
-    transform: translateY(-10px);
+    transform: translateY(-15px) scaleY(0.8);
+    max-height: 0;
   }
 }
 
 .animate-fade-in {
-  animation: fade-in 0.3s ease-out;
+  animation: fade-in 0.4s ease-out;
 }
 
 .animate-fade-out {
-  animation: fade-out 0.3s ease-out forwards;
+  animation: fade-out 0.5s ease-out forwards;
 }
 
 /* Loading pulse animation */

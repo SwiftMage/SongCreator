@@ -5,10 +5,12 @@ import { cookies } from 'next/headers'
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
+  const type = searchParams.get('type') // Supabase adds this for different auth flows
   
   console.log('Callback route hit:', request.url)
   console.log('Origin:', origin)
   console.log('Code:', code)
+  console.log('Type:', type)
   console.log('All search params:', Object.fromEntries(searchParams.entries()))
 
   if (code) {
@@ -34,7 +36,13 @@ export async function GET(request: Request) {
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     console.log('Exchange error:', error)
     if (!error) {
-      // Redirect to verification success page, which will then redirect to dashboard
+      // Check if this is a password recovery flow
+      if (type === 'recovery') {
+        console.log('Redirecting to reset password page')
+        return NextResponse.redirect(`${origin}/auth/reset-password`)
+      }
+      
+      // Default redirect to verification success page
       console.log('Redirecting to verified page')
       return NextResponse.redirect(`${origin}/auth/verified`)
     }

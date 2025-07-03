@@ -349,6 +349,9 @@ export default function CreateSongPage() {
   }
 
   const dismissNotification = () => {
+    // Prevent multiple dismissals
+    if (isNotificationFading || !showPresetNotification) return
+    
     // Clear any existing timeout
     if (notificationTimeout) {
       clearTimeout(notificationTimeout)
@@ -356,10 +359,13 @@ export default function CreateSongPage() {
     }
     
     setIsNotificationFading(true)
+    
+    // Wait for animation to complete before removing from DOM
     setTimeout(() => {
       setShowPresetNotification(false)
       setIsNotificationFading(false)
-    }, 300) // Wait for fade-out animation to complete
+      setAppliedPresetFor(null)
+    }, 550) // Slightly longer than animation duration (500ms + buffer)
   }
 
   const applyOccasionPreset = (songType: string) => {
@@ -368,6 +374,7 @@ export default function CreateSongPage() {
       // Clear any existing timeout
       if (notificationTimeout) {
         clearTimeout(notificationTimeout)
+        setNotificationTimeout(null)
       }
       
       setFormData(prev => ({
@@ -377,7 +384,7 @@ export default function CreateSongPage() {
         singer: preset.singer,
         energy: preset.energy,
         customGenres: [], // Clear custom selections when applying preset
-        customInstruments: []
+        customInstruments: preset.customInstruments || []
       }))
       setAppliedPresetFor(songType)
       setShowPresetNotification(true)

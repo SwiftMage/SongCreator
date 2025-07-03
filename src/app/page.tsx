@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { createClient } from '@/lib/supabase';
 import Logo from '@/components/Logo';
 import DarkModeToggle from '@/components/DarkModeToggle';
+import PricingToggle from '@/components/PricingToggle';
 import { Heart, Gift, Users, LogOut, User, Music, Sparkles, Zap, Shield, ArrowRight, Check, Play, Pause, SkipForward, SkipBack, X, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { createCheckoutSession } from '@/lib/stripe';
 
@@ -85,7 +86,7 @@ const demoSongs = [
 export default function Home() {
   const [user, setUser] = useState<{ user_metadata?: { full_name?: string }, email?: string } | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [isCheckoutLoading, setIsCheckoutLoading] = useState<'single' | 'bundle3' | 'bundle5' | null>(null)
+  const [isCheckoutLoading, setIsCheckoutLoading] = useState<string | null>(null)
   const [showDemoPlayer, setShowDemoPlayer] = useState(true)
   const [currentSongIndex, setCurrentSongIndex] = useState(0)
   const [isPlaying, setIsPlaying] = useState(false)
@@ -234,10 +235,28 @@ export default function Home() {
     return `${minutes}:${seconds.toString().padStart(2, '0')}`
   }
 
-  const handleCheckout = async (type: 'single' | 'bundle3' | 'bundle5') => {
+  const handleCheckout = async (planId: string) => {
     try {
-      setIsCheckoutLoading(type);
-      await createCheckoutSession(type);
+      setIsCheckoutLoading(planId);
+      
+      // Map new plan IDs to existing Stripe configuration
+      const planMapping: { [key: string]: 'single' | 'bundle3' | 'bundle5' } = {
+        'starter': 'single',
+        'creator': 'bundle3', 
+        'pro': 'bundle5',
+        // For now, subscription plans will use the same checkout flow
+        // This can be updated later to handle subscriptions differently
+        'lite': 'single',
+        'plus': 'bundle3',
+        'pro-monthly': 'bundle5'
+      };
+      
+      const stripeType = planMapping[planId];
+      if (!stripeType) {
+        throw new Error(`Unknown plan ID: ${planId}`);
+      }
+      
+      await createCheckoutSession(stripeType);
     } catch (error) {
       console.error('Checkout error:', error);
       alert('Failed to create checkout session. Please try again.');
@@ -629,162 +648,10 @@ export default function Home() {
             </p>
           </div>
           
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {/* Starter Pack */}
-            <div className="relative bg-gray-50 dark:bg-gray-800 rounded-2xl p-8 border-2 border-gray-200 dark:border-gray-700 transition-all hover:shadow-xl">
-              <h3 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">Starter Pack</h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-6">Perfect for getting started</p>
-              
-              <div className="flex items-baseline mb-2">
-                <span className="text-5xl font-bold text-gray-900 dark:text-white">$9</span>
-                <span className="text-2xl font-bold text-gray-500 dark:text-gray-400">.99</span>
-              </div>
-              <p className="text-sm text-gray-500 dark:text-gray-500 mb-6">5 credits</p>
-              
-              <ul className="space-y-4 mb-8">
-                <li className="flex items-start gap-3">
-                  <Check className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-700 dark:text-gray-300">Generate new songs</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <Check className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-700 dark:text-gray-300">Modify existing songs</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <Check className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-700 dark:text-gray-300">High-quality MP3 audio files</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <Check className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-700 dark:text-gray-300">1 credit per action</span>
-                </li>
-              </ul>
-              
-              <button
-                onClick={() => handleCheckout('single')}
-                disabled={isCheckoutLoading === 'single'}
-                className="w-full py-4 text-gray-900 dark:text-white font-semibold rounded-xl bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isCheckoutLoading === 'single' ? (
-                  <>
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                    Processing...
-                  </>
-                ) : (
-                  'Buy Now'
-                )}
-              </button>
-            </div>
-            
-            {/* Pro Pack */}
-            <div className="relative bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-800 dark:to-gray-800 rounded-2xl p-8 border-2 border-gradient transition-all hover:shadow-xl">
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                <span className="bg-gradient-to-r from-[#00f5ff] via-[#ff006e] to-[#8338ec] text-white px-4 py-1.5 rounded-full text-sm font-semibold">
-                  MOST POPULAR
-                </span>
-              </div>
-              
-              <h3 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">Pro Pack</h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-6">Perfect for multiple songs</p>
-              
-              <div className="flex items-baseline mb-2">
-                <span className="text-5xl font-bold bg-gradient-to-r from-[#00f5ff] via-[#ff006e] to-[#8338ec] bg-clip-text text-transparent">$24</span>
-                <span className="text-2xl font-bold text-gray-500 dark:text-gray-400">.99</span>
-              </div>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">15 credits</p>
-              
-              <ul className="space-y-4 mb-8">
-                <li className="flex items-start gap-3">
-                  <Check className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-700 dark:text-gray-300">15 credits for maximum flexibility</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <Check className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-700 dark:text-gray-300">Iterate and refine your songs</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <Check className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-700 dark:text-gray-300">All generation features</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <Check className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-700 dark:text-gray-300">High-quality MP3 audio files</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <Sparkles className="h-5 w-5 text-[#ff006e] mt-0.5 flex-shrink-0" />
-                  <span className="font-semibold text-gray-900 dark:text-white">Save 17%</span>
-                </li>
-              </ul>
-              
-              <button
-                onClick={() => handleCheckout('bundle3')}
-                disabled={isCheckoutLoading === 'bundle3'}
-                className="relative w-full py-4 text-white font-semibold rounded-xl overflow-hidden group disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <span className="absolute inset-0 bg-gradient-to-r from-[#00f5ff] via-[#ff006e] to-[#8338ec] transition-transform group-hover:scale-110" />
-                <span className="relative flex items-center justify-center gap-2">
-                  {isCheckoutLoading === 'bundle3' ? (
-                    <>
-                      <Loader2 className="h-5 w-5 animate-spin" />
-                      Processing...
-                    </>
-                  ) : (
-                    'Get Bundle'
-                  )}
-                </span>
-              </button>
-            </div>
-            
-            {/* Mega Pack */}
-            <div className="relative bg-gray-50 dark:bg-gray-800 rounded-2xl p-8 border-2 border-gray-200 dark:border-gray-700 transition-all hover:shadow-xl">
-              <h3 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">Mega Pack</h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-6">Maximum creative freedom</p>
-              
-              <div className="flex items-baseline mb-2">
-                <span className="text-5xl font-bold text-gray-900 dark:text-white">$39</span>
-                <span className="text-2xl font-bold text-gray-500 dark:text-gray-400">.99</span>
-              </div>
-              <p className="text-sm text-gray-500 dark:text-gray-500 mb-6">30 credits</p>
-              
-              <ul className="space-y-4 mb-8">
-                <li className="flex items-start gap-3">
-                  <Check className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-700 dark:text-gray-300">30 credits for unlimited creativity</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <Check className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-700 dark:text-gray-300">Create entire song collections</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <Check className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-700 dark:text-gray-300">All generation features</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <Check className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-700 dark:text-gray-300">High-quality MP3 audio files</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <Sparkles className="h-5 w-5 text-[#ff006e] mt-0.5 flex-shrink-0" />
-                  <span className="font-semibold text-gray-900 dark:text-white">Save 33%</span>
-                </li>
-              </ul>
-              
-              <button
-                onClick={() => handleCheckout('bundle5')}
-                disabled={isCheckoutLoading === 'bundle5'}
-                className="w-full py-4 text-gray-900 dark:text-white font-semibold rounded-xl bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isCheckoutLoading === 'bundle5' ? (
-                  <>
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                    Processing...
-                  </>
-                ) : (
-                  'Get Mega Pack'
-                )}
-              </button>
-            </div>
-          </div>
+          <PricingToggle 
+            onCheckout={handleCheckout} 
+            isCheckoutLoading={isCheckoutLoading} 
+          />
         </div>
       </section>
       

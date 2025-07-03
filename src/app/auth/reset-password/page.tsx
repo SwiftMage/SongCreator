@@ -20,14 +20,17 @@ function ResetPasswordForm() {
   const supabase = createClient()
 
   useEffect(() => {
-    // Check if we have the required tokens in the URL
-    const accessToken = searchParams.get('access_token')
-    const refreshToken = searchParams.get('refresh_token')
-    
-    if (!accessToken || !refreshToken) {
-      setError('Invalid or expired reset link. Please request a new password reset.')
+    // Check if user is authenticated (they should be after clicking reset link)
+    const checkSession = async () => {
+      const { data: { session }, error } = await supabase.auth.getSession()
+      
+      if (error || !session) {
+        setError('Invalid or expired reset link. Please request a new password reset.')
+      }
     }
-  }, [searchParams])
+    
+    checkSession()
+  }, [supabase.auth])
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault()

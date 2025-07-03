@@ -1,15 +1,17 @@
 interface OccasionPreset {
   genres: string[]
   instruments: string[]
+  customInstruments?: string[]
   singer: 'male' | 'female' | ''
   energy: 'low' | 'medium' | 'high' | ''
 }
 
 export const occasionPresets: Record<string, OccasionPreset> = {
   love: {
-    genres: ['R&B', 'Acoustic', 'Singer-Songwriter'],
-    instruments: ['Acoustic Guitar', 'Piano'],
-    singer: '', // Let user choose
+    genres: ['Indie Folk', 'Acoustic', 'Singer-Songwriter'],
+    instruments: ['Piano'],
+    customInstruments: ['Finger Picked Acoustic Guitar'],
+    singer: 'male',
     energy: 'medium'
   },
   
