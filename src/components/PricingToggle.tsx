@@ -6,8 +6,10 @@ import { Check, Loader2 } from 'lucide-react'
 interface PricingPlan {
   id: string
   name: string
+  tagline: string
   price: string
   credits: string
+  creditsDescription: string
   perSong?: string
   badge?: string
   badgeColor?: string
@@ -28,8 +30,10 @@ export default function PricingToggle({ onCheckout, isCheckoutLoading }: Pricing
     {
       id: 'starter',
       name: 'Starter',
+      tagline: 'Great for trying it out',
       price: '$9',
       credits: '3 credits',
+      creditsDescription: '3 credits = 3 full songs',
       perSong: '$3.00 per song',
       features: [
         'AI lyric generation',
@@ -42,8 +46,10 @@ export default function PricingToggle({ onCheckout, isCheckoutLoading }: Pricing
     {
       id: 'creator',
       name: 'Creator',
+      tagline: 'Most value for gifting or creating',
       price: '$19',
       credits: '10 credits',
+      creditsDescription: '10 credits = 10 songs',
       perSong: '$1.90 per song',
       badge: 'Most Popular',
       badgeColor: 'bg-purple-600',
@@ -59,8 +65,10 @@ export default function PricingToggle({ onCheckout, isCheckoutLoading }: Pricing
     {
       id: 'pro',
       name: 'Pro',
+      tagline: 'Best for frequent creators',
       price: '$29',
       credits: '20 credits',
+      creditsDescription: '20 credits = 20 custom songs',
       perSong: '$1.45 per song',
       features: [
         'Everything in Creator',
@@ -76,8 +84,10 @@ export default function PricingToggle({ onCheckout, isCheckoutLoading }: Pricing
     {
       id: 'lite',
       name: 'Lite',
+      tagline: 'Perfect for casual creators',
       price: '$10',
       credits: '5 credits',
+      creditsDescription: '5 credits = 5 songs per month',
       perSong: '$2.00 per song',
       features: [
         '5 credits per month',
@@ -90,8 +100,10 @@ export default function PricingToggle({ onCheckout, isCheckoutLoading }: Pricing
     {
       id: 'plus',
       name: 'Plus',
+      tagline: 'Best value for regular use',
       price: '$20',
       credits: '15 credits',
+      creditsDescription: '15 credits = 15 songs per month',
       perSong: '$1.33 per song',
       badge: 'Best Value',
       badgeColor: 'bg-green-600',
@@ -107,8 +119,10 @@ export default function PricingToggle({ onCheckout, isCheckoutLoading }: Pricing
     {
       id: 'pro-monthly',
       name: 'Pro',
+      tagline: 'For power users and creators',
       price: '$35',
       credits: '30 credits',
+      creditsDescription: '30 credits = 30 songs per month',
       perSong: '$1.17 per song',
       features: [
         '30 credits per month',
@@ -131,7 +145,7 @@ export default function PricingToggle({ onCheckout, isCheckoutLoading }: Pricing
             onClick={() => setActiveTab('onetime')}
             className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
               activeTab === 'onetime'
-                ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-md border border-gray-200 dark:border-gray-600'
+                ? 'bg-white dark:bg-gray-700 text-purple-700 dark:text-white shadow-md border border-purple-200 dark:border-gray-600 ring-1 ring-purple-100 dark:ring-purple-900/50'
                 : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-700/50'
             }`}
           >
@@ -141,7 +155,7 @@ export default function PricingToggle({ onCheckout, isCheckoutLoading }: Pricing
             onClick={() => setActiveTab('monthly')}
             className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
               activeTab === 'monthly'
-                ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-md border border-gray-200 dark:border-gray-600'
+                ? 'bg-white dark:bg-gray-700 text-purple-700 dark:text-white shadow-md border border-purple-200 dark:border-gray-600 ring-1 ring-purple-100 dark:ring-purple-900/50'
                 : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-700/50'
             }`}
           >
@@ -155,10 +169,10 @@ export default function PricingToggle({ onCheckout, isCheckoutLoading }: Pricing
         {currentPlans.map((plan, index) => (
           <div
             key={plan.id}
-            className={`relative bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 transition-all duration-300 hover:shadow-xl animate-fadeIn ${
+            className={`relative bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 transition-all duration-300 hover:shadow-xl hover:scale-105 animate-fadeIn cursor-pointer group ${
               plan.popular
                 ? 'border-2 border-purple-500 dark:border-purple-400 scale-105 ring-2 ring-purple-100 dark:ring-purple-900/50'
-                : 'border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                : 'border border-gray-200 dark:border-gray-700 hover:border-purple-200 dark:hover:border-purple-600'
             }`}
             style={{
               animationDelay: `${index * 100}ms`,
@@ -176,14 +190,15 @@ export default function PricingToggle({ onCheckout, isCheckoutLoading }: Pricing
 
             {/* Plan Content */}
             <div className="text-center mb-8">
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{plan.name}</h3>
-              <div className="text-4xl font-bold text-purple-600 dark:text-purple-400 mb-1">
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">{plan.name}</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">{plan.tagline}</p>
+              <div className="text-4xl font-bold text-purple-600 dark:text-purple-400 mb-2">
                 {plan.price}
                 {activeTab === 'monthly' && <span className="text-lg font-normal">/month</span>}
               </div>
-              <p className="text-gray-600 dark:text-gray-400 font-medium">{plan.credits}</p>
+              <p className="text-gray-700 dark:text-gray-300 font-medium mb-1">{plan.creditsDescription}</p>
               {plan.perSong && (
-                <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">{plan.perSong}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-500">{plan.perSong}</p>
               )}
             </div>
 
@@ -201,10 +216,10 @@ export default function PricingToggle({ onCheckout, isCheckoutLoading }: Pricing
             <button
               onClick={() => onCheckout(plan.id)}
               disabled={isCheckoutLoading === plan.id}
-              className={`w-full py-4 px-6 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 ${
+              className={`w-full py-4 px-6 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 transform hover:scale-105 ${
                 plan.popular
-                  ? 'bg-purple-600 hover:bg-purple-700 text-white shadow-md hover:shadow-lg transform hover:scale-105'
-                  : 'bg-purple-50 dark:bg-gray-700 hover:bg-purple-100 dark:hover:bg-gray-600 text-purple-700 dark:text-white border border-purple-200 dark:border-gray-600 hover:border-purple-300 dark:hover:border-gray-500'
+                  ? 'bg-purple-600 hover:bg-purple-700 text-white shadow-md hover:shadow-lg'
+                  : 'bg-purple-600 hover:bg-purple-700 text-white shadow-md hover:shadow-lg group-hover:bg-purple-700'
               } disabled:opacity-50 disabled:cursor-not-allowed`}
             >
               {isCheckoutLoading === plan.id ? (
