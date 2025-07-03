@@ -241,10 +241,10 @@ export default function Home() {
       setIsCheckoutLoading(planId);
       
       // Subscription plans
-      const subscriptionPlans = ['lite', 'plus', 'pro-monthly'];
+      const subscriptionPlans = ['lite', 'plus', 'max'];
       
       if (subscriptionPlans.includes(planId)) {
-        await createSubscriptionCheckout(planId as 'lite' | 'plus' | 'pro-monthly');
+        await createSubscriptionCheckout(planId as 'lite' | 'plus' | 'max');
       } else {
         // One-time purchase plans
         const planMapping: { [key: string]: 'single' | 'bundle3' | 'bundle5' } = {
