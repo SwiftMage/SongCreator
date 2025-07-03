@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { rateLimiters, getClientIdentifier, applyRateLimit } from '@/lib/rate-limiter'
+import type { MurekaApiPayload } from '@/types'
 
 export async function POST(request: NextRequest) {
   try {
@@ -47,7 +48,7 @@ export async function POST(request: NextRequest) {
     const cleanedLyrics = lyrics.replace(/⸻/g, '---').replace(/[^\x00-\x7F]/g, '')
     
     // Prepare the request payload for Mureka API with supported parameters only
-    const payload: { lyrics: any; prompt: any; model: string } = {
+    const payload: MurekaApiPayload = {
       lyrics: cleanedLyrics,
       prompt: style || "pop, upbeat, modern",
       model: model || "auto"

@@ -179,7 +179,7 @@ export default function PricingToggle({ onCheckout, isCheckoutLoading }: Pricing
             {/* Badge */}
             {plan.badge && (
               <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                <div className="bg-gradient-to-r from-[#00f5ff] via-[#ff006e] to-[#8338ec] text-white px-4 py-1.5 rounded-full text-sm font-semibold shadow-lg">
+                <div className="brand-gradient text-white px-4 py-1.5 rounded-full text-sm font-semibold shadow-lg">
                   {plan.badge}
                 </div>
               </div>
@@ -220,7 +220,7 @@ export default function PricingToggle({ onCheckout, isCheckoutLoading }: Pricing
               }`}
             >
               {plan.popular && (
-                <span className="absolute inset-0 bg-gradient-to-r from-[#00f5ff] via-[#ff006e] to-[#8338ec] transition-transform group-hover:scale-110" />
+                <span className="absolute inset-0 brand-gradient transition-transform group-hover:scale-110" />
               )}
               <span className={plan.popular ? "relative" : ""}>
                 {isCheckoutLoading === plan.id ? (

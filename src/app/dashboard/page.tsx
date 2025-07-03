@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
+import { SimpleErrorBoundary } from '@/components/ErrorBoundary'
+import type { User, Profile, Song } from '@/types'
 import { 
   Music, 
   Plus, 
@@ -25,23 +27,12 @@ import Logo from '@/components/Logo'
 import DarkModeToggle from '@/components/DarkModeToggle'
 import VersionDownloadButton from '@/components/VersionDownloadButton'
 
-interface Song {
-  id: string
-  title: string
-  song_title?: string
-  status: 'pending' | 'processing' | 'completed' | 'failed'
-  questionnaire_data: any
-  generated_lyrics?: string
-  audio_url?: string
-  backup_audio_url?: string
-  created_at: string
-  completed_at?: string
-}
+// Song interface moved to /src/types/index.ts
 
 export default function DashboardPage() {
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<User | null>(null)
   const [songs, setSongs] = useState<Song[]>([])
-  const [profile, setProfile] = useState<any>(null)
+  const [profile, setProfile] = useState<Profile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [selectedSong, setSelectedSong] = useState<Song | null>(null)
   const [showLyricsModal, setShowLyricsModal] = useState(false)
@@ -417,31 +408,31 @@ export default function DashboardPage() {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
             {remainingCredits > 0 ? (
               <Link
                 href="/create"
-                className="flex-1 flex items-center justify-center space-x-2 px-8 py-4 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors"
+                className="flex-1 flex items-center justify-center space-x-2 px-6 py-4 sm:px-8 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors min-h-[44px] touch-manipulation"
               >
-                <Plus className="h-5 w-5" />
-                <span>Create New Song</span>
+                <Plus className="h-5 w-5 flex-shrink-0" />
+                <span className="text-sm sm:text-base">Create New Song</span>
               </Link>
             ) : (
               <div
-                className="flex-1 flex items-center justify-center space-x-2 px-8 py-4 bg-gray-300 text-gray-500 rounded-lg font-semibold cursor-not-allowed"
+                className="flex-1 flex items-center justify-center space-x-2 px-6 py-4 sm:px-8 bg-gray-300 text-gray-500 rounded-lg font-semibold cursor-not-allowed min-h-[44px]"
                 title="You need credits to create a new song"
               >
-                <Plus className="h-5 w-5" />
-                <span>Create New Song</span>
+                <Plus className="h-5 w-5 flex-shrink-0" />
+                <span className="text-sm sm:text-base">Create New Song</span>
               </div>
             )}
             
             <Link
               href="/pricing"
-              className="flex-1 flex items-center justify-center space-x-2 px-8 py-4 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors"
+              className="flex-1 flex items-center justify-center space-x-2 px-6 py-4 sm:px-8 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors min-h-[44px] touch-manipulation"
             >
-              <ShoppingCart className="h-5 w-5" />
-              <span>Buy More Credits</span>
+              <ShoppingCart className="h-5 w-5 flex-shrink-0" />
+              <span className="text-sm sm:text-base">Buy More Credits</span>
             </Link>
           </div>
         </div>
@@ -485,8 +476,9 @@ export default function DashboardPage() {
               )}
             </div>
           ) : (
-            <div className="space-y-4">
-              {songs.map((song) => (
+            <SimpleErrorBoundary fallback="Unable to load songs. Please refresh the page.">
+              <div className="space-y-4">
+                {songs.map((song) => (
                 <div key={song.id} className="border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow">
                   {/* Desktop layout - horizontal */}
                   <div className="hidden md:flex items-center justify-between">
@@ -592,19 +584,22 @@ export default function DashboardPage() {
 
                   {/* Mobile layout - vertical */}
                   <div className="md:hidden">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-1 truncate">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex-1 min-w-0 pr-2">
+                        <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2">
                           {song.title}
                         </h3>
-                        <div className="flex items-center space-x-2 text-sm text-gray-600">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            song.status === 'completed' ? 'bg-green-100 text-green-800' :
-                            song.status === 'processing' ? 'bg-yellow-100 text-yellow-800' :
-                            song.status === 'failed' ? 'bg-red-100 text-red-800' :
-                            'bg-gray-100 text-gray-800'
+                        <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400 mb-2">
+                          <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                            song.status === 'completed' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' :
+                            song.status === 'processing' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400' :
+                            song.status === 'failed' ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' :
+                            'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
                           }`}>
                             {song.status}
+                          </span>
+                          <span className="text-xs text-gray-500 dark:text-gray-500">
+                            {formatDate(song.created_at)}
                           </span>
                         </div>
                       </div>
@@ -699,8 +694,9 @@ export default function DashboardPage() {
                     </div>
                   </div>
                 </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            </SimpleErrorBoundary>
           )}
         </div>
       </main>
@@ -708,12 +704,12 @@ export default function DashboardPage() {
       {/* Lyrics Modal */}
       {showLyricsModal && selectedSong && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] flex flex-col">
+          <div className="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full max-h-[90vh] sm:max-h-[80vh] flex flex-col mx-4 sm:mx-0">
             {/* Modal Header */}
-            <div className="flex items-center justify-between p-6 border-b">
-              <div>
-                <h2 className="text-xl font-bold text-gray-900">{selectedSong.title}</h2>
-                <p className="text-sm text-gray-600 mt-1">
+            <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
+              <div className="flex-1 min-w-0 pr-4">
+                <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white truncate">{selectedSong.title}</h2>
+                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">
                   Created on {formatDate(selectedSong.created_at)}
                 </p>
               </div>

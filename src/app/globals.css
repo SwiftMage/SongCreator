@@ -14,6 +14,17 @@
   }
 }
 
+@keyframes iconGlowDark {
+  0% { 
+    box-shadow: 0 8px 25px rgba(0, 245, 255, 0.2);
+    transform: scale(1);
+  }
+  100% { 
+    box-shadow: 0 8px 25px rgba(255, 0, 110, 0.25);
+    transform: scale(1.02);
+  }
+}
+
 @keyframes testSpin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
@@ -71,6 +82,16 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  
+  /* Brand gradient colors for light mode */
+  --brand-cyan: #00f5ff;
+  --brand-pink: #ff006e;
+  --brand-purple: #8338ec;
+  
+  /* Softer variants for dark mode */
+  --brand-cyan-dark: #00d4e6;
+  --brand-pink-dark: #e6005c;
+  --brand-purple-dark: #7c3aed;
   --gradient-start: #00f5ff;
   --gradient-middle: #ff006e;
   --gradient-end: #8338ec;
@@ -79,6 +100,37 @@
 .dark {
   --background: #0a0a0a;
   --foreground: #ededed;
+  
+  /* Darker, more subdued brand colors for dark mode */
+  --brand-cyan: #00d4e6;
+  --brand-pink: #e6005c;
+  --brand-purple: #7c3aed;
+  
+  /* Gradient colors for dark mode */
+  --gradient-start: #00d4e6;
+  --gradient-middle: #e6005c;
+  --gradient-end: #7c3aed;
+}
+
+/* Dark mode aware utility classes */
+.glow-effect {
+  animation: iconGlow 2s ease-in-out infinite alternate;
+}
+
+.dark .glow-effect {
+  animation: iconGlowDark 2s ease-in-out infinite alternate;
+}
+
+/* Brand gradient utilities that adapt to dark mode */
+.brand-gradient {
+  background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-middle) 50%, var(--gradient-end) 100%);
+}
+
+.brand-gradient-text {
+  background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-middle) 50%, var(--gradient-end) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 /* Custom properties remain for CSS usage */

@@ -8,6 +8,7 @@ import Logo from '@/components/Logo'
 import DarkModeToggle from '@/components/DarkModeToggle'
 import { createCheckoutSession } from '@/lib/stripe'
 import { getOccasionPreset, hasOccasionPreset } from '@/config/occasionPresets'
+import type { User, Profile, SongFormData, SongData } from '@/types'
 import { 
   Music, 
   ArrowLeft, 
@@ -104,8 +105,8 @@ const instruments = [
 
 export default function CreateSongPage() {
   const [currentStep, setCurrentStep] = useState(1)
-  const [user, setUser] = useState<any>(null)
-  const [profile, setProfile] = useState<any>(null)
+  const [user, setUser] = useState<User | null>(null)
+  const [profile, setProfile] = useState<Profile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showConfirmation, setShowConfirmation] = useState(false)
@@ -573,7 +574,7 @@ export default function CreateSongPage() {
         return
       }
 
-      const songData: any = {
+      const songData: SongData = {
         user_id: user.id,
         title: `${formData.songType.charAt(0).toUpperCase() + formData.songType.slice(1)} Song for ${formData.subjectName}`,
         status: 'pending', // Always start as pending until music is generated
@@ -1475,7 +1476,7 @@ function SongStyleSection({
         {/* Genre Selection Group */}
         <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-5 bg-gray-50 dark:bg-gray-700">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Genre</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
             {genres.map((genre) => {
               const preset = getOccasionPreset(formData.songType)
               const isRecommended = preset && preset.genres.includes(genre)
@@ -1484,7 +1485,7 @@ function SongStyleSection({
                 <button
                   key={genre}
                   onClick={() => toggleStyleItem('genres', genre)}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors relative ${
+                  className={`px-3 py-3 rounded-lg text-xs sm:text-sm font-medium transition-colors relative min-h-[44px] touch-manipulation ${
                     formData.genres.includes(genre)
                       ? 'bg-purple-600 text-white'
                       : 'bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500 border border-gray-300 dark:border-gray-500'
@@ -1512,7 +1513,7 @@ function SongStyleSection({
         {/* Instruments Selection Group */}
         <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-5 bg-gray-50 dark:bg-gray-700">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Instruments</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
             {instruments.map((instrument) => {
               const preset = getOccasionPreset(formData.songType)
               const isRecommended = preset && preset.instruments.includes(instrument)
@@ -1521,7 +1522,7 @@ function SongStyleSection({
                 <button
                   key={instrument}
                   onClick={() => toggleStyleItem('instruments', instrument)}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors relative ${
+                  className={`px-3 py-3 rounded-lg text-xs sm:text-sm font-medium transition-colors relative min-h-[44px] touch-manipulation ${
                     formData.instruments.includes(instrument)
                       ? 'bg-purple-600 text-white'
                       : 'bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500 border border-gray-300 dark:border-gray-500'
