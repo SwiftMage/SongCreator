@@ -30,7 +30,7 @@ export async function POST(request: Request) {
     // Get user profile to check for existing subscription
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('stripe_customer_id, stripe_subscription_id, email')
+      .select('stripe_customer_id, stripe_subscription_id')
       .eq('id', user.id)
       .single();
 
@@ -76,8 +76,7 @@ export async function POST(request: Request) {
       await supabase
         .from('profiles')
         .update({ 
-          stripe_customer_id: customerId,
-          email: user.email 
+          stripe_customer_id: customerId
         })
         .eq('id', user.id);
     }

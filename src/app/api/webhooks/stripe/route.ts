@@ -109,15 +109,15 @@ async function handleSubscriptionPayment(invoice: Stripe.Invoice, supabase: any)
       return
     }
 
-    // Find user by email
+    // Find user by stripe_customer_id
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('id, credits_remaining')
-      .eq('email', customer.email)
+      .eq('stripe_customer_id', customer.id)
       .single()
 
     if (profileError || !profile) {
-      console.error('User not found for subscription payment:', customer.email)
+      console.error('User not found for subscription payment. Customer ID:', customer.id, 'Error:', profileError)
       return
     }
 
@@ -200,7 +200,7 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription, supa
         billing_cycle_anchor: new Date(subscription.billing_cycle_anchor * 1000).toISOString(),
         next_billing_date: new Date(subscription.current_period_end * 1000).toISOString()
       })
-      .eq('email', customer.email)
+      .eq('stripe_customer_id', subscription.customer)
 
     if (error) {
       console.error('Failed to update subscription info:', error)

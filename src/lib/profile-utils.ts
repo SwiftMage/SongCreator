@@ -37,7 +37,6 @@ export async function ensureUserProfile(user: User): Promise<ProfileCreationResu
       const profileData = {
         id: user.id,
         full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
-        email: user.email,
         subscription_status: 'free' as const,
         credits_remaining: 0
       }
