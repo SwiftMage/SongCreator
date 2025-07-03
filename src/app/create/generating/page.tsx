@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase'
 import { Music, ArrowLeft, Check, Loader2, Volume2, Download, Share2, RefreshCw, FileText, Settings, RotateCcw, ShoppingCart, AlertCircle } from 'lucide-react'
 import { getBestAudioUrl } from '@/lib/audio-player'
@@ -1816,7 +1817,7 @@ Check it out 🔥👇
                       onClick={() => openShareModal('facebook')}
                       className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2"
                     >
-                      <img src="/images/Facebook_Logo_Primary.png" alt="Facebook" className="w-5 h-5" />
+                      <Image src="/images/Facebook_Logo_Primary.png" alt="Facebook" width={20} height={20} className="w-5 h-5" />
                       <span>Share on Facebook</span>
                     </button>
                     

@@ -18,9 +18,16 @@ async function isAudioUrlAccessible(url: string): Promise<boolean> {
       const audio = new Audio()
       let resolved = false
       
+      const cleanup = () => {
+        audio.src = ''
+        audio.onloadedmetadata = null
+        audio.onerror = null
+      }
+      
       const timeout = setTimeout(() => {
         if (!resolved) {
           resolved = true
+          cleanup()
           resolve(false)
         }
       }, 5000) // 5 second timeout
@@ -29,6 +36,7 @@ async function isAudioUrlAccessible(url: string): Promise<boolean> {
         if (!resolved) {
           resolved = true
           clearTimeout(timeout)
+          cleanup()
           resolve(true)
         }
       }
@@ -37,6 +45,7 @@ async function isAudioUrlAccessible(url: string): Promise<boolean> {
         if (!resolved) {
           resolved = true
           clearTimeout(timeout)
+          cleanup()
           resolve(false)
         }
       }

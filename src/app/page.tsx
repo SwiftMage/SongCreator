@@ -1,6 +1,7 @@
 'use client'
 
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { createClient } from '@/lib/supabase';
 import Logo from '@/components/Logo';
@@ -420,10 +421,15 @@ export default function Home() {
                   >
                     {/* Song Image */}
                     <div className="relative mb-3">
-                      <img
+                      <Image
                         src={song.image}
                         alt={song.title}
+                        width={192}
+                        height={128}
                         className="w-full h-32 object-cover rounded-lg"
+                        loading="lazy"
+                        placeholder="blur"
+                        blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
                       />
                       {currentSongIndex === index && (
                         <div 
@@ -464,10 +470,13 @@ export default function Home() {
               <div className="flex items-center justify-between mb-3">
                 {/* Current Song Info */}
                 <div className="flex items-center space-x-3">
-                  <img
+                  <Image
                     src={demoSongs[currentSongIndex].image}
                     alt={demoSongs[currentSongIndex].title}
+                    width={48}
+                    height={48}
                     className="w-12 h-12 object-cover rounded-lg"
+                    loading="lazy"
                   />
                   <div>
                     <h4 className="font-semibold text-gray-900 dark:text-white">

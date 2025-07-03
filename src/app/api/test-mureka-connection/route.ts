@@ -18,9 +18,9 @@ export async function GET(request: NextRequest) {
     }
 
     console.log('Testing Mureka API connection...')
-    console.log('API Key exists:', !!process.env.MUREKA_API_KEY)
-    console.log('API Key length:', process.env.MUREKA_API_KEY?.length)
-    console.log('API Key prefix:', process.env.MUREKA_API_KEY?.substring(0, 10))
+    if (process.env.NODE_ENV === 'development') {
+      console.log('API connection configured:', !!process.env.MUREKA_API_KEY)
+    }
 
     // Try to make a simple request to a non-generation endpoint
     // Since we don't know if Mureka has a status/health endpoint, 

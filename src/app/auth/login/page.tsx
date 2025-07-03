@@ -56,15 +56,17 @@ export default function LoginPage() {
     setSuccess('')
 
     try {
-      console.log('=== PASSWORD RESET REQUEST ===')
-      console.log('Email:', resetEmail)
-      console.log('Redirect URL:', `${window.location.origin}/auth/reset-password`)
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Password reset requested for redacted email')
+      }
       
       const { data, error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
         redirectTo: `${window.location.origin}/auth/reset-password`
       })
 
-      console.log('Reset response:', { data, error })
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Reset response error status:', !!error)
+      }
 
       if (error) {
         console.error('Password reset error:', error)

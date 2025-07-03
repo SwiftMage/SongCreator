@@ -40,9 +40,9 @@ export default function RegisterPage() {
     }
 
     try {
-      console.log('=== ATTEMPTING SIGNUP ===')
-      console.log('Email:', email)
-      console.log('Password length:', password.length)
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Attempting user signup with redacted credentials')
+      }
       
       const { data, error } = await supabase.auth.signUp({
         email,

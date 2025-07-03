@@ -189,18 +189,30 @@ export default function DashboardPage() {
 
       const audio = new Audio(bestUrl)
       
-      // Set up event listeners
-      audio.addEventListener('ended', () => {
+      // Cleanup previous audio instance if exists
+      if (currentAudio) {
+        currentAudio.pause()
+        currentAudio.src = ''
+        currentAudio.removeEventListener('ended', handleAudioEnd)
+        currentAudio.removeEventListener('error', handleAudioError)
+      }
+      
+      // Create event handler functions for proper cleanup
+      const handleAudioEnd = () => {
         setPlayingSongId(null)
         setCurrentAudio(null)
-      })
+      }
 
-      audio.addEventListener('error', () => {
+      const handleAudioError = () => {
         console.error('Error playing audio')
         setPlayingSongId(null)
         setCurrentAudio(null)
         alert('Unable to play audio. The file may be temporarily unavailable.')
-      })
+      }
+
+      // Set up event listeners
+      audio.addEventListener('ended', handleAudioEnd)
+      audio.addEventListener('error', handleAudioError)
 
       // Start playing
       await audio.play()
