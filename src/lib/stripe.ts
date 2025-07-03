@@ -59,3 +59,36 @@ export async function createCheckoutSession(bundleType: 'single' | 'bundle3' | '
     throw error;
   }
 }
+
+// Create subscription checkout session
+export async function createSubscriptionCheckout(planId: 'lite' | 'plus' | 'pro-monthly') {
+  try {
+    const response = await fetch('/api/create-subscription-checkout', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        planId,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('Subscription checkout error:', errorData);
+      throw new Error(errorData.details || errorData.error || 'Failed to create subscription checkout');
+    }
+
+    const { url, redirectToPortal } = await response.json();
+    
+    if (url) {
+      // Redirect to Stripe Checkout or Customer Portal
+      window.location.href = url;
+    }
+
+    return { redirectToPortal };
+  } catch (error) {
+    console.error('Error creating subscription checkout:', error);
+    throw error;
+  }
+}

@@ -281,13 +281,36 @@ export default function DashboardPage() {
             <Logo />
             
             <nav className="flex items-center space-x-4">
-              <Link 
-                href="/pricing"
-                className="flex items-center space-x-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors cursor-pointer"
-              >
-                <ShoppingCart className="h-5 w-5 text-purple-600" />
-                <span className="font-medium">{profile?.credits_remaining || 0} Credits</span>
-              </Link>
+              <div className="flex items-center space-x-4">
+                <Link 
+                  href="/pricing"
+                  className="flex items-center space-x-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors cursor-pointer"
+                >
+                  <ShoppingCart className="h-5 w-5 text-purple-600" />
+                  <span className="font-medium">{profile?.credits_remaining || 0} Credits</span>
+                </Link>
+                
+                {/* Subscription Status */}
+                {profile?.subscription_status && profile.subscription_status !== 'free' && (
+                  <button
+                    onClick={async () => {
+                      try {
+                        const response = await fetch('/api/customer-portal', { method: 'POST' });
+                        const data = await response.json();
+                        if (data.url) {
+                          window.location.href = data.url;
+                        }
+                      } catch (error) {
+                        console.error('Error opening customer portal:', error);
+                      }
+                    }}
+                    className="flex items-center space-x-1 text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-2 py-1 rounded-full hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors"
+                  >
+                    <Settings className="h-3 w-3" />
+                    <span className="capitalize">{profile.subscription_status}</span>
+                  </button>
+                )}
+              </div>
               <div className="h-6 w-px bg-gray-300" />
               <DarkModeToggle />
               <div className="h-6 w-px bg-gray-300" />

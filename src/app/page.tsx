@@ -7,7 +7,7 @@ import Logo from '@/components/Logo';
 import DarkModeToggle from '@/components/DarkModeToggle';
 import PricingToggle from '@/components/PricingToggle';
 import { Heart, Gift, Users, LogOut, User, Music, Sparkles, Zap, Shield, ArrowRight, Check, Play, Pause, SkipForward, SkipBack, X, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
-import { createCheckoutSession } from '@/lib/stripe';
+import { createCheckoutSession, createSubscriptionCheckout } from '@/lib/stripe';
 
 // Mock demo songs data
 const demoSongs = [
@@ -239,24 +239,26 @@ export default function Home() {
     try {
       setIsCheckoutLoading(planId);
       
-      // Map new plan IDs to existing Stripe configuration
-      const planMapping: { [key: string]: 'single' | 'bundle3' | 'bundle5' } = {
-        'starter': 'single',
-        'creator': 'bundle3', 
-        'pro': 'bundle5',
-        // For now, subscription plans will use the same checkout flow
-        // This can be updated later to handle subscriptions differently
-        'lite': 'single',
-        'plus': 'bundle3',
-        'pro-monthly': 'bundle5'
-      };
+      // Subscription plans
+      const subscriptionPlans = ['lite', 'plus', 'pro-monthly'];
       
-      const stripeType = planMapping[planId];
-      if (!stripeType) {
-        throw new Error(`Unknown plan ID: ${planId}`);
+      if (subscriptionPlans.includes(planId)) {
+        await createSubscriptionCheckout(planId as 'lite' | 'plus' | 'pro-monthly');
+      } else {
+        // One-time purchase plans
+        const planMapping: { [key: string]: 'single' | 'bundle3' | 'bundle5' } = {
+          'starter': 'single',
+          'creator': 'bundle3', 
+          'pro': 'bundle5'
+        };
+        
+        const stripeType = planMapping[planId];
+        if (!stripeType) {
+          throw new Error(`Unknown plan ID: ${planId}`);
+        }
+        
+        await createCheckoutSession(stripeType);
       }
-      
-      await createCheckoutSession(stripeType);
     } catch (error) {
       console.error('Checkout error:', error);
       alert('Failed to create checkout session. Please try again.');

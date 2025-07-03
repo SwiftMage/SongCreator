@@ -6,7 +6,7 @@ import Logo from "@/components/Logo";
 import DarkModeToggle from "@/components/DarkModeToggle";
 import PricingToggle from "@/components/PricingToggle";
 import { useState } from "react";
-import { createCheckoutSession } from '@/lib/stripe';
+import { createCheckoutSession, createSubscriptionCheckout } from '@/lib/stripe';
 
 export default function PricingPage() {
   const [isCheckoutLoading, setIsCheckoutLoading] = useState<string | null>(null);
@@ -15,32 +15,26 @@ export default function PricingPage() {
     try {
       setIsCheckoutLoading(planId);
       
-      // Map new plan IDs to existing checkout types
-      // TODO: Update createCheckoutSession to handle new pricing structure
-      let checkoutType: 'single' | 'bundle3' | 'bundle5';
+      // Subscription plans
+      const subscriptionPlans = ['lite', 'plus', 'pro-monthly'];
       
-      switch (planId) {
-        case 'starter':
-          checkoutType = 'single'; // Will need to update for 3 credits
-          break;
-        case 'creator':
-          checkoutType = 'bundle3'; // Will need to update for 10 credits
-          break;
-        case 'pro':
-          checkoutType = 'bundle5'; // Will need to update for 20 credits
-          break;
-        // Monthly plans will need new handling
-        case 'lite':
-        case 'plus':
-        case 'pro-monthly':
-          alert('Monthly subscriptions coming soon!');
-          setIsCheckoutLoading(null);
-          return;
-        default:
-          checkoutType = 'single';
+      if (subscriptionPlans.includes(planId)) {
+        await createSubscriptionCheckout(planId as 'lite' | 'plus' | 'pro-monthly');
+      } else {
+        // One-time purchase plans
+        const planMapping: { [key: string]: 'single' | 'bundle3' | 'bundle5' } = {
+          'starter': 'single',
+          'creator': 'bundle3', 
+          'pro': 'bundle5'
+        };
+        
+        const stripeType = planMapping[planId];
+        if (!stripeType) {
+          throw new Error(`Unknown plan ID: ${planId}`);
+        }
+        
+        await createCheckoutSession(stripeType);
       }
-      
-      await createCheckoutSession(checkoutType);
     } catch (error) {
       console.error('Checkout error:', error);
       alert('Failed to create checkout session. Please try again.');

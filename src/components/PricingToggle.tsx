@@ -33,12 +33,12 @@ export default function PricingToggle({ onCheckout, isCheckoutLoading }: Pricing
       tagline: 'Great for trying it out',
       price: '$9',
       credits: '3 credits',
-      creditsDescription: '3 credits = 3 full songs',
+      creditsDescription: '3 credits → 3 songs',
       perSong: '$3.00 per song',
       features: [
-        'AI lyric generation',
-        'Professional music creation',
-        'High-quality MP3 downloads',
+        '2 unique versions per song',
+        'AI-generated lyrics + original music',
+        'MP3 downloads included',
         'Credits never expire'
       ],
       buttonText: 'Buy Now'
@@ -46,18 +46,17 @@ export default function PricingToggle({ onCheckout, isCheckoutLoading }: Pricing
     {
       id: 'creator',
       name: 'Creator',
-      tagline: 'Most value for gifting or creating',
+      tagline: 'Perfect for gifts or creative play',
       price: '$19',
       credits: '10 credits',
-      creditsDescription: '10 credits = 10 songs',
+      creditsDescription: '10 credits → 10 songs',
       perSong: '$1.90 per song',
       badge: 'Most Popular',
       badgeColor: 'bg-purple-600',
       features: [
         'Everything in Starter',
-        'Best value per song',
-        'Perfect for gifts',
-        'Priority support'
+        'Best value for casual creators',
+        'Great for special occasions or thoughtful gifts'
       ],
       buttonText: 'Buy Now',
       popular: true
@@ -68,13 +67,12 @@ export default function PricingToggle({ onCheckout, isCheckoutLoading }: Pricing
       tagline: 'Best for frequent creators',
       price: '$29',
       credits: '20 credits',
-      creditsDescription: '20 credits = 20 custom songs',
+      creditsDescription: '20 credits → 20 songs',
       perSong: '$1.45 per song',
       features: [
         'Everything in Creator',
-        'Lowest cost per song',
-        'Bulk song creation',
-        'VIP support'
+        'Ideal for journaling, practice, or creative bursts',
+        'Save more with bulk credits'
       ],
       buttonText: 'Buy Now'
     }
@@ -84,51 +82,50 @@ export default function PricingToggle({ onCheckout, isCheckoutLoading }: Pricing
     {
       id: 'lite',
       name: 'Lite',
-      tagline: 'Perfect for casual creators',
+      tagline: 'Great for staying creative all month',
       price: '$10',
       credits: '5 credits',
-      creditsDescription: '5 credits = 5 songs per month',
+      creditsDescription: '5 credits → 5 songs/month',
       perSong: '$2.00 per song',
       features: [
-        '5 credits per month',
-        'Credits roll over',
-        'Cancel anytime',
-        'All features included'
+        '2 unique versions per song',
+        'New credits every month',
+        'Unused credits roll over',
+        'AI-generated lyrics + original music',
+        'MP3 downloads included'
       ],
       buttonText: 'Subscribe'
     },
     {
       id: 'plus',
       name: 'Plus',
-      tagline: 'Best value for regular use',
+      tagline: 'Perfect for gifts or regular creation',
       price: '$20',
       credits: '15 credits',
-      creditsDescription: '15 credits = 15 songs per month',
+      creditsDescription: '15 credits → 15 songs/month',
       perSong: '$1.33 per song',
       badge: 'Best Value',
       badgeColor: 'bg-green-600',
       features: [
-        '15 credits per month',
-        'Credits roll over',
-        'Priority processing',
-        'Priority support'
+        'Everything in Lite',
+        'Best value for casual creators',
+        'Great for journaling, gifting, or creative expression'
       ],
       buttonText: 'Subscribe',
       popular: true
     },
     {
       id: 'pro-monthly',
-      name: 'Pro',
-      tagline: 'For power users and creators',
+      name: 'Max',
+      tagline: 'Made for frequent or high-volume creators',
       price: '$35',
       credits: '30 credits',
-      creditsDescription: '30 credits = 30 songs per month',
+      creditsDescription: '30 credits → 30 songs/month',
       perSong: '$1.17 per song',
       features: [
-        '30 credits per month',
-        'Credits roll over',
-        'Fastest processing',
-        'VIP support'
+        'Everything in Plus',
+        'Ideal for songwriting practice, content creation, or daily use',
+        'Save more with bulk monthly credits'
       ],
       buttonText: 'Subscribe'
     }
