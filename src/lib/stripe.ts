@@ -61,7 +61,7 @@ export async function createCheckoutSession(bundleType: 'single' | 'bundle3' | '
 }
 
 // Create subscription checkout session
-export async function createSubscriptionCheckout(planId: 'lite' | 'plus' | 'pro-monthly') {
+export async function createSubscriptionCheckout(planId: 'lite' | 'plus' | 'max') {
   try {
     console.log('Creating subscription checkout for plan:', planId);
     

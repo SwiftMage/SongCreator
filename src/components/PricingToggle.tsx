@@ -115,7 +115,7 @@ export default function PricingToggle({ onCheckout, isCheckoutLoading }: Pricing
       popular: true
     },
     {
-      id: 'pro-monthly',
+      id: 'max',
       name: 'Max',
       tagline: 'Made for frequent or high-volume creators',
       price: '$35',

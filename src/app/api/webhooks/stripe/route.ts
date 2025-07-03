@@ -76,8 +76,16 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ received: true })
   } catch (error) {
-    console.error('Webhook processing error:', error)
-    return NextResponse.json({ error: 'Webhook processing failed' }, { status: 500 })
+    console.error('Webhook processing error:', {
+      eventType: event.type,
+      eventId: event.id,
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined
+    })
+    return NextResponse.json({ 
+      error: 'Webhook processing failed',
+      eventId: event.id 
+    }, { status: 500 })
   }
 }
 
@@ -120,19 +128,24 @@ async function handleSubscriptionPayment(invoice: Stripe.Invoice, supabase: any)
       operation_type: 'subscription_billing'
     })
 
+    if (creditError) {
+      console.error('Failed to add credits for subscription payment:', creditError)
+      throw new Error(`Credit operation failed: ${creditError.message}`)
+    }
+
     // Update subscription status
     const { error: statusError } = await supabase
       .from('profiles')
       .update({ subscription_status: getSubscriptionTier(productId) })
       .eq('id', profile.id)
 
-    if (creditError || statusError) {
-      console.error('Failed to add credits or update status:', creditError || statusError)
-      return
+    if (statusError) {
+      console.error('Failed to update subscription status:', statusError)
+      throw new Error(`Status update failed: ${statusError.message}`)
     }
 
     // Record billing history
-    await supabase
+    const { error: billingError } = await supabase
       .from('billing_history')
       .insert({
         user_id: profile.id,
@@ -144,10 +157,21 @@ async function handleSubscriptionPayment(invoice: Stripe.Invoice, supabase: any)
         billing_period_end: new Date(subscription.current_period_end * 1000).toISOString()
       })
 
-    // Send email notification
-    await sendBillingSuccessEmail(customer.email, creditsToAdd, invoice.amount_paid / 100)
+    if (billingError) {
+      console.error('Failed to record billing history:', billingError)
+      // Don't throw - billing success should still proceed even if history fails
+    }
 
-    console.log(`Successfully processed subscription payment for ${customer.email}: +${creditsToAdd} credits`)
+    // Send email notification (with retry logic)
+    try {
+      await sendBillingSuccessEmail(customer.email, creditsToAdd, invoice.amount_paid / 100)
+    } catch (emailError) {
+      console.error('Failed to send billing success email (will retry):', emailError)
+      // Don't throw - billing success shouldn't fail due to email issues
+      // Could implement retry queue here
+    }
+
+    console.log(`Successfully processed subscription payment for ${customer.email}: +${creditsToAdd} credits (Invoice: ${invoice.id})`)
   } catch (error) {
     console.error('Error processing subscription payment:', error)
     throw error
@@ -180,7 +204,7 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription, supa
 
     if (error) {
       console.error('Failed to update subscription info:', error)
-      return
+      throw new Error(`Subscription creation update failed: ${error.message}`)
     }
 
     console.log(`Subscription created for ${customer.email}: ${subscription.id}`)
@@ -194,22 +218,42 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription, supa
   try {
     const productId = subscription.items.data[0]?.price.product as string
     
+    // Validate subscription status
+    let subscriptionStatus: string
+    switch (subscription.status) {
+      case 'active':
+        subscriptionStatus = getSubscriptionTier(productId)
+        break
+      case 'past_due':
+      case 'unpaid':
+        console.warn(`Subscription ${subscription.id} has payment issues: ${subscription.status}`)
+        subscriptionStatus = 'cancelled'
+        break
+      case 'canceled':
+      case 'incomplete_expired':
+        subscriptionStatus = 'cancelled'
+        break
+      default:
+        console.warn(`Unknown subscription status: ${subscription.status}`)
+        subscriptionStatus = 'cancelled'
+    }
+    
     // Update subscription details
     const { error } = await supabase
       .from('profiles')
       .update({
         subscription_plan_id: productId,
-        subscription_status: subscription.status === 'active' ? getSubscriptionTier(productId) : 'cancelled',
-        next_billing_date: new Date(subscription.current_period_end * 1000).toISOString()
+        subscription_status: subscriptionStatus,
+        next_billing_date: subscription.status === 'active' ? new Date(subscription.current_period_end * 1000).toISOString() : null
       })
       .eq('stripe_subscription_id', subscription.id)
 
     if (error) {
       console.error('Failed to update subscription:', error)
-      return
+      throw new Error(`Subscription update failed: ${error.message}`)
     }
 
-    console.log(`Subscription updated: ${subscription.id}`)
+    console.log(`Subscription updated: ${subscription.id} - Status: ${subscription.status} -> ${subscriptionStatus}`)
   } catch (error) {
     console.error('Error handling subscription update:', error)
     throw error
@@ -218,7 +262,7 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription, supa
 
 async function handleSubscriptionCancelled(subscription: Stripe.Subscription, supabase: any) {
   try {
-    // Update user's subscription status
+    // Update user's subscription status (preserve customer_id for easier re-subscription)
     const { error } = await supabase
       .from('profiles')
       .update({
@@ -226,15 +270,16 @@ async function handleSubscriptionCancelled(subscription: Stripe.Subscription, su
         stripe_subscription_id: null,
         subscription_plan_id: null,
         next_billing_date: null
+        // Keep stripe_customer_id for easier re-subscription
       })
       .eq('stripe_subscription_id', subscription.id)
 
     if (error) {
       console.error('Failed to cancel subscription:', error)
-      return
+      throw new Error(`Subscription cancellation failed: ${error.message}`)
     }
 
-    console.log(`Subscription cancelled: ${subscription.id}`)
+    console.log(`Subscription cancelled: ${subscription.id} (customer ID preserved for re-subscription)`)
   } catch (error) {
     console.error('Error handling subscription cancellation:', error)
     throw error
@@ -253,7 +298,7 @@ function getSubscriptionTier(productId: string): string {
 async function sendBillingSuccessEmail(email: string, creditsAdded: number, amountPaid: number) {
   try {
     await resend.emails.send({
-      from: 'billing@songmint.ai',
+      from: 'billing@songmint.app',
       to: email,
       subject: `🎵 Your ${creditsAdded} credits have been added!`,
       html: `
@@ -274,11 +319,11 @@ async function sendBillingSuccessEmail(email: string, creditsAdded: number, amou
             <p style="margin: 0; color: #065f46;"><strong>Amount charged: $${amountPaid.toFixed(2)}</strong></p>
           </div>
 
-          <p>Ready to create your next song? <a href="https://songmint.ai/create" style="color: #7c3aed;">Start creating now!</a></p>
+          <p>Ready to create your next song? <a href="https://songmint.app/create" style="color: #7c3aed;">Start creating now!</a></p>
           
           <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
           <p style="font-size: 14px; color: #6b7280;">
-            Need help? Reply to this email or visit our <a href="https://songmint.ai/support">support center</a>.
+            Need help? Reply to this email or visit our <a href="https://songmint.app/support">support center</a>.
           </p>
         </div>
       `

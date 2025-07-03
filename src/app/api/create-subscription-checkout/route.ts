@@ -10,7 +10,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 const SUBSCRIPTION_PRODUCTS: Record<string, { productId: string; name: string }> = {
   'lite': { productId: 'prod_Sc17KxGFrbExyC', name: 'Lite' },
   'plus': { productId: 'prod_Sc17XcZXJ7uh7u', name: 'Plus' },  
-  'pro-monthly': { productId: 'prod_Sc18pmjLNU5OWN', name: 'Max' },
+  'max': { productId: 'prod_Sc18pmjLNU5OWN', name: 'Max' },
 };
 
 export async function POST(request: Request) {
