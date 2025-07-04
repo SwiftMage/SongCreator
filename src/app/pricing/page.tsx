@@ -5,13 +5,42 @@ import { ArrowLeft } from "lucide-react";
 import Logo from "@/components/Logo";
 import DarkModeToggle from "@/components/DarkModeToggle";
 import PricingToggle from "@/components/PricingToggle";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createCheckoutSession, createSubscriptionCheckout } from '@/lib/stripe';
+import { createClient } from '@/lib/supabase/client';
 
 export default function PricingPage() {
   const [isCheckoutLoading, setIsCheckoutLoading] = useState<string | null>(null);
+  const [user, setUser] = useState<any>(null);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
+  const supabase = createClient();
+
+  useEffect(() => {
+    // Check if user is authenticated
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+      setIsAuthLoading(false);
+    };
+
+    getUser();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, [supabase]);
 
   const handleCheckout = async (planId: string) => {
+    // Check if user is authenticated before attempting checkout
+    if (!user) {
+      // Redirect to login with return URL
+      window.location.href = `/auth?redirect=${encodeURIComponent('/pricing')}`;
+      return;
+    }
+
     try {
       setIsCheckoutLoading(planId);
       
