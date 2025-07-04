@@ -66,9 +66,14 @@ export async function POST(request: NextRequest) {
       case 'invoice.payment_succeeded': {
         const invoice = event.data.object as Stripe.Invoice
         
-        // Only process subscription invoices (not one-time payments)
-        if ((invoice as any).subscription && (invoice as any).billing_reason === 'subscription_cycle') {
-          await handleSubscriptionPayment(invoice, supabase)
+        // Process all subscription invoices - both initial and recurring
+        if ((invoice as any).subscription) {
+          const billingReason = (invoice as any).billing_reason;
+          console.log(`Processing invoice payment: ${invoice.id}, billing_reason: ${billingReason}`);
+          
+          if (billingReason === 'subscription_create' || billingReason === 'subscription_cycle') {
+            await handleSubscriptionPayment(invoice, supabase)
+          }
         }
         break
       }
@@ -110,13 +115,97 @@ export async function POST(request: NextRequest) {
   }
 }
 
+async function handleSubscriptionCredits(subscription: Stripe.Subscription, supabase: any) {
+  try {
+    const stripeInstance = getStripe();
+    const planCredits = getPlanCredits();
+    
+    // Get customer details
+    const customer = await stripeInstance.customers.retrieve(subscription.customer as string) as Stripe.Customer
+    
+    if (!customer.email) {
+      console.error('No customer email found for subscription credits')
+      return
+    }
+
+    // Get the product ID from the subscription
+    const productId = subscription.items.data[0]?.price.product as string
+    const creditsToAdd = planCredits[productId]
+
+    if (!creditsToAdd) {
+      console.error(`Unknown product ID for credits: ${productId}`)
+      return
+    }
+
+    // Find user by stripe_customer_id
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('id, credits_remaining')
+      .eq('stripe_customer_id', customer.id)
+      .single()
+
+    if (profileError || !profile) {
+      console.error('User not found for subscription credits. Customer ID:', customer.id, 'Error:', profileError)
+      return
+    }
+
+    // Add credits to user account using secure function
+    const { error: creditError } = await supabase.rpc('update_user_credits', {
+      target_user_id: profile.id,
+      credit_change: creditsToAdd,
+      operation_type: 'subscription_create'
+    })
+
+    if (creditError) {
+      console.error('Failed to add credits for new subscription:', creditError)
+      throw new Error(`Credit operation failed: ${creditError.message}`)
+    }
+
+    // Record billing history for initial subscription
+    const { error: billingError } = await supabase
+      .from('billing_history')
+      .insert({
+        user_id: profile.id,
+        amount: (subscription.items.data[0]?.price.unit_amount || 0) / 100, // Convert cents to dollars
+        credits_added: creditsToAdd,
+        stripe_subscription_id: subscription.id,
+        billing_period_start: new Date((subscription as any).current_period_start * 1000).toISOString(),
+        billing_period_end: new Date((subscription as any).current_period_end * 1000).toISOString()
+      })
+
+    if (billingError) {
+      console.error('Failed to record initial billing history:', billingError)
+      // Don't throw - credit success should still proceed even if history fails
+    }
+
+    // Send email notification
+    try {
+      await sendSubscriptionWelcomeEmail(customer.email, creditsToAdd, (subscription.items.data[0]?.price.unit_amount || 0) / 100)
+    } catch (emailError) {
+      console.error('Failed to send subscription welcome email:', emailError)
+      // Don't throw - credit success shouldn't fail due to email issues
+    }
+
+    console.log(`Successfully added initial subscription credits for ${customer.email}: +${creditsToAdd} credits (Subscription: ${subscription.id})`)
+  } catch (error) {
+    console.error('Error processing subscription credits:', error)
+    throw error
+  }
+}
+
 async function handleSubscriptionPayment(invoice: Stripe.Invoice, supabase: any) {
   try {
     const stripeInstance = getStripe();
     const planCredits = getPlanCredits();
     
-    // Get subscription details
-    const subscription = await stripeInstance.subscriptions.retrieve((invoice as any).subscription as string)
+    // Get subscription details - for initial payments, we need to get the subscription ID
+    const subscriptionId = (invoice as any).subscription as string;
+    if (!subscriptionId) {
+      console.error('No subscription ID found in invoice:', invoice.id);
+      return;
+    }
+    
+    const subscription = await stripeInstance.subscriptions.retrieve(subscriptionId)
     const customer = await stripeInstance.customers.retrieve(subscription.customer as string) as Stripe.Customer
     
     if (!customer.email) {
@@ -214,6 +303,15 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription, supa
 
     const productId = subscription.items.data[0]?.price.product as string
     
+    // Safely handle dates - check if timestamps are valid
+    const safeBillingCycleAnchor = subscription.billing_cycle_anchor && subscription.billing_cycle_anchor > 0 
+      ? new Date(subscription.billing_cycle_anchor * 1000).toISOString()
+      : null;
+    
+    const safeNextBillingDate = (subscription as any).current_period_end && (subscription as any).current_period_end > 0
+      ? new Date((subscription as any).current_period_end * 1000).toISOString()
+      : null;
+
     // Update user's subscription info
     const { error } = await supabase
       .from('profiles')
@@ -222,8 +320,8 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription, supa
         stripe_customer_id: subscription.customer,
         subscription_plan_id: productId,
         subscription_status: getSubscriptionTier(productId),
-        billing_cycle_anchor: new Date(subscription.billing_cycle_anchor * 1000).toISOString(),
-        next_billing_date: new Date((subscription as any).current_period_end * 1000).toISOString()
+        billing_cycle_anchor: safeBillingCycleAnchor,
+        next_billing_date: safeNextBillingDate
       })
       .eq('stripe_customer_id', subscription.customer)
 
@@ -317,6 +415,47 @@ function getSubscriptionTier(productId: string): string {
     case 'prod_Sc17XcZXJ7uh7u': return 'plus' 
     case 'prod_Sc18pmjLNU5OWN': return 'max'
     default: return 'free'
+  }
+}
+
+async function sendSubscriptionWelcomeEmail(email: string, creditsAdded: number, amountPaid: number) {
+  try {
+    await resend.emails.send({
+      from: 'billing@songmint.app',
+      to: email,
+      subject: `🎵 Welcome to Song Mint! Your ${creditsAdded} credits are ready!`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <h2 style="color: #7c3aed;">Welcome to Song Mint AI! 🎉</h2>
+          <p>Thank you for subscribing! Your monthly subscription is now active and your credits are ready to use.</p>
+          
+          <div style="background: #f8fafc; border-radius: 8px; padding: 20px; margin: 20px 0;">
+            <h3 style="margin: 0 0 10px 0; color: #1f2937;">Your subscription includes:</h3>
+            <ul style="margin: 0; padding-left: 20px;">
+              <li><strong>${creditsAdded} fresh credits</strong> every month</li>
+              <li>Each credit creates 1 song with 2 unique versions</li>
+              <li>Unused credits roll over to next month</li>
+              <li>Cancel anytime - no long-term commitment</li>
+            </ul>
+          </div>
+
+          <div style="background: #ecfdf5; border-radius: 8px; padding: 20px; margin: 20px 0;">
+            <p style="margin: 0; color: #065f46;"><strong>Monthly charge: $${amountPaid.toFixed(2)}</strong></p>
+          </div>
+
+          <p>Ready to create your first song? <a href="https://songmint.app/create" style="color: #7c3aed;">Start creating now!</a></p>
+          
+          <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
+          <p style="font-size: 14px; color: #6b7280;">
+            Need help? Reply to this email or visit our <a href="https://songmint.app/support">support center</a>.<br>
+            Manage your subscription anytime in your <a href="https://songmint.app/dashboard/account">account dashboard</a>.
+          </p>
+        </div>
+      `
+    })
+  } catch (error) {
+    console.error('Failed to send subscription welcome email:', error)
+    // Don't throw - subscription success shouldn't fail due to email issues
   }
 }
 
