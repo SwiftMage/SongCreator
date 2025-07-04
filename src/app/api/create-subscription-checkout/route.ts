@@ -140,10 +140,6 @@ export async function POST(request: Request) {
       },
       customer_update: {
         address: 'auto',
-        name: 'auto',
-      },
-      tax_id_collection: {
-        enabled: true,
       },
       automatic_tax: {
         enabled: true,
