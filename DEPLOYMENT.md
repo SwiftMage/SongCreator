@@ -75,6 +75,27 @@ STRIPE_LIVE_CREATOR_PRODUCT_ID=prod_your_live_creator_product_id
 STRIPE_LIVE_PRO_PRODUCT_ID=prod_your_live_pro_product_id
 ```
 
+#### Stripe Configuration (Development/Staging)
+If deploying to a staging environment or if you want to test with Stripe's test mode:
+
+```bash
+# Stripe Test Keys (for staging/development)
+STRIPE_TEST_SECRET_KEY=sk_test_your_test_secret_key
+NEXT_PUBLIC_STRIPE_TEST_PUBLISHABLE_KEY=pk_test_your_test_publishable_key
+
+# Stripe Test Product IDs (Monthly Subscriptions)
+STRIPE_TEST_LITE_PRODUCT_ID=prod_your_test_lite_product_id
+STRIPE_TEST_PLUS_PRODUCT_ID=prod_your_test_plus_product_id
+STRIPE_TEST_MAX_PRODUCT_ID=prod_your_test_max_product_id
+
+# Stripe Test Product IDs (One-Time Purchases)
+STRIPE_TEST_STARTER_PRODUCT_ID=prod_your_test_starter_product_id
+STRIPE_TEST_CREATOR_PRODUCT_ID=prod_your_test_creator_product_id
+STRIPE_TEST_PRO_PRODUCT_ID=prod_your_test_pro_product_id
+```
+
+**Note:** The application automatically switches between test and live Stripe configurations based on `NODE_ENV`. Set `NODE_ENV=development` to use test mode, or `NODE_ENV=production` to use live mode.
+
 ## 💳 Stripe Setup
 
 ### 1. Switch to Live Mode
@@ -306,14 +327,42 @@ npm run build
 ```
 
 #### Stripe Integration Issues
+
+**"Payment service temporarily unavailable" Error:**
+This error indicates missing Stripe environment variables. Check:
+
 ```bash
-# Verify environment variables
+# For production deployments (NODE_ENV=production)
 echo $STRIPE_LIVE_SECRET_KEY
-echo $STRIPE_LIVE_PUBLISHABLE_KEY
+echo $NEXT_PUBLIC_STRIPE_LIVE_PUBLISHABLE_KEY
+echo $STRIPE_LIVE_LITE_PRODUCT_ID
+echo $STRIPE_LIVE_STARTER_PRODUCT_ID
+
+# For development/staging deployments (NODE_ENV=development)
+echo $STRIPE_TEST_SECRET_KEY
+echo $NEXT_PUBLIC_STRIPE_TEST_PUBLISHABLE_KEY
+echo $STRIPE_TEST_LITE_PRODUCT_ID
+echo $STRIPE_TEST_STARTER_PRODUCT_ID
 
 # Test webhook endpoint
 curl -X POST https://yourdomain.com/api/webhooks/stripe
 ```
+
+**Common Solutions:**
+1. Ensure all required Stripe environment variables are set in your hosting platform
+2. Verify `NODE_ENV` is set correctly (`production` or `development`)
+3. Check that variable names match exactly (note `NEXT_PUBLIC_` prefix for publishable keys)
+4. Restart your deployment after adding environment variables
+
+**"Unauthorized" Error During Checkout:**
+This error occurs when users attempt to purchase without being logged in.
+
+**Current Behavior:** The pricing page now automatically redirects unauthenticated users to the login page, then back to pricing after successful authentication.
+
+**If you see this error:**
+1. Ensure you're logged in to the application
+2. Clear browser cache/cookies and log in again
+3. Check that Supabase authentication is properly configured
 
 #### Database Connection Issues
 ```bash
