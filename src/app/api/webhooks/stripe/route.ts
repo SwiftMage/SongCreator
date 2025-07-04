@@ -2,21 +2,41 @@ import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { createClient } from '@/lib/supabase'
 import { Resend } from 'resend'
+import { rateLimiters, getClientIdentifier, applyRateLimit } from '@/lib/rate-limiter'
+import { getStripeKeys, getStripeProductIds } from '@/lib/stripe-config'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-05-28.basil'
-})
+// Initialize Stripe lazily
+let stripe: Stripe | null = null;
+const getStripe = () => {
+  if (!stripe) {
+    const stripeKeys = getStripeKeys();
+    stripe = new Stripe(stripeKeys.secretKey, {
+      apiVersion: '2025-05-28.basil',
+    });
+  }
+  return stripe;
+};
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
-// Map subscription plan IDs to credit amounts
-const PLAN_CREDITS: Record<string, number> = {
-  'prod_Sc17KxGFrbExyC': 5,  // Lite - 5 credits
-  'prod_Sc17XcZXJ7uh7u': 15, // Plus - 15 credits  
-  'prod_Sc18pmjLNU5OWN': 30, // Max - 30 credits
-}
+// Get plan credits dynamically
+const getPlanCredits = () => {
+  const productIds = getStripeProductIds();
+  return {
+    [productIds.lite]: 5,   // Lite - 5 credits
+    [productIds.plus]: 15,  // Plus - 15 credits  
+    [productIds.max]: 30,   // Max - 30 credits
+  };
+};
 
 export async function POST(request: NextRequest) {
+  // Apply rate limiting for webhook endpoints
+  const clientId = getClientIdentifier(request)
+  const rateLimitResponse = await applyRateLimit(request, rateLimiters.webhook, clientId)
+  if (rateLimitResponse) {
+    return rateLimitResponse
+  }
+
   const body = await request.text()
   const signature = request.headers.get('stripe-signature')
 
@@ -28,7 +48,8 @@ export async function POST(request: NextRequest) {
   let event: Stripe.Event
 
   try {
-    event = stripe.webhooks.constructEvent(
+    const stripeInstance = getStripe();
+    event = stripeInstance.webhooks.constructEvent(
       body,
       signature,
       process.env.STRIPE_WEBHOOK_SECRET!
@@ -91,9 +112,12 @@ export async function POST(request: NextRequest) {
 
 async function handleSubscriptionPayment(invoice: Stripe.Invoice, supabase: any) {
   try {
+    const stripeInstance = getStripe();
+    const planCredits = getPlanCredits();
+    
     // Get subscription details
-    const subscription = await stripe.subscriptions.retrieve((invoice as any).subscription as string)
-    const customer = await stripe.customers.retrieve(subscription.customer as string) as Stripe.Customer
+    const subscription = await stripeInstance.subscriptions.retrieve((invoice as any).subscription as string)
+    const customer = await stripeInstance.customers.retrieve(subscription.customer as string) as Stripe.Customer
     
     if (!customer.email) {
       console.error('No customer email found for subscription payment')
@@ -102,7 +126,7 @@ async function handleSubscriptionPayment(invoice: Stripe.Invoice, supabase: any)
 
     // Get the product ID from the subscription
     const productId = subscription.items.data[0]?.price.product as string
-    const creditsToAdd = PLAN_CREDITS[productId]
+    const creditsToAdd = planCredits[productId]
 
     if (!creditsToAdd) {
       console.error(`Unknown product ID: ${productId}`)
@@ -180,7 +204,8 @@ async function handleSubscriptionPayment(invoice: Stripe.Invoice, supabase: any)
 
 async function handleSubscriptionCreated(subscription: Stripe.Subscription, supabase: any) {
   try {
-    const customer = await stripe.customers.retrieve(subscription.customer as string) as Stripe.Customer
+    const stripeInstance = getStripe();
+    const customer = await stripeInstance.customers.retrieve(subscription.customer as string) as Stripe.Customer
     
     if (!customer.email) {
       console.error('No customer email found for new subscription')

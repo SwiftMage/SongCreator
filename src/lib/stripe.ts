@@ -1,27 +1,38 @@
 import { loadStripe } from '@stripe/stripe-js';
 
-// Initialize Stripe
-export const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+// Get environment-appropriate Stripe publishable key
+const getStripePublishableKey = () => {
+  const isProduction = process.env.NODE_ENV === 'production';
+  return isProduction 
+    ? process.env.NEXT_PUBLIC_STRIPE_LIVE_PUBLISHABLE_KEY!
+    : process.env.NEXT_PUBLIC_STRIPE_TEST_PUBLISHABLE_KEY!;
+};
 
-// Pricing configuration
+// Initialize Stripe with environment-appropriate key
+export const stripePromise = loadStripe(getStripePublishableKey());
+
+// Pricing configuration (using environment variables for product IDs)
 export const PRICING = {
   single: {
     id: 'starter_pack',
     name: 'Starter',
     price: 900, // $9.00 in cents
     credits: 3,
+    productId: process.env.NEXT_PUBLIC_STRIPE_STARTER_PRODUCT_ID || 'prod_SbLgxDmchnKXIq',
   },
   bundle3: {
     id: 'creator_pack', 
     name: 'Creator',
     price: 1900, // $19.00 in cents
     credits: 10,
+    productId: process.env.NEXT_PUBLIC_STRIPE_CREATOR_PRODUCT_ID || 'prod_SbPau3n12mSa2Y',
   },
   bundle5: {
     id: 'pro_pack',
     name: 'Pro', 
     price: 2900, // $29.00 in cents
     credits: 20,
+    productId: process.env.NEXT_PUBLIC_STRIPE_PRO_PRODUCT_ID || 'prod_SbPbkNTl2GmknO',
   },
 };
 

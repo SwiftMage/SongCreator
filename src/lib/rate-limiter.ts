@@ -110,6 +110,13 @@ export const rateLimiters = {
     windowMs: 60 * 60 * 1000, // 1 hour
     maxRequests: 3,
     keyGenerator: (userId: string) => `email:${userId}`
+  }),
+
+  // Webhook endpoints - 1000 requests per 5 minutes per IP
+  webhook: new RateLimiter({
+    windowMs: 5 * 60 * 1000, // 5 minutes
+    maxRequests: 1000,
+    keyGenerator: (ip: string) => `webhook:${ip}`
   })
 }
 

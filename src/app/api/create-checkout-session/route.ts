@@ -1,10 +1,19 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createServerComponentClient } from '@/lib/supabase/server';
+import { getStripeKeys } from '@/lib/stripe-config';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-05-28.basil',
-});
+// Initialize Stripe lazily
+let stripe: Stripe | null = null;
+const getStripe = () => {
+  if (!stripe) {
+    const stripeKeys = getStripeKeys();
+    stripe = new Stripe(stripeKeys.secretKey, {
+      apiVersion: '2025-05-28.basil',
+    });
+  }
+  return stripe;
+};
 
 export async function POST(request: Request) {
   try {
@@ -18,8 +27,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Create Stripe checkout session
-    const session = await stripe.checkout.sessions.create({
+    // Get Stripe instance and create checkout session
+    const stripeInstance = getStripe();
+    const session = await stripeInstance.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
         {

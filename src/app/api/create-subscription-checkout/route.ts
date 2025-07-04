@@ -1,23 +1,43 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createServerComponentClient } from '@/lib/supabase/server';
+import { getStripeKeys, getStripeProductIds, validateStripeConfig, stripeEnvironment } from '@/lib/stripe-config';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-05-28.basil',
-});
+// Initialize Stripe lazily to avoid build-time issues
+let stripe: Stripe | null = null;
+const getStripe = () => {
+  if (!stripe) {
+    const stripeKeys = getStripeKeys();
+    stripe = new Stripe(stripeKeys.secretKey, {
+      apiVersion: '2025-05-28.basil',
+    });
+  }
+  return stripe;
+};
 
-// Map plan IDs to Stripe product IDs (from your Stripe dashboard)
-const SUBSCRIPTION_PRODUCTS: Record<string, { productId: string; name: string }> = {
-  'lite': { productId: 'prod_Sc17KxGFrbExyC', name: 'Lite' },
-  'plus': { productId: 'prod_Sc17XcZXJ7uh7u', name: 'Plus' },  
-  'max': { productId: 'prod_Sc18pmjLNU5OWN', name: 'Max' },
+// Get subscription products lazily
+const getSubscriptionProducts = () => {
+  const productIds = getStripeProductIds();
+  return {
+    'lite': { productId: productIds.lite, name: 'Lite' },
+    'plus': { productId: productIds.plus, name: 'Plus' },  
+    'max': { productId: productIds.max, name: 'Max' },
+  };
 };
 
 export async function POST(request: Request) {
   try {
     const { planId } = await request.json();
     
-    console.log('Creating subscription checkout for plan:', planId);
+    console.log('Creating subscription checkout for plan:', planId, 'in', stripeEnvironment.mode, 'mode');
+    
+    // Validate Stripe configuration
+    try {
+      validateStripeConfig();
+    } catch (configError) {
+      console.error('Stripe configuration error:', configError);
+      return NextResponse.json({ error: 'Subscription service temporarily unavailable' }, { status: 500 });
+    }
     
     // Get the current user
     const supabase = await createServerComponentClient();
@@ -44,14 +64,18 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'User profile error' }, { status: 500 });
     }
 
+    // Get Stripe instance and subscription products
+    const stripeInstance = getStripe();
+    const subscriptionProducts = getSubscriptionProducts();
+    
     // Get the Stripe product info for this plan
-    const productInfo = SUBSCRIPTION_PRODUCTS[planId];
+    const productInfo = subscriptionProducts[planId as keyof typeof subscriptionProducts];
     if (!productInfo) {
       return NextResponse.json({ error: 'Invalid plan selected' }, { status: 400 });
     }
 
     // Get the default price for this product
-    const product = await stripe.products.retrieve(productInfo.productId, {
+    const product = await stripeInstance.products.retrieve(productInfo.productId, {
       expand: ['default_price']
     });
     
@@ -64,7 +88,7 @@ export async function POST(request: Request) {
 
     // Create or retrieve Stripe customer
     if (!customerId) {
-      const customer = await stripe.customers.create({
+      const customer = await stripeInstance.customers.create({
         email: user.email!,
         metadata: {
           userId: user.id,
@@ -84,7 +108,7 @@ export async function POST(request: Request) {
     // Check if user already has an active subscription
     if (profile.stripe_subscription_id) {
       // User wants to change subscription - redirect to customer portal
-      const portalSession = await stripe.billingPortal.sessions.create({
+      const portalSession = await stripeInstance.billingPortal.sessions.create({
         customer: customerId,
         return_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`,
       });
@@ -96,7 +120,7 @@ export async function POST(request: Request) {
     }
 
     // Create subscription checkout session
-    const session = await stripe.checkout.sessions.create({
+    const session = await stripeInstance.checkout.sessions.create({
       customer: customerId,
       payment_method_types: ['card'],
       line_items: [

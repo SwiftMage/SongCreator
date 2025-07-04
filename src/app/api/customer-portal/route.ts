@@ -1,10 +1,19 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createServerComponentClient } from '@/lib/supabase/server';
+import { getStripeKeys } from '@/lib/stripe-config';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-05-28.basil',
-});
+// Initialize Stripe lazily
+let stripe: Stripe | null = null;
+const getStripe = () => {
+  if (!stripe) {
+    const stripeKeys = getStripeKeys();
+    stripe = new Stripe(stripeKeys.secretKey, {
+      apiVersion: '2025-05-28.basil',
+    });
+  }
+  return stripe;
+};
 
 export async function POST() {
   try {
@@ -28,7 +37,8 @@ export async function POST() {
     }
 
     // Create customer portal session
-    const portalSession = await stripe.billingPortal.sessions.create({
+    const stripeInstance = getStripe();
+    const portalSession = await stripeInstance.billingPortal.sessions.create({
       customer: profile.stripe_customer_id,
       return_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`,
     });

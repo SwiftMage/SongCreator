@@ -1,15 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createServerComponentClient } from '@/lib/supabase/server';
+import { getStripeKeys, getStripeProductIds } from '@/lib/stripe-config';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-05-28.basil',
-});
+// Initialize Stripe lazily
+let stripe: Stripe | null = null;
+const getStripe = () => {
+  if (!stripe) {
+    const stripeKeys = getStripeKeys();
+    stripe = new Stripe(stripeKeys.secretKey, {
+      apiVersion: '2025-05-28.basil',
+    });
+  }
+  return stripe;
+};
 
-const PLAN_DETAILS: Record<string, { name: string; credits: number }> = {
-  'prod_Sc17KxGFrbExyC': { name: 'Lite', credits: 5 },
-  'prod_Sc17XcZXJ7uh7u': { name: 'Plus', credits: 15 },
-  'prod_Sc18pmjLNU5OWN': { name: 'Max', credits: 30 },
+// Get plan details dynamically
+const getPlanDetails = () => {
+  const productIds = getStripeProductIds();
+  return {
+    [productIds.lite]: { name: 'Lite', credits: 5 },
+    [productIds.plus]: { name: 'Plus', credits: 15 },
+    [productIds.max]: { name: 'Max', credits: 30 },
+  };
 };
 
 export async function GET(request: NextRequest) {
@@ -29,8 +42,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Get Stripe instance and plan details
+    const stripeInstance = getStripe();
+    const planDetails = getPlanDetails();
+    
     // Retrieve the checkout session from Stripe
-    const session = await stripe.checkout.sessions.retrieve(sessionId, {
+    const session = await stripeInstance.checkout.sessions.retrieve(sessionId, {
       expand: ['subscription', 'subscription.items.data.price.product']
     });
 
@@ -55,9 +72,9 @@ export async function GET(request: NextRequest) {
     }
 
     const productId = subscription.items.data[0].price.product as string;
-    const planDetails = PLAN_DETAILS[productId];
+    const productPlanDetails = planDetails[productId];
 
-    if (!planDetails) {
+    if (!productPlanDetails) {
       return NextResponse.json({ 
         success: false, 
         error: 'Unknown product' 
@@ -68,8 +85,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       subscription: {
-        planName: planDetails.name,
-        creditsPerMonth: planDetails.credits,
+        planName: productPlanDetails.name,
+        creditsPerMonth: productPlanDetails.credits,
         amount: (subscription.items.data[0].price.unit_amount! / 100).toFixed(2),
         nextBilling: new Date((subscription as any).current_period_end * 1000).toLocaleDateString(),
         status: subscription.status
