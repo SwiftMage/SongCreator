@@ -9,12 +9,12 @@ const isProduction = process.env.NODE_ENV === 'production';
 export const getStripeKeys = () => {
   if (isProduction) {
     return {
-      publishableKey: process.env.STRIPE_LIVE_PUBLISHABLE_KEY!,
+      publishableKey: process.env.NEXT_PUBLIC_STRIPE_LIVE_PUBLISHABLE_KEY!,
       secretKey: process.env.STRIPE_LIVE_SECRET_KEY!,
     };
   } else {
     return {
-      publishableKey: process.env.STRIPE_TEST_PUBLISHABLE_KEY!,
+      publishableKey: process.env.NEXT_PUBLIC_STRIPE_TEST_PUBLISHABLE_KEY!,
       secretKey: process.env.STRIPE_TEST_SECRET_KEY!,
     };
   }
@@ -65,7 +65,7 @@ export const validateStripeConfig = () => {
   
   // Check API keys
   if (!keys.publishableKey) {
-    missing.push(isProduction ? 'STRIPE_LIVE_PUBLISHABLE_KEY' : 'STRIPE_TEST_PUBLISHABLE_KEY');
+    missing.push(isProduction ? 'NEXT_PUBLIC_STRIPE_LIVE_PUBLISHABLE_KEY' : 'NEXT_PUBLIC_STRIPE_TEST_PUBLISHABLE_KEY');
   }
   if (!keys.secretKey) {
     missing.push(isProduction ? 'STRIPE_LIVE_SECRET_KEY' : 'STRIPE_TEST_SECRET_KEY');
