@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createServerComponentClient } from '@/lib/supabase/server';
-import { getStripeKeys } from '@/lib/stripe-config';
+import { getStripeKeys, validateStripeConfig } from '@/lib/stripe-config';
 
 // Initialize Stripe lazily
 let stripe: Stripe | null = null;
@@ -18,6 +18,14 @@ const getStripe = () => {
 export async function POST(request: Request) {
   try {
     const { priceId, credits, bundleName } = await request.json();
+    
+    // Validate Stripe configuration
+    try {
+      validateStripeConfig();
+    } catch (configError) {
+      console.error('Stripe configuration error:', configError);
+      return NextResponse.json({ error: 'Payment service temporarily unavailable' }, { status: 500 });
+    }
     
     // Get the current user
     const supabase = await createServerComponentClient();
@@ -58,8 +66,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ sessionId: session.id, url: session.url });
   } catch (error) {
     console.error('Error creating checkout session:', error);
-    // Return more detailed error in development
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorStack = error instanceof Error ? error.stack : 'No stack trace';
+    
+    // Log more details in development
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Full error details:', {
+        message: errorMessage,
+        stack: errorStack,
+        error: error
+      });
+    }
+    
     return NextResponse.json(
       { 
         error: 'Failed to create checkout session',
