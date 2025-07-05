@@ -1272,7 +1272,7 @@ Check it out 🔥👇
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 pb-40">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
@@ -1502,32 +1502,6 @@ Check it out 🔥👇
               
               {generationStatus.status === 'completed' && !isEditingLyrics && (
                 <>
-                  {/* Next Step Section */}
-                  <div className="mt-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-6">
-                    <h4 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2">
-                      🎵 Ready for the next step?
-                    </h4>
-                    <p className="text-blue-800 dark:text-blue-200 mb-4">
-                      Your lyrics look great! Now let's turn them into an actual song with music. This usually takes about 1 minute.
-                    </p>
-                    <button
-                      onClick={() => {
-                        if (hasGeneratedMusic) {
-                          if (confirm('This will use 1 credit to modify your song. Continue?')) {
-                            generateMusic()
-                          }
-                        } else {
-                          generateMusic()
-                        }
-                      }}
-                      disabled={musicStatus.status === 'generating'}
-                      className="px-8 py-4 bg-purple-600 text-white rounded-lg font-bold text-lg hover:bg-purple-700 disabled:bg-gray-300 disabled:text-gray-500 transition-colors flex items-center space-x-3"
-                    >
-                      <Volume2 className="h-6 w-6" />
-                      <span>{musicStatus.status === 'generating' ? 'Generating Music...' : hasGeneratedMusic ? 'Regenerate Music (1 credit)' : 'Generate Music Now'}</span>
-                    </button>
-                  </div>
-                  
                   {/* Additional Options */}
                   <div className="mt-6 flex space-x-4 flex-wrap">
                   <button
@@ -1870,23 +1844,7 @@ Check it out 🔥👇
                     </button>
                     
                     <button 
-                      onClick={() => {
-                        const tiktokText = encodeURIComponent(`🎶 Just made a custom song with Song Mint & it's fire! 🔥 Written with my stories, my vibe, my people. Check it out! 👇 ${window.location.origin} #SongMint #CustomSong #AIMusic #PersonalAnthem #OriginalMusic #SongwriterVibes #MadeWithAI #TikTokMadeMe`)
-                        // TikTok doesn't have a direct share URL like other platforms, so we copy the text
-                        navigator.clipboard.writeText(`🎶 Just made a custom song with Song Mint & it's fire! 🔥 
-
-Written with my stories, my vibe, my people.
-Check it out! 👇 
-
-${window.location.origin}
-
-#SongMint #CustomSong #AIMusic #PersonalAnthem #OriginalMusic #SongwriterVibes #MadeWithAI #TikTokMadeMe`).then(() => {
-                          alert('TikTok caption copied to clipboard! Open TikTok to paste and share your video.')
-                        }).catch(() => {
-                          // Fallback for older browsers
-                          openShareModal('tiktok')
-                        })
-                      }}
+                      onClick={() => openShareModal('tiktok')}
                       className="w-full px-4 py-2 bg-gradient-to-r from-pink-500 to-red-500 text-white rounded-lg font-medium hover:from-pink-600 hover:to-red-600 transition-colors flex items-center justify-center space-x-2"
                     >
                       <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -2115,7 +2073,18 @@ ${window.location.origin}
               
               <button
                 onClick={() => {
-                  window.open(shareUrl, '_blank')
+                  if (shareUrl.includes('tiktok.com')) {
+                    // For TikTok, open the app and copy text to clipboard
+                    window.open(shareUrl, '_blank')
+                    navigator.clipboard.writeText(shareText).then(() => {
+                      alert('Caption copied to clipboard! Paste it in TikTok when creating your video.')
+                    }).catch(() => {
+                      console.log('Failed to copy to clipboard')
+                    })
+                  } else {
+                    // For other platforms, just open the URL
+                    window.open(shareUrl, '_blank')
+                  }
                   setShowShareModal(false)
                 }}
                 className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2"
@@ -2123,7 +2092,7 @@ ${window.location.origin}
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                 </svg>
-                <span>Open & Share</span>
+                <span>{shareUrl.includes('tiktok.com') ? 'Open TikTok & Copy Caption' : 'Open & Share'}</span>
               </button>
             </div>
           </div>
@@ -2195,6 +2164,47 @@ ${window.location.origin}
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Floating Generate Music Bottom Bar */}
+      {generationStatus.status === 'completed' && !isEditingLyrics && musicStatus.status === 'idle' && (
+        <div className="fixed bottom-0 left-0 right-0 z-40 bg-blue-50/95 dark:bg-blue-900/95 backdrop-blur-md border-t border-blue-200 dark:border-blue-700 shadow-lg">
+          <div className="container mx-auto px-4">
+            <div className="max-w-4xl mx-auto">
+              <div className="py-4 sm:py-5">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <div className="text-center sm:text-left">
+                    <h4 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-1">
+                      🎵 Ready for the next step?
+                    </h4>
+                    <p className="text-blue-800 dark:text-blue-200 text-sm">
+                      Your lyrics look great! Now let's turn them into an actual song with music.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      if (hasGeneratedMusic) {
+                        if (confirm('This will use 1 credit to modify your song. Continue?')) {
+                          generateMusic()
+                        }
+                      } else {
+                        generateMusic()
+                      }
+                    }}
+                    disabled={musicStatus.status === ('generating' as any)}
+                    className="flex items-center justify-center space-x-3 px-6 sm:px-8 py-3 sm:py-4 bg-purple-600 text-white rounded-lg font-bold text-base sm:text-lg hover:bg-purple-700 disabled:bg-gray-300 disabled:text-gray-500 transition-colors shadow-md hover:shadow-lg min-h-[48px] touch-manipulation"
+                  >
+                    <Volume2 className="h-5 w-5 sm:h-6 sm:w-6 flex-shrink-0" />
+                    <span className="hidden sm:inline">{musicStatus.status === ('generating' as any) ? 'Generating Music...' : hasGeneratedMusic ? 'Regenerate Music (1 credit)' : 'Generate Music Now'}</span>
+                    <span className="sm:hidden">{musicStatus.status === ('generating' as any) ? 'Generating...' : hasGeneratedMusic ? 'Regenerate (1 credit)' : 'Generate Music'}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          {/* Safe area padding for mobile devices */}
+          <div className="pb-safe" />
         </div>
       )}
     </div>

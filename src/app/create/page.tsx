@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
@@ -157,6 +157,28 @@ export default function CreateSongPage() {
   const router = useRouter()
   const supabase = createClient()
 
+  // Auto-save timer ref
+  const autoSaveTimer = useRef<NodeJS.Timeout | null>(null)
+
+  // Load uncommitted inputs from localStorage on mount
+  useEffect(() => {
+    const savedUncommittedInputs = localStorage.getItem('songcreate_uncommitted_inputs')
+    if (savedUncommittedInputs) {
+      try {
+        const parsed = JSON.parse(savedUncommittedInputs)
+        setUncommittedInputs(parsed)
+      } catch (error) {
+        console.error('Error parsing saved uncommitted inputs:', error)
+      }
+    }
+  }, [])
+
+  // Save uncommitted inputs to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('songcreate_uncommitted_inputs', JSON.stringify(uncommittedInputs))
+  }, [uncommittedInputs])
+
+
   useEffect(() => {
     const checkAuth = async () => {
       const { data: { user } } = await supabase.auth.getUser()
@@ -195,6 +217,12 @@ export default function CreateSongPage() {
   useEffect(() => {
     // Handle browser back button
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      // Auto-save any uncommitted text before checking progress
+      const hasUncommittedText = Object.values(uncommittedInputs).some(value => value.trim())
+      if (hasUncommittedText) {
+        autoSaveUncommittedText()
+      }
+
       // Only show warning if user has made progress
       const hasProgress = currentStep > 1 || 
         formData.subjectName || 
@@ -216,14 +244,7 @@ export default function CreateSongPage() {
         formData.instruments.length > 0 ||
         formData.customGenres.length > 0 ||
         formData.customInstruments.length > 0 ||
-        formData.otherStyle ||
-        // Include uncommitted text in progress check
-        uncommittedInputs.positiveAttributes ||
-        uncommittedInputs.insideJokes ||
-        uncommittedInputs.specialPlaces ||
-        uncommittedInputs.specialMoments ||
-        uncommittedInputs.uniqueCharacteristics ||
-        uncommittedInputs.otherPeople
+        formData.otherStyle
 
       if (hasProgress) {
         e.preventDefault()
@@ -232,6 +253,12 @@ export default function CreateSongPage() {
     }
 
     const handlePopState = () => {
+      // Auto-save any uncommitted text before checking progress
+      const hasUncommittedText = Object.values(uncommittedInputs).some(value => value.trim())
+      if (hasUncommittedText) {
+        autoSaveUncommittedText()
+      }
+
       const hasProgress = currentStep > 1 || 
         formData.subjectName || 
         formData.relationship || 
@@ -252,18 +279,11 @@ export default function CreateSongPage() {
         formData.instruments.length > 0 ||
         formData.customGenres.length > 0 ||
         formData.customInstruments.length > 0 ||
-        formData.otherStyle ||
-        // Include uncommitted text in progress check
-        uncommittedInputs.positiveAttributes ||
-        uncommittedInputs.insideJokes ||
-        uncommittedInputs.specialPlaces ||
-        uncommittedInputs.specialMoments ||
-        uncommittedInputs.uniqueCharacteristics ||
-        uncommittedInputs.otherPeople
+        formData.otherStyle
 
       if (hasProgress) {
         const confirmLeave = window.confirm(
-          'Are you sure you want to leave? Your song creation progress will be lost. Use the on-screen navigation buttons to go back without losing your work.'
+          'Are you sure you want to leave? Your song creation progress has been saved and will be included in your song. Use the on-screen navigation buttons to go back without losing your work.'
         )
         
         if (!confirmLeave) {
@@ -370,7 +390,36 @@ export default function CreateSongPage() {
       uniqueCharacteristics: '',
       otherPeople: ''
     })
+    
+    // Clear localStorage after saving
+    localStorage.removeItem('songcreate_uncommitted_inputs')
   }
+
+  // Periodic auto-save: move uncommitted text to committed lists every 30 seconds
+  useEffect(() => {
+    const startAutoSave = () => {
+      autoSaveTimer.current = setInterval(() => {
+        const hasUncommittedText = Object.values(uncommittedInputs).some(value => value.trim())
+        if (hasUncommittedText) {
+          console.log('Auto-saving uncommitted text...')
+          autoSaveUncommittedText()
+        }
+      }, 30000) // 30 seconds
+    }
+
+    const stopAutoSave = () => {
+      if (autoSaveTimer.current) {
+        clearInterval(autoSaveTimer.current)
+        autoSaveTimer.current = null
+      }
+    }
+
+    // Start auto-save when component mounts
+    startAutoSave()
+
+    // Stop auto-save when component unmounts
+    return stopAutoSave
+  }, [uncommittedInputs, autoSaveUncommittedText])
 
   const addItem = (field: keyof CreateSongFormData, value: string) => {
     if (value.trim()) {
@@ -862,8 +911,22 @@ export default function CreateSongPage() {
         </div>
       </div>
 
+      {/* Auto-save Status Indicator */}
+      {Object.values(uncommittedInputs).some(value => value.trim()) && (
+        <div className="bg-amber-50 dark:bg-amber-900/20 border-b border-amber-200 dark:border-amber-800">
+          <div className="container mx-auto px-4 py-2">
+            <div className="max-w-2xl mx-auto">
+              <div className="flex items-center space-x-2 text-amber-800 dark:text-amber-200 text-sm">
+                <span className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></span>
+                <span>You have unsaved text that will be auto-saved in {Math.ceil((30000 - (Date.now() % 30000)) / 1000)} seconds</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-4 sm:py-6 md:py-8">
+      <main className="container mx-auto px-4 py-4 sm:py-6 md:py-8 pb-40">
         <div className="max-w-2xl mx-auto">
           {/* Step 1: Basic Info */}
           {currentStep === 1 && (
@@ -1299,74 +1362,83 @@ export default function CreateSongPage() {
             </div>
           )}
 
-          {/* Navigation */}
-          <div className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-0 mt-6 sm:mt-8">
-            <button
-              onClick={() => {
-                // Auto-save any uncommitted text before going back
-                autoSaveUncommittedText()
-                setCurrentStep(prev => Math.max(1, prev - 1))
-              }}
-              disabled={currentStep === 1}
-              className="flex items-center justify-center space-x-2 px-4 sm:px-6 py-3 text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 rounded-lg font-semibold hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors min-h-[48px] text-sm sm:text-base touch-manipulation order-2 sm:order-1"
-            >
-              <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
-              <span>Back</span>
-            </button>
-
-            {currentStep < getTotalSteps() ? (
-              <button
-                onClick={() => {
-                  // Auto-save any uncommitted text before moving to next step
-                  autoSaveUncommittedText()
-                  
-                  let nextStep = currentStep + 1
-                  
-                  // Skip steps based on lyrics choice
-                  if (currentStep === 3 && formData.lyricsChoice === 'own') {
-                    nextStep = 4 // Go directly to style for own lyrics
-                  } else if (currentStep === 3 && formData.lyricsChoice === 'ai') {
-                    nextStep = 4 // Go to detailed info for AI lyrics
-                  }
-                  
-                  setCurrentStep(nextStep)
-                  
-                  // Apply presets when reaching style step for the first time
-                  const isReachingStyleStep = (nextStep === 4 && formData.lyricsChoice === 'own') || nextStep === 5
-                  if (isReachingStyleStep && formData.songType && appliedPresetFor !== formData.songType) {
-                    applyOccasionPreset(formData.songType)
-                  }
-                }}
-                disabled={!canProceed()}
-                className="flex items-center justify-center space-x-2 px-6 sm:px-8 py-3 sm:py-4 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors min-h-[48px] text-sm sm:text-base touch-manipulation order-1 sm:order-2"
-              >
-                <span>Next</span>
-                <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" />
-              </button>
-            ) : (
-              <button
-                onClick={() => {
-                  if (process.env.NODE_ENV === 'production') {
-                    setShowConfirmation(true)
-                  } else {
-                    handleSubmit()
-                  }
-                }}
-                disabled={isSubmitting || !canProceed()}
-                className="flex items-center justify-center space-x-2 px-6 sm:px-8 py-3 sm:py-4 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-md hover:shadow-lg min-h-[48px] text-sm sm:text-base touch-manipulation order-1 sm:order-2"
-              >
-                <div className="songmint-icon-only">
-                  <div className="logo-icon">
-                    <div className="music-note">♪</div>
-                  </div>
-                </div>
-                <span className="hidden sm:inline">{isSubmitting ? 'Creating...' : 'Generate Song (1 credit)'}</span>
-                <span className="sm:hidden">{isSubmitting ? 'Creating...' : 'Generate (1 credit)'}</span>
-              </button>
-            )}
-          </div>
         </div>
       </main>
+
+      {/* Sticky Navigation Bar */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-t dark:border-gray-800 shadow-lg">
+        <div className="container mx-auto px-4">
+          <div className="max-w-2xl mx-auto">
+            <div className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-0 py-4 sm:py-5">
+              <button
+                onClick={() => {
+                  // Auto-save any uncommitted text before going back
+                  autoSaveUncommittedText()
+                  setCurrentStep(prev => Math.max(1, prev - 1))
+                }}
+                disabled={currentStep === 1}
+                className="flex items-center justify-center space-x-2 px-4 sm:px-6 py-3 text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 rounded-lg font-semibold hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors min-h-[48px] text-sm sm:text-base touch-manipulation order-2 sm:order-1"
+              >
+                <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
+                <span>Back</span>
+              </button>
+
+              {currentStep < getTotalSteps() ? (
+                <button
+                  onClick={() => {
+                    // Auto-save any uncommitted text before moving to next step
+                    autoSaveUncommittedText()
+                    
+                    let nextStep = currentStep + 1
+                    
+                    // Skip steps based on lyrics choice
+                    if (currentStep === 3 && formData.lyricsChoice === 'own') {
+                      nextStep = 4 // Go directly to style for own lyrics
+                    } else if (currentStep === 3 && formData.lyricsChoice === 'ai') {
+                      nextStep = 4 // Go to detailed info for AI lyrics
+                    }
+                    
+                    setCurrentStep(nextStep)
+                    
+                    // Apply presets when reaching style step for the first time
+                    const isReachingStyleStep = (nextStep === 4 && formData.lyricsChoice === 'own') || nextStep === 5
+                    if (isReachingStyleStep && formData.songType && appliedPresetFor !== formData.songType) {
+                      applyOccasionPreset(formData.songType)
+                    }
+                  }}
+                  disabled={!canProceed()}
+                  className="flex items-center justify-center space-x-2 px-6 sm:px-8 py-3 sm:py-4 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors min-h-[48px] text-sm sm:text-base touch-manipulation order-1 sm:order-2"
+                >
+                  <span>Next</span>
+                  <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" />
+                </button>
+              ) : (
+                <button
+                  onClick={() => {
+                    if (process.env.NODE_ENV === 'production') {
+                      setShowConfirmation(true)
+                    } else {
+                      handleSubmit()
+                    }
+                  }}
+                  disabled={isSubmitting || !canProceed()}
+                  className="flex items-center justify-center space-x-2 px-6 sm:px-8 py-3 sm:py-4 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-md hover:shadow-lg min-h-[48px] text-sm sm:text-base touch-manipulation order-1 sm:order-2"
+                >
+                  <div className="songmint-icon-only">
+                    <div className="logo-icon">
+                      <div className="music-note">♪</div>
+                    </div>
+                  </div>
+                  <span className="hidden sm:inline">{isSubmitting ? 'Creating...' : 'Generate Song (1 credit)'}</span>
+                  <span className="sm:hidden">{isSubmitting ? 'Creating...' : 'Generate (1 credit)'}</span>
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+        {/* Safe area padding for mobile devices */}
+        <div className="pb-safe" />
+      </div>
 
       {/* Confirmation Dialog */}
       {showConfirmation && (
@@ -1434,8 +1506,14 @@ function DetailSection({ title, subtitle, icon: IconComponent, items, onAdd, onR
       <div className="flex items-center space-x-2 mb-2">
         <IconComponent className="h-5 w-5 text-purple-600" />
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{title}</h3>
+        {inputValue.trim() && (
+          <div className="flex items-center space-x-1 px-2 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-200 rounded-full text-xs">
+            <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse"></span>
+            <span>Unsaved text</span>
+          </div>
+        )}
       </div>
-      <p className="text-gray-600 mb-4">{subtitle}</p>
+      <p className="text-gray-600 dark:text-gray-400 mb-4">{subtitle}</p>
       
       {/* Add new item */}
       <div className="flex space-x-2 mb-4">
