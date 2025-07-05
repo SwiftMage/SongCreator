@@ -355,6 +355,24 @@ function GeneratingSongPage() {
 
       // For AI-generated lyrics
       const aiPrompt = songData.questionnaire_data.aiPrompt
+      console.log('Debug lyrics generation:', {
+        songId,
+        hasQuestionnaire: !!songData.questionnaire_data,
+        hasAiPrompt: !!aiPrompt,
+        aiPromptLength: aiPrompt?.length,
+        aiPrompt: aiPrompt?.substring(0, 100) + '...' // Show first 100 chars
+      });
+      
+      if (!aiPrompt) {
+        console.error('No aiPrompt found in questionnaire_data:', songData.questionnaire_data);
+        setGenerationStatus({
+          status: 'error',
+          progress: 0,
+          message: 'Failed to generate song: Missing song prompt data'
+        })
+        return
+      }
+      
       setRequestString(aiPrompt)
 
       // Update status to generating
