@@ -31,6 +31,7 @@ export interface SongFormData {
   customLyrics?: string
   partialLyrics?: string
   lyricsHelp?: string
+  aiPrompt?: string
   
   // Musical style
   genres: string[]

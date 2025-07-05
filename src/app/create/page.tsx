@@ -144,6 +144,16 @@ export default function CreateSongPage() {
     otherStyle: ''
   })
 
+  // State to track uncommitted text in input fields
+  const [uncommittedInputs, setUncommittedInputs] = useState({
+    positiveAttributes: '',
+    insideJokes: '',
+    specialPlaces: '',
+    specialMoments: '',
+    uniqueCharacteristics: '',
+    otherPeople: ''
+  })
+
   const router = useRouter()
   const supabase = createClient()
 
@@ -206,7 +216,14 @@ export default function CreateSongPage() {
         formData.instruments.length > 0 ||
         formData.customGenres.length > 0 ||
         formData.customInstruments.length > 0 ||
-        formData.otherStyle
+        formData.otherStyle ||
+        // Include uncommitted text in progress check
+        uncommittedInputs.positiveAttributes ||
+        uncommittedInputs.insideJokes ||
+        uncommittedInputs.specialPlaces ||
+        uncommittedInputs.specialMoments ||
+        uncommittedInputs.uniqueCharacteristics ||
+        uncommittedInputs.otherPeople
 
       if (hasProgress) {
         e.preventDefault()
@@ -235,7 +252,14 @@ export default function CreateSongPage() {
         formData.instruments.length > 0 ||
         formData.customGenres.length > 0 ||
         formData.customInstruments.length > 0 ||
-        formData.otherStyle
+        formData.otherStyle ||
+        // Include uncommitted text in progress check
+        uncommittedInputs.positiveAttributes ||
+        uncommittedInputs.insideJokes ||
+        uncommittedInputs.specialPlaces ||
+        uncommittedInputs.specialMoments ||
+        uncommittedInputs.uniqueCharacteristics ||
+        uncommittedInputs.otherPeople
 
       if (hasProgress) {
         const confirmLeave = window.confirm(
@@ -261,7 +285,7 @@ export default function CreateSongPage() {
       window.removeEventListener('beforeunload', handleBeforeUnload)
       window.removeEventListener('popstate', handlePopState)
     }
-  }, [currentStep, formData, router])
+  }, [currentStep, formData, router, uncommittedInputs])
 
   // Cleanup notification timeout when component unmounts
   useEffect(() => {
@@ -307,6 +331,45 @@ export default function CreateSongPage() {
     } finally {
       setIsCheckoutLoading(null)
     }
+  }
+
+  // Function to auto-save uncommitted text to form data
+  const autoSaveUncommittedText = () => {
+    setFormData(prev => {
+      const updated = { ...prev }
+      
+      // Auto-add any uncommitted text to respective arrays
+      if (uncommittedInputs.positiveAttributes.trim()) {
+        updated.positiveAttributes = [...prev.positiveAttributes, uncommittedInputs.positiveAttributes.trim()]
+      }
+      if (uncommittedInputs.insideJokes.trim()) {
+        updated.insideJokes = [...prev.insideJokes, uncommittedInputs.insideJokes.trim()]
+      }
+      if (uncommittedInputs.specialPlaces.trim()) {
+        updated.specialPlaces = [...prev.specialPlaces, uncommittedInputs.specialPlaces.trim()]
+      }
+      if (uncommittedInputs.specialMoments.trim()) {
+        updated.specialMoments = [...prev.specialMoments, uncommittedInputs.specialMoments.trim()]
+      }
+      if (uncommittedInputs.uniqueCharacteristics.trim()) {
+        updated.uniqueCharacteristics = [...prev.uniqueCharacteristics, uncommittedInputs.uniqueCharacteristics.trim()]
+      }
+      if (uncommittedInputs.otherPeople.trim()) {
+        updated.otherPeople = [...prev.otherPeople, uncommittedInputs.otherPeople.trim()]
+      }
+      
+      return updated
+    })
+    
+    // Clear uncommitted inputs after saving
+    setUncommittedInputs({
+      positiveAttributes: '',
+      insideJokes: '',
+      specialPlaces: '',
+      specialMoments: '',
+      uniqueCharacteristics: '',
+      otherPeople: ''
+    })
   }
 
   const addItem = (field: keyof CreateSongFormData, value: string) => {
@@ -451,7 +514,7 @@ export default function CreateSongPage() {
     }
   }
 
-  const generateAIPrompt = (data: CreateSongFormData) => {
+  const generateAIPrompt = (data: CreateSongFormData, uncommittedData?: typeof uncommittedInputs) => {
     let prompt = `Please generate lyrics for a ${data.songType} song`
     
     // Add song style details
@@ -523,28 +586,43 @@ export default function CreateSongPage() {
       }
     }
     
-    if (data.positiveAttributes.length > 0) {
-      prompt += `POSITIVE ATTRIBUTES:\n${data.positiveAttributes.map(attr => `- ${attr}`).join('\n')}\n\n`
+    // Combine committed items with uncommitted text for each category
+    const combineItems = (existing: string[], uncommittedKey: keyof typeof uncommittedInputs) => {
+      const items = [...existing]
+      if (uncommittedData && uncommittedData[uncommittedKey].trim()) {
+        items.push(uncommittedData[uncommittedKey].trim())
+      }
+      return items
+    }
+
+    const positiveAttributes = combineItems(data.positiveAttributes, 'positiveAttributes')
+    if (positiveAttributes.length > 0) {
+      prompt += `POSITIVE ATTRIBUTES:\n${positiveAttributes.map(attr => `- ${attr}`).join('\n')}\n\n`
     }
     
-    if (data.insideJokes.length > 0) {
-      prompt += `INSIDE JOKES & REFERENCES:\n${data.insideJokes.map(joke => `- ${joke}`).join('\n')}\n\n`
+    const insideJokes = combineItems(data.insideJokes, 'insideJokes')
+    if (insideJokes.length > 0) {
+      prompt += `INSIDE JOKES & REFERENCES:\n${insideJokes.map(joke => `- ${joke}`).join('\n')}\n\n`
     }
     
-    if (data.specialPlaces.length > 0) {
-      prompt += `SPECIAL PLACES:\n${data.specialPlaces.map(place => `- ${place}`).join('\n')}\n\n`
+    const specialPlaces = combineItems(data.specialPlaces, 'specialPlaces')
+    if (specialPlaces.length > 0) {
+      prompt += `SPECIAL PLACES:\n${specialPlaces.map(place => `- ${place}`).join('\n')}\n\n`
     }
     
-    if (data.specialMoments.length > 0) {
-      prompt += `SPECIAL MOMENTS:\n${data.specialMoments.map(moment => `- ${moment}`).join('\n')}\n\n`
+    const specialMoments = combineItems(data.specialMoments, 'specialMoments')
+    if (specialMoments.length > 0) {
+      prompt += `SPECIAL MOMENTS:\n${specialMoments.map(moment => `- ${moment}`).join('\n')}\n\n`
     }
     
-    if (data.uniqueCharacteristics.length > 0) {
-      prompt += `UNIQUE CHARACTERISTICS:\n${data.uniqueCharacteristics.map(characteristic => `- ${characteristic}`).join('\n')}\n\n`
+    const uniqueCharacteristics = combineItems(data.uniqueCharacteristics, 'uniqueCharacteristics')
+    if (uniqueCharacteristics.length > 0) {
+      prompt += `UNIQUE CHARACTERISTICS:\n${uniqueCharacteristics.map(characteristic => `- ${characteristic}`).join('\n')}\n\n`
     }
     
-    if (data.otherPeople.length > 0) {
-      prompt += `OTHER PEOPLE TO INCLUDE:\n${data.otherPeople.map(person => `- ${person}`).join('\n')}\n\n`
+    const otherPeople = combineItems(data.otherPeople, 'otherPeople')
+    if (otherPeople.length > 0) {
+      prompt += `OTHER PEOPLE TO INCLUDE:\n${otherPeople.map(person => `- ${person}`).join('\n')}\n\n`
     }
     
     prompt += `Please create meaningful, heartfelt lyrics that incorporate these details naturally and authentically capture the relationship and emotions described.`
@@ -554,6 +632,9 @@ export default function CreateSongPage() {
 
   const handleSubmit = async () => {
     setIsSubmitting(true)
+    
+    // Auto-save any uncommitted text before submitting
+    autoSaveUncommittedText()
     
     try {
       // First check if user has credits
@@ -576,7 +657,7 @@ export default function CreateSongPage() {
       }
 
       // Convert CreateSongFormData to SongFormData format
-      const convertedFormData = {
+      let convertedFormData: any = {
         songType: formData.songType,
         subjectName: formData.subjectName,
         subjectRelationship: formData.relationship,
@@ -599,6 +680,13 @@ export default function CreateSongPage() {
         ].filter(item => item.trim() !== '')
       }
 
+      // If using AI lyrics, generate and include the prompt
+      if (formData.lyricsChoice === 'ai') {
+        const aiPrompt = generateAIPrompt(formData, uncommittedInputs)
+        console.log('Generated AI Prompt:', aiPrompt)
+        convertedFormData.aiPrompt = aiPrompt
+      }
+
       const songData: SongData = {
         user_id: user!.id,
         title: `${formData.songType.charAt(0).toUpperCase() + formData.songType.slice(1)} Song for ${formData.subjectName}`,
@@ -609,10 +697,6 @@ export default function CreateSongPage() {
       // If user provided their own lyrics, store them directly
       if (formData.lyricsChoice === 'own') {
         songData.generated_lyrics = formData.ownLyrics
-      } else {
-        // For AI lyrics, generate the prompt
-        const aiPrompt = generateAIPrompt(formData)
-        console.log('Generated AI Prompt:', aiPrompt)
       }
       
       const { data, error } = await supabase
@@ -960,6 +1044,8 @@ export default function CreateSongPage() {
                   onAdd={(value) => addItem('positiveAttributes', value)}
                   onRemove={(index) => removeItem('positiveAttributes', index)}
                   placeholder="e.g., kind, funny, supportive"
+                  inputValue={uncommittedInputs.positiveAttributes}
+                  onInputChange={(value) => setUncommittedInputs(prev => ({ ...prev, positiveAttributes: value }))}
                 />
 
                 {/* Inside Jokes */}
@@ -971,6 +1057,8 @@ export default function CreateSongPage() {
                   onAdd={(value) => addItem('insideJokes', value)}
                   onRemove={(index) => removeItem('insideJokes', index)}
                   placeholder="e.g., that time at the coffee shop"
+                  inputValue={uncommittedInputs.insideJokes}
+                  onInputChange={(value) => setUncommittedInputs(prev => ({ ...prev, insideJokes: value }))}
                 />
 
                 {/* Special Places */}
@@ -982,6 +1070,8 @@ export default function CreateSongPage() {
                   onAdd={(value) => addItem('specialPlaces', value)}
                   onRemove={(index) => removeItem('specialPlaces', index)}
                   placeholder="e.g., the park where we met"
+                  inputValue={uncommittedInputs.specialPlaces}
+                  onInputChange={(value) => setUncommittedInputs(prev => ({ ...prev, specialPlaces: value }))}
                 />
 
                 {/* Special Moments */}
@@ -993,6 +1083,8 @@ export default function CreateSongPage() {
                   onAdd={(value) => addItem('specialMoments', value)}
                   onRemove={(index) => removeItem('specialMoments', index)}
                   placeholder="e.g., our first vacation together"
+                  inputValue={uncommittedInputs.specialMoments}
+                  onInputChange={(value) => setUncommittedInputs(prev => ({ ...prev, specialMoments: value }))}
                 />
 
                 {/* Unique Characteristics */}
@@ -1004,6 +1096,8 @@ export default function CreateSongPage() {
                   onAdd={(value) => addItem('uniqueCharacteristics', value)}
                   onRemove={(index) => removeItem('uniqueCharacteristics', index)}
                   placeholder="e.g., amazing cook, terrible at directions, always optimistic"
+                  inputValue={uncommittedInputs.uniqueCharacteristics}
+                  onInputChange={(value) => setUncommittedInputs(prev => ({ ...prev, uniqueCharacteristics: value }))}
                 />
 
                 {/* Other People to Include */}
@@ -1015,6 +1109,8 @@ export default function CreateSongPage() {
                   onAdd={(value) => addItem('otherPeople', value)}
                   onRemove={(index) => removeItem('otherPeople', index)}
                   placeholder="e.g., our kids Sarah and Mike, mom, best friend Jake"
+                  inputValue={uncommittedInputs.otherPeople}
+                  onInputChange={(value) => setUncommittedInputs(prev => ({ ...prev, otherPeople: value }))}
                 />
 
                 {/* Anniversary-Specific Fields */}
@@ -1206,7 +1302,11 @@ export default function CreateSongPage() {
           {/* Navigation */}
           <div className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-0 mt-6 sm:mt-8">
             <button
-              onClick={() => setCurrentStep(prev => Math.max(1, prev - 1))}
+              onClick={() => {
+                // Auto-save any uncommitted text before going back
+                autoSaveUncommittedText()
+                setCurrentStep(prev => Math.max(1, prev - 1))
+              }}
               disabled={currentStep === 1}
               className="flex items-center justify-center space-x-2 px-4 sm:px-6 py-3 text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 rounded-lg font-semibold hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors min-h-[48px] text-sm sm:text-base touch-manipulation order-2 sm:order-1"
             >
@@ -1217,6 +1317,9 @@ export default function CreateSongPage() {
             {currentStep < getTotalSteps() ? (
               <button
                 onClick={() => {
+                  // Auto-save any uncommitted text before moving to next step
+                  autoSaveUncommittedText()
+                  
                   let nextStep = currentStep + 1
                   
                   // Skip steps based on lyrics choice
@@ -1307,15 +1410,15 @@ interface DetailSectionProps {
   onAdd: (value: string) => void
   onRemove: (index: number) => void
   placeholder: string
+  inputValue: string
+  onInputChange: (value: string) => void
 }
 
-function DetailSection({ title, subtitle, icon: IconComponent, items, onAdd, onRemove, placeholder }: DetailSectionProps) {
-  const [inputValue, setInputValue] = useState('')
-
+function DetailSection({ title, subtitle, icon: IconComponent, items, onAdd, onRemove, placeholder, inputValue, onInputChange }: DetailSectionProps) {
   const handleAdd = () => {
     if (inputValue.trim()) {
       onAdd(inputValue)
-      setInputValue('')
+      onInputChange('') // Clear the input through parent
     }
   }
 
@@ -1327,7 +1430,7 @@ function DetailSection({ title, subtitle, icon: IconComponent, items, onAdd, onR
   }
 
   return (
-    <div className="border-t border-gray-200 pt-6 first:border-t-0 first:pt-0">
+    <div className="border-t border-gray-200 pt-6 first:border-t-0 first:pt-0 pb-6">
       <div className="flex items-center space-x-2 mb-2">
         <IconComponent className="h-5 w-5 text-purple-600" />
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{title}</h3>
@@ -1339,7 +1442,7 @@ function DetailSection({ title, subtitle, icon: IconComponent, items, onAdd, onR
         <input
           type="text"
           value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
+          onChange={(e) => onInputChange(e.target.value)}
           onKeyPress={handleKeyPress}
           className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
           placeholder={placeholder}
@@ -1354,11 +1457,11 @@ function DetailSection({ title, subtitle, icon: IconComponent, items, onAdd, onR
 
       {/* Items list */}
       {items.length > 0 && (
-        <div className="space-y-2">
+        <div className="space-y-2 !mb-6">
           {items.map((item, index) => (
             <div
               key={index}
-              className="flex items-center justify-between p-3 bg-purple-50 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-700 rounded-lg group hover:shadow-sm transition-shadow"
+              className="flex items-center justify-between p-3 bg-purple-50 dark:!bg-gray-700 border border-purple-200 dark:!border-gray-600 rounded-lg group hover:shadow-sm transition-shadow"
             >
               <span className="text-gray-900 dark:text-white flex-1">{item}</span>
               <button
@@ -1441,12 +1544,12 @@ function CustomStyleSection({ title, items, onAdd, onRemove, placeholder }: Cust
           {items.map((item, index) => (
             <div
               key={index}
-              className="flex items-center space-x-1 px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm group"
+              className="flex items-center space-x-1 px-3 py-1 bg-purple-100 dark:!bg-gray-600 text-purple-800 dark:!text-gray-200 rounded-full text-sm group"
             >
               <span>{item}</span>
               <button
                 onClick={() => onRemove(index)}
-                className="ml-1 text-purple-600 hover:text-red-600 transition-colors"
+                className="ml-1 text-purple-600 dark:text-purple-300 hover:text-red-600 dark:hover:text-red-400 transition-colors"
               >
                 <X className="h-3 w-3" />
               </button>
